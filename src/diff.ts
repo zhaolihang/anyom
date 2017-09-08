@@ -40,13 +40,12 @@ function diffProps(a: IPropType, b: IPropType) {
     return diff;
 }
 
-interface IVPatchTree {
-    [index: number]: VPatch | IVPatchTree[];
-}
+
+type VPatchResultType = VPatch | VPatch[];
 
 export interface IDiffMap {
     a: VNode;
-    [index: number]: VPatch | IVPatchTree;
+    [index: number]: VPatchResultType;
 }
 
 export function diff(a: VNode, b?: VNode) {
@@ -85,7 +84,7 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
     }
 }
 
-function diffChildren(a: VNode, b: VNode, patch: IDiffMap, apply: VPatch | IVPatchTree, index: number) {
+function diffChildren(a: VNode, b: VNode, patch: IDiffMap, apply: VPatchResultType, index: number) {
     let aChildren = a.children
     let orderedSet = reorder(aChildren, b.children)
     let bChildren = orderedSet.children
@@ -315,7 +314,7 @@ function keyIndex(children: VNode[]) {
     }
 }
 
-function appendPatch(apply: VPatch | IVPatchTree, patch: VPatch): VPatch | IVPatchTree {
+function appendPatch(apply: VPatchResultType, patch: VPatch): VPatchResultType {
     if (apply) {
         if (isArray(apply)) {
             (<VPatch[]>apply).push(patch)

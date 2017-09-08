@@ -4,9 +4,11 @@
 // We only recurse into a xom node if we know that it contains a child of
 // interest.
 
+import { RNode, VNode } from "./vnode";
+
 let noChild = {}
 
-export function xomIndex(rootNode, tree, indices, nodes?) {
+export function xomIndex(rootNode: RNode, tree: VNode, indices: number[], nodes = undefined) {
     if (!indices || indices.length === 0) {
         return {}
     } else {
@@ -15,7 +17,7 @@ export function xomIndex(rootNode, tree, indices, nodes?) {
     }
 }
 
-function recurse(rootNode, tree, indices, nodes, rootIndex) {
+function recurse(rootNode: RNode, tree, indices, nodes: { [index: number]: RNode }, rootIndex) {
     nodes = nodes || {}
 
 
@@ -68,7 +70,7 @@ function indexInRange(indices, left, right) {
             return currentItem >= left && currentItem <= right
         } else if (currentItem < left) {
             minIndex = currentIndex + 1
-        } else  if (currentItem > right) {
+        } else if (currentItem > right) {
             maxIndex = currentIndex - 1
         } else {
             return true

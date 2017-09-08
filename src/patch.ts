@@ -3,8 +3,9 @@ import { isArray } from "./utils";
 import { patchOp } from "./patch-operation";
 import { createElement, render } from "./create-element";
 import { RNode } from "./vnode";
+import { IDiffMap } from "./diff";
 
-export function patch(rootNode: RNode, patches, renderOptions?) {
+export function patch(rootNode: RNode, patches: IDiffMap, renderOptions?) {
     renderOptions = renderOptions || {}
     renderOptions.patch = renderOptions.patch && renderOptions.patch !== patch
         ? renderOptions.patch
@@ -14,7 +15,7 @@ export function patch(rootNode: RNode, patches, renderOptions?) {
     return renderOptions.patch(rootNode, patches, renderOptions)
 }
 
-function patchRecursive(rootNode, patches, renderOptions) {
+function patchRecursive(rootNode: RNode, patches: IDiffMap, renderOptions: { render: (...any) => any }) {
     let indices = patchIndices(patches)
 
     if (indices.length === 0) {
@@ -25,16 +26,13 @@ function patchRecursive(rootNode, patches, renderOptions) {
 
     for (let i = 0; i < indices.length; i++) {
         let nodeIndex = indices[i]
-        rootNode = applyPatch(rootNode,
-            index[nodeIndex],
-            patches[nodeIndex],
-            renderOptions)
+        rootNode = applyPatch(rootNode, index[nodeIndex], patches[nodeIndex], renderOptions);
     }
 
     return rootNode
 }
 
-function applyPatch(rootNode, xomNode, patchList, renderOptions) {
+function applyPatch(rootNode: RNode, xomNode: RNode, patchList, renderOptions) {
     if (!xomNode) {
         return rootNode
     }
@@ -61,7 +59,7 @@ function applyPatch(rootNode, xomNode, patchList, renderOptions) {
 }
 
 function patchIndices(patches) {
-    let indices = []
+    let indices: number[] = [];
 
     for (let key in patches) {
         if (key !== "a") {
