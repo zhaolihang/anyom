@@ -1,12 +1,13 @@
 
 import { VNode, IRNode } from "./vnode";
 import { applyProperties } from "./apply-properties";
+import { createRNodeByVNode } from "./element";
 
 export function createElement(vnode: VNode): IRNode {
     if (!vnode) {
         throw new Error('虚拟节点不能为空');
     }
-    let node: IRNode = vnode.vRender();
+    let node: IRNode = createRNodeByVNode(vnode);
     let props = vnode.properties
     applyProperties(node, props);
 
@@ -19,7 +20,7 @@ export function createElement(vnode: VNode): IRNode {
         }
     }
 
-    return node
+    return node;
 }
 
 export const render = createElement;

@@ -1,7 +1,7 @@
 import { h } from "../h";
 import { diff } from "../diff";
 import { patch } from "../patch";
-import { createElement } from "../create-element";
+import { render } from "../create-element";
 import { VPatch, VPatchType } from "../vnode";
 
 let log = console.log;
@@ -13,7 +13,7 @@ let rootVNode1 = (<div>
     <img src={'3.png'} ></img>
 </div>)
 
-let rootRNode = createElement(rootVNode1)
+let rootRNode = render(rootVNode1)
 
 let rootVNode2 = (<div data={{ a: 0 }}>
     <img src={'2.png'} ></img>

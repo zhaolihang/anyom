@@ -1,5 +1,5 @@
 
-import { IRNode, ITagType } from "./vnode";
+import { IRNode, ITagType, VNode } from "./vnode";
 
 export class RNode implements IRNode {
     parentNode: IRNode = null
@@ -47,4 +47,6 @@ export class RNode implements IRNode {
 
 }
 
-
+export function createRNodeByVNode(vnode: VNode): IRNode {
+    return new RNode(vnode.tagName);
+}

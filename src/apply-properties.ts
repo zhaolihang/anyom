@@ -12,10 +12,14 @@ export function applyProperties(node: IRNode, props: IPropType, previous?: IProp
             if (isObject(propValue)) {
                 patchObject(node, props, previous, propName, propValue);
             } else {
-                node[propName] = propValue
+                setProperty(node, propName, propValue, previous);
             }
         }
     }
+}
+
+function setProperty(node: IRNode, propName, propValue, previous) {
+    node[propName] = propValue;
 }
 
 function removeProperty(node, propName, propValue, previous) {
@@ -29,12 +33,12 @@ function patchObject(node, props, previous, propName, propValue) {
 
     if (previousValue && isObject(previousValue) &&
         getPrototype(previousValue) !== getPrototype(propValue)) {
-        node[propName] = propValue
+        setProperty(node, propName, propValue, previousValue);
         return
     }
 
     if (!isObject(node[propName])) {
-        node[propName] = {}
+        setProperty(node, propName, {}, undefined);
     }
 
     let replacer = undefined;

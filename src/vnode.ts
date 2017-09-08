@@ -1,5 +1,3 @@
-import { RNode } from "./element";
-
 export type ITagType = any;
 export type IPropType = { [x: string]: any };
 
@@ -24,14 +22,6 @@ export interface IRNode {
     insertBefore: (newNode: IRNode, insertTo: IRNode | null) => void;
 }
 
-let rNodeConstrutor = RNode;
-export function getRNodeConstrutor(): IRNodeConstructor {
-    return rNodeConstrutor;
-}
-export function setRNodeConstrutor(v: IRNodeConstructor) {
-    rNodeConstrutor = v;
-}
-
 export class VNode {
 
     count = 0;
@@ -53,10 +43,6 @@ export class VNode {
             }
         }
         this.count = count + descendants
-    }
-
-    vRender() {
-        return new (getRNodeConstrutor())(this.tagName);
     }
 }
 
