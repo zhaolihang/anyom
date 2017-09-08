@@ -15,21 +15,17 @@ let rootVNode1 = (<div>
 
 let rootRNode = render(rootVNode1)
 
-let rootVNode2 = (<div data={{ a: 0 }}>
+let rootVNode2 = (<span data={{ a: 0 }}>
     <img src={'2.png'} ></img>
     <input value={'00'} ></input>
     <img src={'3.png'} ></img>
     <img src={'5.png'} ></img>
-</div>)
+</span>)
 
 let patches = diff(rootVNode1, rootVNode2);
 log(patches);
 
-assert((patches[0] as VPatch[])[0].type === VPatchType.PROPS);
-assert((patches[0] as VPatch[])[1].type === VPatchType.INSERT);
-
 log(rootRNode);
 let newRootRNode = patch(rootRNode, patches);
 log(newRootRNode);
-
-assert(newRootRNode === rootRNode);
+log(newRootRNode === rootRNode);

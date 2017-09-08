@@ -50,7 +50,7 @@ export class VNode {
 
 export enum VPatchType {
     NONE = 'NONE',
-    VNODE = 'VNODE',
+    REPLACE = 'REPLACE',
     PROPS = 'PROPS',
     ORDER = 'ORDER',
     INSERT = 'INSERT',

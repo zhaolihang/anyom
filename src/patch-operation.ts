@@ -12,7 +12,7 @@ export function patchOp(vpatch: VPatch, xomNode: IRNode, renderOptions) {
             return removeNode(xomNode, vNode)
         case VPatchType.INSERT:
             return insertNode(xomNode, patch, renderOptions)
-        case VPatchType.VNODE:
+        case VPatchType.REPLACE:
             return vNodePatch(xomNode, vNode, patch, renderOptions)
         case VPatchType.ORDER:
             reorderChildren(xomNode, patch)

@@ -72,10 +72,10 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
                 }
                 apply = diffChildren(a, b, patch, apply, index);
             } else {
-                apply = appendPatch(apply, new VPatch(VPatchType.VNODE, a, b));
+                apply = appendPatch(apply, new VPatch(VPatchType.REPLACE, a, b));
             }
         } else {
-            apply = appendPatch(apply, new VPatch(VPatchType.VNODE, a, b));
+            apply = appendPatch(apply, new VPatch(VPatchType.REPLACE, a, b));
         }
     }
 
