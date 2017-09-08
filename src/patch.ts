@@ -5,14 +5,20 @@ import { createElement, render } from "./create-element";
 import { IRNode } from "./vnode";
 import { IDiffMap } from "./diff";
 
-export function patch(rootNode: IRNode, patches: IDiffMap, renderOptions?) {
+export function patch(rootNode: IRNode, patches: IDiffMap, renderOptions?): IRNode {
     renderOptions = renderOptions || {}
     renderOptions.patch = renderOptions.patch && renderOptions.patch !== patch
         ? renderOptions.patch
         : patchRecursive
     renderOptions.render = renderOptions.render || render
-
-    return renderOptions.patch(rootNode, patches, renderOptions)
+    let resultNode = renderOptions.patch(rootNode, patches, renderOptions);
+    if (rootNode !== resultNode) {
+        if (rootNode.parentNode) {
+            let parentNode = rootNode.parentNode;
+            parentNode.replaceChild(resultNode, rootNode);
+        }
+    }
+    return resultNode;
 }
 
 function patchRecursive(rootNode: IRNode, patches: IDiffMap, renderOptions: { render: (...any) => any }) {
