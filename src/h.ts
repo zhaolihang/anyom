@@ -1,8 +1,6 @@
 import { ITagType, IPropType, VNode, isVNode } from "./vnode";
+import { isArray } from "./utils";
 
-export function isArray(x) {
-    return Array.isArray(x);
-}
 export function isChild(x) {
     return isVNode(x)
 }

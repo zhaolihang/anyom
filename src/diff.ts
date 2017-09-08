@@ -1,9 +1,5 @@
 import { VNode, VPatch, VPatchType, isVNode, ITagType, IPropType } from "./vnode";
-import { isArray } from "./h";
-
-export function isObject(x) {
-    return typeof x === "object" && x !== null;
-};
+import { isObject, isArray } from "./utils";
 
 function diffProps(a: IPropType, b: IPropType) {
     var diff

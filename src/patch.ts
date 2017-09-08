@@ -1,7 +1,7 @@
 import { createElement } from "./createElement";
-import { isArray } from "./h";
 import { patchOp } from "./patchOperation";
 import { domIndex } from "./domIndex";
+import { isArray } from "./utils";
 const render = createElement;
 
 export function patch(rootNode, patches, renderOptions?) {

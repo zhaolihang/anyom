@@ -1,5 +1,6 @@
 
-import { isObject, getPrototype } from "./diff";
+import { getPrototype } from "./diff";
+import { isObject } from "./utils";
 
 export function applyProperties(node, props, previous?) {
     for (var propName in props) {
