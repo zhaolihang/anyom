@@ -1,5 +1,5 @@
 import { VNode, VPatch, VPatchType, isVNode, ITagType, IPropType } from "./vnode";
-import { isObject, isArray } from "./utils";
+import { isObject, isArray, getPrototype } from "./utils";
 
 function diffProps(a: IPropType, b: IPropType) {
     var diff
@@ -39,18 +39,6 @@ function diffProps(a: IPropType, b: IPropType) {
 
     return diff
 }
-
-export function getPrototype(value) {
-    if (Object.getPrototypeOf) {
-        return Object.getPrototypeOf(value)
-    } else if (value.__proto__) {
-        return value.__proto__
-    } else if (value.constructor) {
-        return value.constructor.prototype
-    }
-}
-
-
 
 export function diff(a?: VNode, b?: VNode) {
     var patch: { [x: number]: VPatch } = <any>{ a: a }

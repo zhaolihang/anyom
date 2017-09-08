@@ -1,8 +1,8 @@
 
-import { getPrototype } from "./diff";
-import { isObject } from "./utils";
+import { isObject, getPrototype } from "./utils";
+import { RNode, IPropType } from "./vnode";
 
-export function applyProperties(node, props, previous?) {
+export function applyProperties(node: RNode, props: IPropType, previous?: IPropType) {
     for (var propName in props) {
         var propValue = props[propName]
 

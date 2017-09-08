@@ -1,8 +1,8 @@
 
-import { VNode } from "./vnode";
+import { VNode, RNode } from "./vnode";
 import { applyProperties } from "./apply-properties";
 
-export function createElement(vnode: VNode) {
+export function createElement(vnode: VNode): RNode {
     if (!vnode) {
         throw new Error('虚拟节点不能为空');
     }
