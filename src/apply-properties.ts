@@ -1,8 +1,8 @@
 
 import { isObject, getPrototype } from "./utils";
-import { RNode, IPropType } from "./vnode";
+import { IRNode, IPropType } from "./vnode";
 
-export function applyProperties(node: RNode, props: IPropType, previous?: IPropType) {
+export function applyProperties(node: IRNode, props: IPropType, previous?: IPropType) {
     for (let propName in props) {
         let propValue = props[propName]
 

@@ -4,11 +4,11 @@
 // We only recurse into a xom node if we know that it contains a child of
 // interest.
 
-import { RNode, VNode } from "./vnode";
+import { IRNode, VNode } from "./vnode";
 
 let noChild = {}
 
-export function xomIndex(rootNode: RNode, tree: VNode, indices: number[], nodes = undefined) {
+export function xomIndex(rootNode: IRNode, tree: VNode, indices: number[], nodes = undefined) {
     if (!indices || indices.length === 0) {
         return {}
     } else {
@@ -17,7 +17,7 @@ export function xomIndex(rootNode: RNode, tree: VNode, indices: number[], nodes 
     }
 }
 
-function recurse(rootNode: RNode, tree, indices, nodes: { [index: number]: RNode }, rootIndex) {
+function recurse(rootNode: IRNode, tree, indices, nodes: { [index: number]: IRNode }, rootIndex) {
     nodes = nodes || {}
 
 

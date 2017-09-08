@@ -1,3 +1,4 @@
+import { RNode } from "./element";
 
 export type ITagType = any;
 export type IPropType = { [x: string]: any };
@@ -9,52 +10,30 @@ export function isVNode(x) {
     return x && (x instanceof VNode)
 }
 
+interface IRNodeConstructor {
+    new(tagName: ITagType): IRNode;
+}
 
-export class RNode {
-    parentNode: RNode = null
-    childNodes: RNode[] = [];
-    constructor(public readonly tagName: ITagType) { }
-    appendChild(x: RNode) {
-        x.parentNode = this;
-        this.childNodes.push(x);
-    }
+export interface IRNode {
+    tagName: ITagType;
+    parentNode: IRNode;
+    childNodes: IRNode[];
+    appendChild: (x: IRNode) => void;
+    removeChild: (x: IRNode) => void;
+    replaceChild: (newNode: IRNode, xomNode: IRNode) => void;
+    insertBefore: (newNode: IRNode, insertTo: IRNode | null) => void;
+}
 
-    removeChild(x: RNode) {
-        let index = this.childNodes.indexOf(x);
-        if (~index) {
-            x.parentNode = null;
-            this.childNodes.splice(index, 1);
-        }
-    }
-
-    replaceChild(newNode: RNode, xomNode: RNode) {
-        let index = this.childNodes.indexOf(xomNode);
-        if (~index) {
-            xomNode.parentNode = null;
-            this.childNodes.splice(index, 1, newNode);
-        } else {
-            this.childNodes.push(newNode);
-        }
-        newNode.parentNode = this;
-    }
-
-    insertBefore(newNode: RNode, insertTo: RNode | null) {
-        if (insertTo) {
-            let index = this.childNodes.indexOf(insertTo);
-            if (~index) {
-                newNode.parentNode = this;
-                this.childNodes.splice(index, 0, newNode);
-            } else {
-                this.appendChild(newNode);
-            }
-        } else {
-            this.appendChild(newNode);
-        }
-    }
-
+let _rNodeConstrutor = RNode;
+export function getRNodeConstrutor(): IRNodeConstructor {
+    return this._rNodeConstrutor;
+}
+export function setRNodeConstrutor(v: IRNodeConstructor) {
+    this._rNodeConstrutor = v;
 }
 
 export class VNode {
+
     count = 0;
     constructor(public tagName: ITagType, public properties?: IPropType, public children?: VNode[], public key?: number | string) {
         this.tagName = tagName
@@ -77,7 +56,7 @@ export class VNode {
     }
 
     vRender() {
-        return new RNode(this.tagName);
+        return new (getRNodeConstrutor())(this.tagName);
     }
 }
 

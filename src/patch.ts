@@ -2,10 +2,10 @@ import { xomIndex } from "./xom-index";
 import { isArray } from "./utils";
 import { patchOp } from "./patch-operation";
 import { createElement, render } from "./create-element";
-import { RNode } from "./vnode";
+import { IRNode } from "./vnode";
 import { IDiffMap } from "./diff";
 
-export function patch(rootNode: RNode, patches: IDiffMap, renderOptions?) {
+export function patch(rootNode: IRNode, patches: IDiffMap, renderOptions?) {
     renderOptions = renderOptions || {}
     renderOptions.patch = renderOptions.patch && renderOptions.patch !== patch
         ? renderOptions.patch
@@ -15,7 +15,7 @@ export function patch(rootNode: RNode, patches: IDiffMap, renderOptions?) {
     return renderOptions.patch(rootNode, patches, renderOptions)
 }
 
-function patchRecursive(rootNode: RNode, patches: IDiffMap, renderOptions: { render: (...any) => any }) {
+function patchRecursive(rootNode: IRNode, patches: IDiffMap, renderOptions: { render: (...any) => any }) {
     let indices = patchIndices(patches)
 
     if (indices.length === 0) {
@@ -32,7 +32,7 @@ function patchRecursive(rootNode: RNode, patches: IDiffMap, renderOptions: { ren
     return rootNode
 }
 
-function applyPatch(rootNode: RNode, xomNode: RNode, patchList, renderOptions) {
+function applyPatch(rootNode: IRNode, xomNode: IRNode, patchList, renderOptions) {
     if (!xomNode) {
         return rootNode
     }
