@@ -1,17 +1,20 @@
 {
+    "compileOnSave": true,
     "compilerOptions": {
         "module": "commonjs",
-        "lib": ["es5", "es2015.promise", "es6","dom"],
+        "lib": ["es5", "es2015.promise", "es6", "dom"],
         "target": "es5",
         "sourceMap": true,
         "allowJs": true,
         "listFiles": true,
         "strictNullChecks": false,
         "noEmitHelpers": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "jsx": "react",
+        "jsxFactory": "h"
     },
     "include": [
-        "src/**/*ts",
+        "src/**/*",
         "global.d.ts"
     ],
     "exclude": [

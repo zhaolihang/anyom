@@ -3,8 +3,8 @@ import { isObject, getPrototype } from "./utils";
 import { RNode, IPropType } from "./vnode";
 
 export function applyProperties(node: RNode, props: IPropType, previous?: IPropType) {
-    for (var propName in props) {
-        var propValue = props[propName]
+    for (let propName in props) {
+        let propValue = props[propName]
 
         if (propValue === undefined) {
             removeProperty(node, propName, propValue, previous);
@@ -25,7 +25,7 @@ function removeProperty(node, propName, propValue, previous) {
 }
 
 function patchObject(node, props, previous, propName, propValue) {
-    var previousValue = previous ? previous[propName] : undefined
+    let previousValue = previous ? previous[propName] : undefined
 
     if (previousValue && isObject(previousValue) &&
         getPrototype(previousValue) !== getPrototype(propValue)) {
@@ -37,9 +37,9 @@ function patchObject(node, props, previous, propName, propValue) {
         node[propName] = {}
     }
 
-    var replacer = undefined;
-    for (var k in propValue) {
-        var value = propValue[k]
+    let replacer = undefined;
+    for (let k in propValue) {
+        let value = propValue[k]
         node[propName][k] = (value === undefined) ? replacer : value
     }
 }

@@ -3,9 +3,9 @@ import { VPatch, VPatchType, RNode } from "./vnode";
 import { applyProperties } from "./apply-properties";
 
 export function patchOp(vpatch: VPatch, xomNode: RNode, renderOptions) {
-    var type = vpatch.type
-    var vNode = vpatch.vNode
-    var patch = vpatch.patch
+    let type = vpatch.type
+    let vNode = vpatch.vNode
+    let patch = vpatch.patch
 
     switch (type) {
         case VPatchType.REMOVE:
@@ -26,7 +26,7 @@ export function patchOp(vpatch: VPatch, xomNode: RNode, renderOptions) {
 }
 
 function removeNode(xomNode: RNode, vNode) {
-    var parentNode = xomNode.parentNode
+    let parentNode = xomNode.parentNode
 
     if (parentNode) {
         parentNode.removeChild(xomNode)
@@ -36,7 +36,7 @@ function removeNode(xomNode: RNode, vNode) {
 }
 
 function insertNode(parentNode: RNode, vNode, renderOptions) {
-    var newNode = renderOptions.render(vNode, renderOptions)
+    let newNode = renderOptions.render(vNode, renderOptions)
 
     if (parentNode) {
         parentNode.appendChild(newNode)
@@ -46,8 +46,8 @@ function insertNode(parentNode: RNode, vNode, renderOptions) {
 }
 
 function vNodePatch(xomNode: RNode, leftVNode, vNode, renderOptions) {
-    var parentNode = xomNode.parentNode
-    var newNode = renderOptions.render(vNode, renderOptions)
+    let parentNode = xomNode.parentNode
+    let newNode = renderOptions.render(vNode, renderOptions)
 
     if (parentNode && newNode !== xomNode) {
         parentNode.replaceChild(newNode, xomNode)
@@ -58,13 +58,13 @@ function vNodePatch(xomNode: RNode, leftVNode, vNode, renderOptions) {
 
 
 function reorderChildren(xomNode: RNode, moves) {
-    var childNodes = xomNode.childNodes
-    var keyMap = {}
-    var node
-    var remove
-    var insert
+    let childNodes = xomNode.childNodes
+    let keyMap = {}
+    let node
+    let remove
+    let insert
 
-    for (var i = 0; i < moves.removes.length; i++) {
+    for (let i = 0; i < moves.removes.length; i++) {
         remove = moves.removes[i]
         node = childNodes[remove.from]
         if (remove.key) {
@@ -73,8 +73,8 @@ function reorderChildren(xomNode: RNode, moves) {
         xomNode.removeChild(node)
     }
 
-    var length = childNodes.length
-    for (var j = 0; j < moves.inserts.length; j++) {
+    let length = childNodes.length
+    for (let j = 0; j < moves.inserts.length; j++) {
         insert = moves.inserts[j]
         node = keyMap[insert.key]
         // this is the weirdest bug i've ever seen in webkit

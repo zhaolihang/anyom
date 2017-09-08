@@ -62,11 +62,11 @@ export class VNode {
         this.children = children || noChildren
         this.key = key != null ? String(key) : undefined
 
-        var count = (children && children.length) || 0
-        var descendants = 0
+        let count = (children && children.length) || 0
+        let descendants = 0
 
-        for (var i = 0; i < count; i++) {
-            var child = children[i]
+        for (let i = 0; i < count; i++) {
+            let child = children[i]
             if (isVNode(child)) {
                 descendants += child.count || 0
             } else {

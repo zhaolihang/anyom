@@ -21,3 +21,5 @@ export function createElement(vnode: VNode): RNode {
 
     return node
 }
+
+export const render = createElement;

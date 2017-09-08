@@ -4,7 +4,7 @@
 // We only recurse into a xom node if we know that it contains a child of
 // interest.
 
-var noChild = {}
+let noChild = {}
 
 export function xomIndex(rootNode, tree, indices, nodes?) {
     if (!indices || indices.length === 0) {
@@ -24,17 +24,17 @@ function recurse(rootNode, tree, indices, nodes, rootIndex) {
             nodes[rootIndex] = rootNode
         }
 
-        var vChildren = tree.children
+        let vChildren = tree.children
 
         if (vChildren) {
 
-            var childNodes = rootNode.childNodes
+            let childNodes = rootNode.childNodes
 
-            for (var i = 0; i < tree.children.length; i++) {
+            for (let i = 0; i < tree.children.length; i++) {
                 rootIndex += 1
 
-                var vChild = vChildren[i] || noChild
-                var nextIndex = rootIndex + (vChild.count || 0)
+                let vChild = vChildren[i] || noChild
+                let nextIndex = rootIndex + (vChild.count || 0)
 
                 // skip recursion down the tree if there are no nodes down here
                 if (indexInRange(indices, rootIndex, nextIndex)) {
@@ -55,10 +55,10 @@ function indexInRange(indices, left, right) {
         return false
     }
 
-    var minIndex = 0
-    var maxIndex = indices.length - 1
-    var currentIndex
-    var currentItem
+    let minIndex = 0
+    let maxIndex = indices.length - 1
+    let currentIndex
+    let currentItem
 
     while (minIndex <= maxIndex) {
         currentIndex = ((maxIndex + minIndex) / 2) >> 0

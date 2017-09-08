@@ -1,47 +1,45 @@
 import { ITagType, IPropType, VNode, isVNode } from "./vnode";
 import { isArray } from "./utils";
 
-function isChild(x) {
-    return isVNode(x)
-}
+const stack = [];
+const EMPTY_CHILDREN = [];
 
-function isChildren(x) {
-    return isArray(x) || isChild(x);
-}
 
-function addChild(c: VNode[] | VNode, childNodes: VNode[], tag: ITagType, props: IPropType) {
-    if (isChild(c)) {
-        childNodes.push(<VNode>c);
-    } else if (isArray(c)) {
-        for (var i = 0; i < (<VNode[]>c).length; i++) {
-            addChild(c[i], childNodes, tag, props);
+export function h(tagName: ITagType, properties?: IPropType, ...args: any[]) {
+    properties == null ? undefined : properties;
+    let key;
+    if (properties && properties.hasOwnProperty('key')) {
+        key = properties.key;
+        properties.key = undefined;
+    }
+    let children = EMPTY_CHILDREN, child, i;
+    for (i = args.length; i-- > 0;) {
+        stack.push(args[i]);
+    }
+    if (properties && properties.children != null) {
+        if (!stack.length) {
+            stack.push(properties.children);
         }
-    } else if (c === null || c === undefined) {
-        return;
-    } else {
-        throw new Error('非法的子节点');
+        delete properties.children;
     }
-}
+    while (stack.length) {
+        if ((child = stack.pop()) && child.pop !== undefined) {
+            for (i = child.length; i--;)
+                stack.push(child[i]);
+        }
+        else {
+            if (!isVNode(child)) {
+                throw new Error('不是合法的 VNode');
+            }
+            if (children === EMPTY_CHILDREN) {
+                children = [child];
+            } else {
+                children.push(child);
+            }
+        }
+    }
 
 
-export function h(tagName: ITagType, properties?: IPropType | VNode[], children?: VNode[]) {
-    let childNodes = [];
-    let props, key;
-    if (!children && isChildren(properties)) {
-        children = <VNode[]>properties;
-        props = {};
-    }
-
-    props = props || properties || {};
-
-    // support keys
-    if (props.hasOwnProperty('key')) {
-        key = props.key;
-        props.key = undefined;
-    }
-    if (children !== undefined && children !== null) {
-        addChild(children, childNodes, tagName, props);
-    }
-    return new VNode(tagName, props, childNodes, key);
+    return new VNode(tagName, properties, children, key);
 }
 
