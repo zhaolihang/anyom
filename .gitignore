@@ -1,0 +1,6 @@
+*.js.map
+*.js
+node_modules
+.rpt2_cache
+.vscode/chrome
+!rollup.config*
