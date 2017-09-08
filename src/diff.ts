@@ -2,14 +2,14 @@ import { VNode, VPatch, VPatchType, isVNode, ITagType, IPropType } from "./vnode
 import { isObject, isArray, getPrototype } from "./utils";
 
 function diffProps(a: IPropType, b: IPropType) {
-    var diff
-    for (var aKey in a) {
+    let diff;
+    for (let aKey in a) {
         if (!(aKey in b)) {
             diff = diff || {}
             diff[aKey] = undefined
         }
-        var aValue = a[aKey]
-        var bValue = b[aKey]
+        let aValue = a[aKey]
+        let bValue = b[aKey]
 
         if (aValue === bValue) {
             continue
@@ -18,7 +18,7 @@ function diffProps(a: IPropType, b: IPropType) {
                 diff = diff || {}
                 diff[aKey] = bValue
             } else {
-                var objectDiff = diffProps(aValue, bValue)
+                let objectDiff = diffProps(aValue, bValue)
                 if (objectDiff) {
                     diff = diff || {}
                     diff[aKey] = objectDiff
@@ -30,44 +30,53 @@ function diffProps(a: IPropType, b: IPropType) {
         }
     }
 
-    for (var bKey in b) {
+    for (let bKey in b) {
         if (!(bKey in a)) {
             diff = diff || {}
             diff[bKey] = b[bKey]
         }
     }
 
-    return diff
+    return diff;
 }
 
-export function diff(a?: VNode, b?: VNode) {
-    var patch: { [x: number]: VPatch } = <any>{ a: a }
+interface IVPatchTree {
+    [index: number]: VPatch | IVPatchTree[];
+}
+
+export interface IDiffMap {
+    a: VNode;
+    [index: number]: VPatch | IVPatchTree;
+}
+
+export function diff(a: VNode, b?: VNode) {
+    let patch: IDiffMap = { a: a };
     walk(a, b, patch, 0);
-    return patch
+    return patch;
 }
 
-function walk(a: VNode, b: VNode, patch: { [x: number]: VPatch }, index: number) {
+function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
     if (a === b) {
-        return
+        return;
     }
-    var apply = patch[index]
+
+    let apply = patch[index];
 
     if (b == null) {
         apply = appendPatch(apply, new VPatch(VPatchType.REMOVE, a, b))
     } else if (isVNode(b)) {
         if (isVNode(a)) {
             if (a.tagName === b.tagName && a.key === b.key) {
-                var propsPatch = diffProps(a.properties, b.properties)
+                let propsPatch = diffProps(a.properties, b.properties)
                 if (propsPatch) {
-                    apply = appendPatch(apply,
-                        new VPatch(VPatchType.PROPS, a, propsPatch))
+                    apply = appendPatch(apply, new VPatch(VPatchType.PROPS, a, propsPatch));
                 }
-                apply = diffChildren(a, b, patch, apply, index)
+                apply = diffChildren(a, b, patch, apply, index);
             } else {
-                apply = appendPatch(apply, new VPatch(VPatchType.VNODE, a, b))
+                apply = appendPatch(apply, new VPatch(VPatchType.VNODE, a, b));
             }
         } else {
-            apply = appendPatch(apply, new VPatch(VPatchType.VNODE, a, b))
+            apply = appendPatch(apply, new VPatch(VPatchType.VNODE, a, b));
         }
     }
 
@@ -76,25 +85,24 @@ function walk(a: VNode, b: VNode, patch: { [x: number]: VPatch }, index: number)
     }
 }
 
-function diffChildren(a, b, patch, apply, index) {
-    var aChildren = a.children
-    var orderedSet = reorder(aChildren, b.children)
-    var bChildren = orderedSet.children
+function diffChildren(a: VNode, b: VNode, patch: IDiffMap, apply: VPatch | IVPatchTree, index: number) {
+    let aChildren = a.children
+    let orderedSet = reorder(aChildren, b.children)
+    let bChildren = orderedSet.children
 
-    var aLen = aChildren.length
-    var bLen = bChildren.length
-    var len = aLen > bLen ? aLen : bLen
+    let aLen = aChildren.length
+    let bLen = bChildren.length
+    let len = aLen > bLen ? aLen : bLen
 
-    for (var i = 0; i < len; i++) {
-        var leftNode = aChildren[i]
-        var rightNode = bChildren[i]
+    for (let i = 0; i < len; i++) {
+        let leftNode = aChildren[i]
+        let rightNode = bChildren[i]
         index += 1
 
         if (!leftNode) {
             if (rightNode) {
                 // Excess nodes in b need to be added
-                apply = appendPatch(apply,
-                    new VPatch(VPatchType.INSERT, null, rightNode))
+                apply = appendPatch(apply, new VPatch(VPatchType.INSERT, null, rightNode));
             }
         } else {
             walk(leftNode, rightNode, patch, index)
@@ -114,11 +122,11 @@ function diffChildren(a, b, patch, apply, index) {
 }
 
 // List diff, naive left to right reordering
-function reorder(aChildren, bChildren) {
+function reorder(aChildren: VNode[], bChildren: VNode[]) {
     // O(M) time, O(M) memory
-    var bChildIndex = keyIndex(bChildren)
-    var bKeys = bChildIndex.keys
-    var bFree = bChildIndex.free
+    let bChildIndex = keyIndex(bChildren)
+    let bKeys = bChildIndex.keys
+    let bFree = bChildIndex.free
 
     if (bFree.length === bChildren.length) {
         return {
@@ -128,9 +136,9 @@ function reorder(aChildren, bChildren) {
     }
 
     // O(N) time, O(N) memory
-    var aChildIndex = keyIndex(aChildren)
-    var aKeys = aChildIndex.keys
-    var aFree = aChildIndex.free
+    let aChildIndex = keyIndex(aChildren)
+    let aKeys = aChildIndex.keys
+    let aFree = aChildIndex.free
 
     if (aFree.length === aChildren.length) {
         return {
@@ -140,17 +148,17 @@ function reorder(aChildren, bChildren) {
     }
 
     // O(MAX(N, M)) memory
-    var newChildren = []
+    let newChildren = []
 
-    var freeIndex = 0
-    var freeCount = bFree.length
-    var deletedItems = 0
+    let freeIndex = 0
+    let freeCount = bFree.length
+    let deletedItems = 0
 
     // Iterate through a and match a node in b
     // O(N) time,
-    for (var i = 0; i < aChildren.length; i++) {
-        var aItem = aChildren[i]
-        var itemIndex
+    for (let i = 0; i < aChildren.length; i++) {
+        let aItem = aChildren[i]
+        let itemIndex
 
         if (aItem.key) {
             if (bKeys.hasOwnProperty(aItem.key)) {
@@ -178,14 +186,14 @@ function reorder(aChildren, bChildren) {
         }
     }
 
-    var lastFreeIndex = freeIndex >= bFree.length ?
+    let lastFreeIndex = freeIndex >= bFree.length ?
         bChildren.length :
         bFree[freeIndex]
 
     // Iterate through b and append any new keys
     // O(M) time
-    for (var j = 0; j < bChildren.length; j++) {
-        var newItem = bChildren[j]
+    for (let j = 0; j < bChildren.length; j++) {
+        let newItem = bChildren[j]
 
         if (newItem.key) {
             if (!aKeys.hasOwnProperty(newItem.key)) {
@@ -200,14 +208,14 @@ function reorder(aChildren, bChildren) {
         }
     }
 
-    var simulate = newChildren.slice()
-    var simulateIndex = 0
-    var removes = []
-    var inserts = []
-    var simulateItem
+    let simulate = newChildren.slice()
+    let simulateIndex = 0
+    let removes = []
+    let inserts = []
+    let simulateItem
 
-    for (var k = 0; k < bChildren.length;) {
-        var wantedItem = bChildren[k]
+    for (let k = 0; k < bChildren.length;) {
+        let wantedItem = bChildren[k]
         simulateItem = simulate[simulateIndex]
 
         // remove items
@@ -277,7 +285,7 @@ function reorder(aChildren, bChildren) {
     }
 }
 
-function remove(arr, index, key) {
+function remove(arr: any[], index, key) {
     arr.splice(index, 1)
 
     return {
@@ -286,13 +294,13 @@ function remove(arr, index, key) {
     }
 }
 
-function keyIndex(children) {
-    var keys = {}
-    var free = []
-    var length = children.length
+function keyIndex(children: VNode[]) {
+    let keys = {}
+    let free = []
+    let length = children.length
 
-    for (var i = 0; i < length; i++) {
-        var child = children[i]
+    for (let i = 0; i < length; i++) {
+        let child = children[i]
 
         if (child.key) {
             keys[child.key] = i
@@ -307,14 +315,13 @@ function keyIndex(children) {
     }
 }
 
-function appendPatch(apply, patch) {
+function appendPatch(apply: VPatch | IVPatchTree, patch: VPatch): VPatch | IVPatchTree {
     if (apply) {
         if (isArray(apply)) {
-            apply.push(patch)
+            (<VPatch[]>apply).push(patch)
         } else {
-            apply = [apply, patch]
+            apply = (<VPatch[]>[apply, patch]);
         }
-
         return apply
     } else {
         return patch

@@ -1,7 +1,7 @@
-// Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
-// We don't want to read all of the DOM nodes in the tree so we use
+// Maps a virtual xom tree onto a real xom tree in an efficient manner.
+// We don't want to read all of the xom nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
-// We only recurse into a DOM node if we know that it contains a child of
+// We only recurse into a xom node if we know that it contains a child of
 // interest.
 
 var noChild = {}

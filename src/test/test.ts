@@ -1,7 +1,7 @@
 import { h } from "../h";
-import { createElement } from "../createElement";
 import { diff } from "../diff";
 import { patch } from "../patch";
+import { createElement } from "../create-element";
 
 let log = console.log;
 
@@ -13,7 +13,7 @@ var inputVNode = h("input");
 var otherVNode = h("div", inputVNode);
 var otherVNode2 = h("div");
 
-// Update the DOM with the results of a diff
+// Update the xom with the results of a diff
 var patches = diff(rootVNode, otherVNode2)
 log(patches);
 log(rootNode);

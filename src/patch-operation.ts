@@ -2,34 +2,34 @@
 import { VPatch, VPatchType, RNode } from "./vnode";
 import { applyProperties } from "./apply-properties";
 
-export function patchOp(vpatch: VPatch, domNode: RNode, renderOptions) {
+export function patchOp(vpatch: VPatch, xomNode: RNode, renderOptions) {
     var type = vpatch.type
     var vNode = vpatch.vNode
     var patch = vpatch.patch
 
     switch (type) {
         case VPatchType.REMOVE:
-            return removeNode(domNode, vNode)
+            return removeNode(xomNode, vNode)
         case VPatchType.INSERT:
-            return insertNode(domNode, patch, renderOptions)
+            return insertNode(xomNode, patch, renderOptions)
         case VPatchType.VNODE:
-            return vNodePatch(domNode, vNode, patch, renderOptions)
+            return vNodePatch(xomNode, vNode, patch, renderOptions)
         case VPatchType.ORDER:
-            reorderChildren(domNode, patch)
-            return domNode
+            reorderChildren(xomNode, patch)
+            return xomNode
         case VPatchType.PROPS:
-            applyProperties(domNode, patch, vNode.properties)
-            return domNode
+            applyProperties(xomNode, patch, vNode.properties)
+            return xomNode
         default:
-            return domNode
+            return xomNode
     }
 }
 
-function removeNode(domNode: RNode, vNode) {
-    var parentNode = domNode.parentNode
+function removeNode(xomNode: RNode, vNode) {
+    var parentNode = xomNode.parentNode
 
     if (parentNode) {
-        parentNode.removeChild(domNode)
+        parentNode.removeChild(xomNode)
     }
 
     return null
@@ -45,20 +45,20 @@ function insertNode(parentNode: RNode, vNode, renderOptions) {
     return parentNode
 }
 
-function vNodePatch(domNode: RNode, leftVNode, vNode, renderOptions) {
-    var parentNode = domNode.parentNode
+function vNodePatch(xomNode: RNode, leftVNode, vNode, renderOptions) {
+    var parentNode = xomNode.parentNode
     var newNode = renderOptions.render(vNode, renderOptions)
 
-    if (parentNode && newNode !== domNode) {
-        parentNode.replaceChild(newNode, domNode)
+    if (parentNode && newNode !== xomNode) {
+        parentNode.replaceChild(newNode, xomNode)
     }
 
     return newNode
 }
 
 
-function reorderChildren(domNode: RNode, moves) {
-    var childNodes = domNode.childNodes
+function reorderChildren(xomNode: RNode, moves) {
+    var childNodes = xomNode.childNodes
     var keyMap = {}
     var node
     var remove
@@ -70,7 +70,7 @@ function reorderChildren(domNode: RNode, moves) {
         if (remove.key) {
             keyMap[remove.key] = node
         }
-        domNode.removeChild(node)
+        xomNode.removeChild(node)
     }
 
     var length = childNodes.length
@@ -78,6 +78,6 @@ function reorderChildren(domNode: RNode, moves) {
         insert = moves.inserts[j]
         node = keyMap[insert.key]
         // this is the weirdest bug i've ever seen in webkit
-        domNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to])
+        xomNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to])
     }
 }

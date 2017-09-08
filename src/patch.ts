@@ -2,9 +2,10 @@ import { xomIndex } from "./xom-index";
 import { isArray } from "./utils";
 import { patchOp } from "./patch-operation";
 import { createElement } from "./create-element";
+import { RNode } from "./vnode";
 const render = createElement;
 
-export function patch(rootNode, patches, renderOptions?) {
+export function patch(rootNode:RNode , patches, renderOptions?) {
     renderOptions = renderOptions || {}
     renderOptions.patch = renderOptions.patch && renderOptions.patch !== patch
         ? renderOptions.patch
@@ -34,8 +35,8 @@ function patchRecursive(rootNode, patches, renderOptions) {
     return rootNode
 }
 
-function applyPatch(rootNode, domNode, patchList, renderOptions) {
-    if (!domNode) {
+function applyPatch(rootNode, xomNode, patchList, renderOptions) {
+    if (!xomNode) {
         return rootNode
     }
 
@@ -43,16 +44,16 @@ function applyPatch(rootNode, domNode, patchList, renderOptions) {
 
     if (isArray(patchList)) {
         for (var i = 0; i < patchList.length; i++) {
-            newNode = patchOp(patchList[i], domNode, renderOptions)
+            newNode = patchOp(patchList[i], xomNode, renderOptions)
 
-            if (domNode === rootNode) {
+            if (xomNode === rootNode) {
                 rootNode = newNode
             }
         }
     } else {
-        newNode = patchOp(patchList, domNode, renderOptions)
+        newNode = patchOp(patchList, xomNode, renderOptions)
 
-        if (domNode === rootNode) {
+        if (xomNode === rootNode) {
             rootNode = newNode
         }
     }

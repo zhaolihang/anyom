@@ -27,10 +27,10 @@ export class RNode {
         }
     }
 
-    replaceChild(newNode: RNode, domNode: RNode) {
-        let index = this.childNodes.indexOf(domNode);
+    replaceChild(newNode: RNode, xomNode: RNode) {
+        let index = this.childNodes.indexOf(xomNode);
         if (~index) {
-            domNode.parentNode = null;
+            xomNode.parentNode = null;
             this.childNodes.splice(index, 1, newNode);
         } else {
             this.childNodes.push(newNode);
@@ -97,7 +97,7 @@ export function isPatch(x) {
 }
 
 export class VPatch {
-    constructor(public type: VPatchType, public vNode: VNode, public patch) {
+    constructor(public type: VPatchType, public vNode: VNode, public patch?: any) {
     }
 }
 
