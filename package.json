@@ -1,10 +1,11 @@
 {
   "name": "pure-virtual-xom",
   "version": "1.0.0",
-  "description": "",
+  "description": "xom means 'x' object model 'x' means 'any' ",
   "main": "index.js",
   "scripts": {
     "cleansrc":"del-cli src/**/*.js src/**/*.js.map",
+    "build":"tsc",
     "test":"node dist/test/test.js"
   },
   "devDependencies": {
