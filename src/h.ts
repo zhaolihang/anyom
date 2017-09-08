@@ -5,7 +5,7 @@ const stack = [];
 const EMPTY_CHILDREN = [];
 
 
-export function h(tagName: ITagType, properties?: IPropType, ...args: any[]) {
+export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VNode {
     properties == null ? undefined : properties;
     let key;
     if (properties && properties.hasOwnProperty('key')) {
