@@ -16,15 +16,14 @@ let rootVNode1 = (<div>
 let rootRNode = createElement(rootVNode1)
 
 let rootVNode2 = (<div>
-    <img src={'0.png'} ></img>
     <img src={'2.png'} ></img>
-    <img src={'3.png'} ></img>
+    <img src={'0.png'} ></img>
 </div>)
 
 let patches = diff(rootVNode1, rootVNode2);
 log(patches);
 
-assert((patches[1] as VPatch).type === VPatchType.PROPS);
+assert((patches[3] as VPatch).type === VPatchType.REMOVE);
 
 log(rootRNode);
 let newRootRNode = patch(rootRNode, patches);
