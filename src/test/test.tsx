@@ -17,7 +17,7 @@ let rootRNode = createElement(rootVNode1)
 
 let rootVNode2 = (<div>
     <img src={'2.png'} ></img>
-    <img src={'0.png'} ></img>
+    <input value={'00'} ></input>
     <img src={'3.png'} ></img>
     <img src={'5.png'} ></img>
 </div>)
@@ -25,7 +25,7 @@ let rootVNode2 = (<div>
 let patches = diff(rootVNode1, rootVNode2);
 log(patches);
 
-assert((patches[0] as VPatch).type === VPatchType.INSERT);
+assert((patches[2] as VPatch).type === VPatchType.VNODE);
 
 log(rootRNode);
 let newRootRNode = patch(rootRNode, patches);
