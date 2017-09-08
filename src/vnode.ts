@@ -18,7 +18,7 @@ export interface IRNode {
     childNodes: IRNode[];
     appendChild: (x: IRNode) => void;
     removeChild: (x: IRNode) => void;
-    replaceChild: (newNode: IRNode, xomNode: IRNode) => void;
+    replaceChild: (newNode: IRNode, oldNode: IRNode) => void;
     insertBefore: (newNode: IRNode, insertTo: IRNode | null) => void;
 }
 

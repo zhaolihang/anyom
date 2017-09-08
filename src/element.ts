@@ -20,10 +20,10 @@ export class RNode implements IRNode {
         }
     }
 
-    replaceChild(newNode: IRNode, xomNode: IRNode) {
-        let index = this.childNodes.indexOf(xomNode);
+    replaceChild(newNode: IRNode, oldNode: IRNode) {
+        let index = this.childNodes.indexOf(oldNode);
         if (~index) {
-            xomNode.parentNode = null;
+            oldNode.parentNode = null;
             this.childNodes.splice(index, 1, newNode);
         } else {
             this.childNodes.push(newNode);
