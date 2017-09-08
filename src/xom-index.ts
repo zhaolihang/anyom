@@ -6,7 +6,7 @@
 
 var noChild = {}
 
-export function domIndex(rootNode, tree, indices, nodes?) {
+export function xomIndex(rootNode, tree, indices, nodes?) {
     if (!indices || indices.length === 0) {
         return {}
     } else {

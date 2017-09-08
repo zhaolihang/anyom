@@ -1,7 +1,7 @@
-import { createElement } from "./createElement";
-import { patchOp } from "./patchOperation";
-import { domIndex } from "./domIndex";
+import { xomIndex } from "./xom-index";
 import { isArray } from "./utils";
+import { patchOp } from "./patch-operation";
+import { createElement } from "./create-element";
 const render = createElement;
 
 export function patch(rootNode, patches, renderOptions?) {
@@ -21,7 +21,7 @@ function patchRecursive(rootNode, patches, renderOptions) {
         return rootNode
     }
 
-    var index = domIndex(rootNode, patches.a, indices)
+    var index = xomIndex(rootNode, patches.a, indices)
 
     for (var i = 0; i < indices.length; i++) {
         var nodeIndex = indices[i]

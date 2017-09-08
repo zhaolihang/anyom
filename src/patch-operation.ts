@@ -1,6 +1,6 @@
 
 import { VPatch, VPatchType, RNode } from "./vnode";
-import { applyProperties } from "./applyProperties";
+import { applyProperties } from "./apply-properties";
 
 export function patchOp(vpatch: VPatch, domNode: RNode, renderOptions) {
     var type = vpatch.type

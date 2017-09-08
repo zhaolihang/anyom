@@ -1,11 +1,11 @@
 import { ITagType, IPropType, VNode, isVNode } from "./vnode";
 import { isArray } from "./utils";
 
-export function isChild(x) {
+function isChild(x) {
     return isVNode(x)
 }
 
-export function isChildren(x) {
+function isChildren(x) {
     return isArray(x) || isChild(x);
 }
 
@@ -23,10 +23,10 @@ function addChild(c: VNode[] | VNode, childNodes: VNode[], tag: ITagType, props:
     }
 }
 
+
 export function h(tagName: ITagType, properties?: IPropType | VNode[], children?: VNode[]) {
     let childNodes = [];
-    let tag, props, key;
-    tag = tagName
+    let props, key;
     if (!children && isChildren(properties)) {
         children = <VNode[]>properties;
         props = {};
@@ -40,8 +40,8 @@ export function h(tagName: ITagType, properties?: IPropType | VNode[], children?
         props.key = undefined;
     }
     if (children !== undefined && children !== null) {
-        addChild(children, childNodes, tag, props);
+        addChild(children, childNodes, tagName, props);
     }
-    return new VNode(tag, props, childNodes, key);
+    return new VNode(tagName, props, childNodes, key);
 }
 

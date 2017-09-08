@@ -1,6 +1,6 @@
 
 import { VNode } from "./vnode";
-import { applyProperties } from "./applyProperties";
+import { applyProperties } from "./apply-properties";
 
 export function createElement(vnode: VNode) {
     if (!vnode) {
