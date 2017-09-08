@@ -24,12 +24,12 @@ export interface IRNode {
     insertBefore: (newNode: IRNode, insertTo: IRNode | null) => void;
 }
 
-let _rNodeConstrutor = RNode;
+let rNodeConstrutor = RNode;
 export function getRNodeConstrutor(): IRNodeConstructor {
-    return this._rNodeConstrutor;
+    return rNodeConstrutor;
 }
 export function setRNodeConstrutor(v: IRNodeConstructor) {
-    this._rNodeConstrutor = v;
+    rNodeConstrutor = v;
 }
 
 export class VNode {
