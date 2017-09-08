@@ -2,8 +2,10 @@ import { h } from "../h";
 import { diff } from "../diff";
 import { patch } from "../patch";
 import { createElement } from "../create-element";
+import { VPatch, VPatchType } from "../vnode";
 
 let log = console.log;
+let assert = console.assert;
 
 let rootVNode1 = (<div>
     <img src={'1.png'} ></img>
@@ -19,10 +21,13 @@ let rootVNode2 = (<div>
     <img src={'3.png'} ></img>
 </div>)
 
-let patches = diff(rootVNode1, rootVNode2)
-
+let patches = diff(rootVNode1, rootVNode2);
 log(patches);
+
+assert((patches[1] as VPatch).type === VPatchType.PROPS);
+
 log(rootRNode);
 let newRootRNode = patch(rootRNode, patches);
 log(newRootRNode);
-log(newRootRNode === rootRNode);
+
+assert(newRootRNode === rootRNode);
