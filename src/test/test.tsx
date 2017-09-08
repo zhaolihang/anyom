@@ -3,6 +3,7 @@ import { diff } from "../diff";
 import { patch } from "../patch";
 import { render } from "../create-element";
 import { VPatch, VPatchType } from "../vnode";
+import { RNode } from "../element";
 
 let log = console.log;
 let assert = console.assert;
@@ -14,6 +15,8 @@ let rootVNode1 = (<div>
 </div>)
 
 let rootRNode = render(rootVNode1)
+let root = new RNode('root');
+root.appendChild(rootRNode);
 
 let rootVNode2 = (<span data={{ a: 0 }}>
     <img src={'2.png'} ></img>
