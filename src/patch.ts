@@ -7,10 +7,9 @@ import { IDiffMap } from "./diff";
 
 export function patch(rootNode: IRNode, patches: IDiffMap, renderOptions?): IRNode {
     renderOptions = renderOptions || {}
-    renderOptions.patch = renderOptions.patch && renderOptions.patch !== patch
-        ? renderOptions.patch
-        : patchRecursive
-    renderOptions.render = renderOptions.render || render
+    renderOptions.patch = renderOptions.patch && renderOptions.patch !==
+        patch ? renderOptions.patch : patchRecursive;
+    renderOptions.render = renderOptions.render || render;
     let resultNode = renderOptions.patch(rootNode, patches, renderOptions);
     if (rootNode !== resultNode) {
         if (rootNode.parentNode) {

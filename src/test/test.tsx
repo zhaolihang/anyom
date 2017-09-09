@@ -2,7 +2,7 @@ import { h } from "../h";
 import { diff } from "../diff";
 import { patch } from "../patch";
 import { render } from "../create-element";
-import { VPatch, VPatchType } from "../vnode";
+import { VPatch, VPatchType, VNode } from "../vnode";
 import { RNode } from "../element";
 
 let log = console.log;
@@ -15,7 +15,7 @@ let rootVNode1 = (<div>
 </div>)
 
 let rootRNode = render(rootVNode1)
-let root = new RNode('root');
+let root = new RNode(new VNode('root'));
 root.appendChild(rootRNode);
 
 let rootVNode2 = (<span data={{ a: 0 }}>

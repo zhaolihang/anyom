@@ -7,23 +7,28 @@ export function applyProperties(node: IRNode, props: IPropType, previous?: IProp
         let propValue = props[propName]
 
         if (propValue === undefined) {
-            removeProperty(node, propName, propValue, previous);
+            removeAttribute(node, propName, previous);
         } else {
             if (isObject(propValue)) {
                 patchObject(node, props, previous, propName, propValue);
             } else {
-                setProperty(node, propName, propValue, previous);
+                setAttribute(node, propName, propValue, previous);
             }
         }
     }
 }
 
-function setProperty(node: IRNode, propName, propValue, previous) {
-    node[propName] = propValue;
+function setAttribute(node: IRNode, propName, propValue, previous) {
+    node.setAttribute(propName, propValue, previous);
 }
 
-function removeProperty(node, propName, propValue, previous) {
+function setAttributeObject(node: IRNode, propName, propValue, previous) {
+    node.setAttributeObject(propName, propValue, previous);
+}
+
+function removeAttribute(node, propName, previous) {
     if (previous) {
+        node.removeAttribute(propName, previous);
         node[propName] = null
     }
 }
@@ -33,17 +38,13 @@ function patchObject(node, props, previous, propName, propValue) {
 
     if (previousValue && isObject(previousValue) &&
         getPrototype(previousValue) !== getPrototype(propValue)) {
-        setProperty(node, propName, propValue, previousValue);
+        setAttribute(node, propName, propValue, previousValue);
         return
     }
 
     if (!isObject(node[propName])) {
-        setProperty(node, propName, {}, undefined);
+        setAttribute(node, propName, {}, undefined);
     }
 
-    let replacer = undefined;
-    for (let k in propValue) {
-        let value = propValue[k]
-        node[propName][k] = (value === undefined) ? replacer : value
-    }
+    setAttributeObject(node,propName,propValue,previousValue);
 }

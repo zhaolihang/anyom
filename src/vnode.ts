@@ -9,17 +9,22 @@ export function isVNode(x) {
 }
 
 interface IRNodeConstructor {
-    new(tagName: ITagType): IRNode;
+    new(vNode: VNode): IRNode;
 }
 
 export interface IRNode {
-    tagName: ITagType;
+    vNode: VNode;
     parentNode: IRNode;
     childNodes: IRNode[];
+
     appendChild: (x: IRNode) => void;
     removeChild: (x: IRNode) => void;
     replaceChild: (newNode: IRNode, oldNode: IRNode) => void;
     insertBefore: (newNode: IRNode, insertTo: IRNode | null) => void;
+
+    setAttribute: (propName: string, propValue: any, previous?: any) => void;
+    setAttributeObject: (propName: string, propValue: any, previous?: any) => void;
+    removeAttribute: (propName: string, previous?: any) => void;
 }
 
 export class VNode {
