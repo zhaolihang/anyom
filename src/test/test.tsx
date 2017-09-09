@@ -24,6 +24,7 @@ class App extends Component {
     render() {
         return (
             <div class={'app'}>
+                Hello world!
                 <Button title={'951'}></Button>
             </div>
         );
@@ -46,7 +47,15 @@ rootXom.appendChild(root.getElement());
 let rootVNode2 = (<div >
     <input value={'00'} ></input>
     <Button></Button>
-    <App></App>
+    <App>
+        <div>
+            Here is a list:
+            <ul>
+                <li>Item 1</li>
+                <li>Item 2</li>
+            </ul>
+        </div>
+    </App>
 </div>)
 
 setTimeout(() => {
