@@ -3,7 +3,7 @@ import { isArray } from "./utils";
 
 const stack = [];
 const EMPTY_CHILDREN = [];
-
+export const textNodeTagName = '#text';
 
 export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VNode {
     properties == null ? undefined : properties;
@@ -20,7 +20,7 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
         if (!stack.length) {
             stack.push(properties.children);
         }
-        console.log(properties.children)
+        console.log('delete properties.children;')
         delete properties.children;
     }
     while (stack.length) {
@@ -29,6 +29,9 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
                 stack.push(child[i]);
         }
         else {
+            if (typeof child === 'string') {
+                child = new VNode(textNodeTagName, { value: child });
+            }
             if (!isVNode(child)) {
                 throw new Error('不是合法的 VNode');
             }
@@ -39,7 +42,11 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
             }
         }
     }
-
+    if (typeof tagName === 'function' && children.length > 0) {
+        properties = properties || {};
+        properties.children = children;
+        children = EMPTY_CHILDREN;
+    }
     return new VNode(tagName, properties, children, key);
 }
 

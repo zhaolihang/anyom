@@ -9,43 +9,57 @@ import { Component } from "../component";
 let log = console.log;
 let assert = console.assert;
 
-let rootVNode1 = (<div>
-    <img src={'1.png'} ></img>
-    <img src={'2.png'} ></img>
-    <img src={'3.png'} ></img>
-</div>)
-
-let rootRNode = render(rootVNode1)
-let root = new RNode(new VNode('root'));
-root.appendChild(rootRNode);
-
-
-
 class Button extends Component {
     render() {
+        let children = this.props.children;
         log('>>> Button render this.props ->', this.props);
         return (
-            <button name={'simple button'}></button>
+            <button class={'button'} name={'simple button'}>{children || '按钮'}</button>
         );
     }
 }
 
-let rootVNode2 = (<span data={{ a: 0 }}>
-    <img src={'2.png'} ></img>
+
+class App extends Component {
+    render() {
+        return (
+            <div class={'app'}>
+                <Button>but</Button>
+            </div>
+        );
+    }
+}
+
+
+
+let rootVNode1 = (<div>
+    <input value={'123'} ></input>
+</div>)
+let rootXom = document.getElementById('body');
+let rootRNode = render(rootVNode1)
+let root = new RNode(new VNode('div'));
+root.appendChild(rootRNode);
+rootXom.appendChild(root.getElement());
+
+
+
+let rootVNode2 = (<span >
     <input value={'00'} ></input>
-    <Button src={'3.png'} ></Button>
-    <img src={'5.png'} ></img>
+    <Button></Button>
+    <App></App>
 </span>)
 
-let patches = diff(rootVNode1, rootVNode2);
-log('*********************************************');
-log(patches);
+setTimeout(() => {
+    let patches = diff(rootVNode1, rootVNode2);
+    log('*********************************************');
+    log(patches);
 
-log('---------------------------------------------');
-log(rootRNode);
-let newRootRNode = patch(rootRNode, patches);
-log('---------------------------------------------');
-log(newRootRNode);
+    log('---------------------------------------------');
+    log(rootRNode);
+    let newRootRNode = patch(rootRNode, patches);
+    log('---------------------------------------------');
+    log(newRootRNode);
 
-log('---------------------------------------------');
-log(newRootRNode === rootRNode);
+    log('---------------------------------------------');
+    log(newRootRNode === rootRNode);
+}, 2000);

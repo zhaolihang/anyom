@@ -12,10 +12,18 @@ interface IRNodeConstructor {
     new(vNode: VNode): IRNode;
 }
 
+export enum RNodeType {
+    NATIVE = 'NATIVE',
+    IRNODE = 'IRNODE',
+}
 export interface IRNode {
     vNode: VNode;
     parentNode: IRNode;
     childNodes: IRNode[];
+    element: HTMLElement | IRNode;
+    rNodeType: RNodeType;
+
+    getElement(): HTMLElement;
 
     appendChild: (x: IRNode) => void;
     removeChild: (x: IRNode) => void;
