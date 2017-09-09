@@ -1,6 +1,6 @@
-
 import { isObject, getPrototype } from "./utils";
-import { IRNode, IPropType } from "./vnode";
+import { IPropType } from "./vnode";
+import { IRNode } from "./element";
 
 export function applyProperties(node: IRNode, props: IPropType, previous?: IPropType) {
     for (let propName in props) {
@@ -46,5 +46,5 @@ function patchObject(node, props, previous, propName, propValue) {
         setAttribute(node, propName, {}, undefined);
     }
 
-    setAttributeObject(node,propName,propValue,previousValue);
+    setAttributeObject(node, propName, propValue, previousValue);
 }

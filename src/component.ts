@@ -1,8 +1,9 @@
 import { overwrite } from "./utils";
-import { VNode, IRNode } from "./vnode";
+import { VNode } from "./vnode";
 import { diff } from "./diff";
 import { patch } from "./patch";
 import { createElement } from "./create-element";
+import { IRNode } from "./element";
 
 
 export class Component {

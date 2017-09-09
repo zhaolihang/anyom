@@ -1,7 +1,6 @@
-
-import { VNode, IRNode } from "./vnode";
+import { VNode } from "./vnode";
 import { applyProperties } from "./apply-properties";
-import { createRNodeByVNode } from "./element";
+import { createRNodeByVNode, IRNode } from "./element";
 
 export function createElement(vnode: VNode): IRNode {
     if (!vnode) {

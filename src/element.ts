@@ -1,8 +1,29 @@
-
-import { IRNode, ITagType, VNode, RNodeType } from "./vnode";
+import { ITagType, VNode } from "./vnode";
 import { Component } from "./component";
 import { textNodeTagName } from "./h";
 
+export enum RNodeType {
+    NATIVE = 'NATIVE',
+    IRNODE = 'IRNODE',
+}
+export interface IRNode {
+    vNode: VNode;
+    parentNode: IRNode;
+    childNodes: IRNode[];
+    element: HTMLElement | IRNode;
+    rNodeType: RNodeType;
+
+    getElement(): HTMLElement;
+
+    appendChild: (x: IRNode) => void;
+    removeChild: (x: IRNode) => void;
+    replaceChild: (newNode: IRNode, oldNode: IRNode) => void;
+    insertBefore: (newNode: IRNode, insertTo: IRNode | null) => void;
+
+    setAttribute: (propName: string, propValue: any, previous?: any) => void;
+    setAttributeObject: (propName: string, propValue: any, previous?: any) => void;
+    removeAttribute: (propName: string, previous?: any) => void;
+}
 
 /**
  * RNode is a delegate

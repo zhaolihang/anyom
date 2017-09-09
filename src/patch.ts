@@ -2,8 +2,8 @@ import { xomIndex } from "./xom-index";
 import { isArray } from "./utils";
 import { patchOp } from "./patch-operation";
 import { createElement, render } from "./create-element";
-import { IRNode } from "./vnode";
 import { IDiffMap } from "./diff";
+import { IRNode } from "./element";
 
 export function patch(rootNode: IRNode, patches: IDiffMap, renderOptions?): IRNode {
     renderOptions = renderOptions || {}

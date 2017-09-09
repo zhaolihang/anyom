@@ -4,7 +4,8 @@
 // We only recurse into a xom node if we know that it contains a child of
 // interest.
 
-import { IRNode, VNode } from "./vnode";
+import { VNode } from "./vnode";
+import { IRNode } from "./element";
 
 let noChild = {}
 

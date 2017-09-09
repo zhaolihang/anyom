@@ -1,6 +1,7 @@
 
-import { VPatch, VPatchType, IRNode } from "./vnode";
+import { VPatch, VPatchType } from "./vnode";
 import { applyProperties } from "./apply-properties";
+import { IRNode } from "./element";
 
 export function patchOp(vpatch: VPatch, xomNode: IRNode, renderOptions) {
     let type = vpatch.type
