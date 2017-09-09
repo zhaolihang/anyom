@@ -1,10 +1,32 @@
 
 import { IRNode, ITagType, VNode } from "./vnode";
+import { Component } from "./component";
 
+enum RNodeType {
+    NATIVE = 'NATIVE',
+    COMPONENT = 'COMPONENT',
+}
 export class RNode implements IRNode {
     parentNode: IRNode = null
     childNodes: IRNode[] = [];
+    element: any;
+    rNodeType: RNodeType;
     constructor(public vNode: VNode) {
+        if (typeof(vNode.tagName) === 'string') {
+            this.rNodeType = RNodeType.NATIVE;
+            this.element = { tagName: vNode.tagName, properties: vNode.properties };
+        } else if (vNode.tagName instanceof Function) {
+            this.rNodeType = RNodeType.COMPONENT;
+            let Consr = vNode.tagName;
+            let com: Component = new Consr(vNode.properties);
+            if (!(com instanceof Component)) {
+                throw Error('tagName 不是 Component的子类');
+            }
+            com.forceUpdate();
+            this.element = com;
+        } else {
+            throw Error('tagName 只能是string 或 Component的子类构造函数');
+        }
     }
     appendChild(x: IRNode) {
         x.parentNode = this;
@@ -16,6 +38,8 @@ export class RNode implements IRNode {
         if (~index) {
             x.parentNode = null;
             this.childNodes.splice(index, 1);
+        } else {
+            throw Error('被移除的节点没找到,是否是算法错误');
         }
     }
 
@@ -23,11 +47,11 @@ export class RNode implements IRNode {
         let index = this.childNodes.indexOf(oldNode);
         if (~index) {
             oldNode.parentNode = null;
+            newNode.parentNode = this;
             this.childNodes.splice(index, 1, newNode);
         } else {
-            this.childNodes.push(newNode);
+            throw Error('被替换的节点没找到,是否是算法错误');
         }
-        newNode.parentNode = this;
     }
 
     insertBefore(newNode: IRNode, insertTo: IRNode | null) {
@@ -37,10 +61,11 @@ export class RNode implements IRNode {
                 newNode.parentNode = this;
                 this.childNodes.splice(index, 0, newNode);
             } else {
-                this.appendChild(newNode);
+                throw Error('要插入的位置节点没找到,是否是算法错误');
             }
         } else {
-            this.appendChild(newNode);
+            newNode.parentNode = this;
+            this.childNodes.push(newNode);
         }
     }
 

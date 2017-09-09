@@ -4,6 +4,7 @@ import { patch } from "../patch";
 import { render } from "../create-element";
 import { VPatch, VPatchType, VNode } from "../vnode";
 import { RNode } from "../element";
+import { Component } from "../component";
 
 let log = console.log;
 let assert = console.assert;
@@ -18,10 +19,21 @@ let rootRNode = render(rootVNode1)
 let root = new RNode(new VNode('root'));
 root.appendChild(rootRNode);
 
+
+
+class Button extends Component {
+    render() {
+        log('>>> Button render this.props ->', this.props);
+        return (
+            <button name={'simple button'}></button>
+        );
+    }
+}
+
 let rootVNode2 = (<span data={{ a: 0 }}>
     <img src={'2.png'} ></img>
     <input value={'00'} ></input>
-    <img src={'3.png'} ></img>
+    <Button src={'3.png'} ></Button>
     <img src={'5.png'} ></img>
 </span>)
 

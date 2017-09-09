@@ -16,3 +16,13 @@ export function getPrototype(value) {
         return value.constructor.prototype
     }
 }
+
+/** Copy own-properties from `src` onto `target`.
+ *	@returns target
+ */
+export function overwrite(target, src) {
+    for (let i in src) {
+        target[i] = src[i];
+    }
+    return target;
+}

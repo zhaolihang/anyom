@@ -20,6 +20,7 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
         if (!stack.length) {
             stack.push(properties.children);
         }
+        console.log(properties.children)
         delete properties.children;
     }
     while (stack.length) {
@@ -38,7 +39,6 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
             }
         }
     }
-
 
     return new VNode(tagName, properties, children, key);
 }
