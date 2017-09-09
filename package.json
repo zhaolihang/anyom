@@ -11,7 +11,7 @@
     "prebuild": "npm run cleansrcjs & npm run cleardist",
     "build": "rollup -c",
     "cleantest": "del-cli disttest/**/*.js disttest/**/*.js.map ",
-    "buildtest": "rollup -c rollup.config.test.js"
+    "buildtest": "rollup -w -c rollup.config.test.js"
   },
   "devDependencies": {
     "@types/koa": "^2.0.39",

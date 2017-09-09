@@ -43,11 +43,11 @@ rootXom.appendChild(root.getElement());
 
 
 
-let rootVNode2 = (<span >
+let rootVNode2 = (<div >
     <input value={'00'} ></input>
     <Button></Button>
     <App></App>
-</span>)
+</div>)
 
 setTimeout(() => {
     let patches = diff(rootVNode1, rootVNode2);
