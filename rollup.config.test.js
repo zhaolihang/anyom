@@ -10,5 +10,8 @@ export default {
     ],
     dest: './disttest/test.js',
     moduleName: 'test',
-    sourceMap: true
+    sourceMap: true,
+    watch: {
+        exclude: 'node_modules/**'
+    }
 }

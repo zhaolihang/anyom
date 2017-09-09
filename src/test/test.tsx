@@ -42,8 +42,6 @@ let root = new RNode(new VNode('div'));
 root.appendChild(rootRNode);
 rootXom.appendChild(root.getElement());
 
-
-
 let rootVNode2 = (<div >
     <input value={'00'} ></input>
     <Button></Button>
@@ -71,4 +69,4 @@ setTimeout(() => {
 
     log('---------------------------------------------');
     log(newRootRNode === rootRNode);
-}, 2000);
+}, 1000);
