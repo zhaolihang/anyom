@@ -55,7 +55,7 @@ export class RNode implements IRNode {
             let Consr = vNode.tagName;
             let com: Component = new Consr(vNode.properties);
             if (!(com instanceof Component)) {
-                throw new Error('tagName 不是 Component的子类');
+                throw new Error('tagName 不是 Component的子类构造函数');
             }
             this.element = com.forceUpdate();
         } else {
