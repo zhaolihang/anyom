@@ -29,8 +29,8 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
                 stack.push(child[i]);
         }
         else {
-            if (typeof child === 'string') {
-                child = new VNode(textNodeTagName, { value: child });
+            if (typeof child === 'string' || typeof child === 'number' || typeof child === 'boolean') {
+                child = new VNode(textNodeTagName, { value: String(child) });
             }
             if (!isVNode(child)) {
                 throw new Error('不是合法的 VNode');

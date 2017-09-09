@@ -24,7 +24,7 @@ class App extends Component {
     render() {
         return (
             <div class={'app'}>
-                <Button title={'自定义文字按钮'}></Button>
+                <Button title={'951'}></Button>
             </div>
         );
     }
