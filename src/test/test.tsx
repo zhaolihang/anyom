@@ -46,15 +46,15 @@ let rootVNode2 = (<div >
     <input value={'00'} ></input>
     <Button></Button>
     <App>
-        <div>
+        <div style={{ height: '100px', backgroundColor: 'red' }}>
             Here is a list:
-            <ul>
-                <li>Item 1</li>
+            <ul >
+                <li style="background-color:blue">Item 1</li>
                 <li>Item 2</li>
             </ul>
         </div>
     </App>
-</div>)
+</div >)
 
 setTimeout(() => {
     let patches = diff(rootVNode1, rootVNode2);

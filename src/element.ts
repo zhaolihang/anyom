@@ -114,6 +114,9 @@ export class RNode implements IRNode {
     setAttribute(propName: string, propValue: any, previous?: any) {
         this[propName] = propValue;
         this.element.setAttribute && (this.element as any).setAttribute(propName, propValue, previous);
+        if (propName === 'style' && typeof propValue === 'string') {
+            this.getElement().style.cssText = propValue;
+        }
     }
 
     setAttributeObject(propName: string, propValue: any, previous?: any) {
@@ -126,6 +129,14 @@ export class RNode implements IRNode {
         for (let k in propValue) {
             let value = propValue[k]
             this.element[propName][k] = (value === undefined) ? replacer : value
+        }
+
+        if (propName === 'style') {
+            let ele = this.getElement();
+            for (let k in propValue) {
+                let value = propValue[k]
+                ele.style[k] = (value === undefined) ? replacer : value
+            }
         }
     }
 
