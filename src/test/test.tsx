@@ -26,9 +26,14 @@ let rootVNode2 = (<span data={{ a: 0 }}>
 </span>)
 
 let patches = diff(rootVNode1, rootVNode2);
+log('*********************************************');
 log(patches);
 
+log('---------------------------------------------');
 log(rootRNode);
 let newRootRNode = patch(rootRNode, patches);
+log('---------------------------------------------');
 log(newRootRNode);
+
+log('---------------------------------------------');
 log(newRootRNode === rootRNode);
