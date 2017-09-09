@@ -42,11 +42,6 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
             }
         }
     }
-    if (typeof tagName === 'function' && children.length > 0) {
-        properties = properties || {};
-        properties.children = children;
-        children = EMPTY_CHILDREN;
-    }
     return new VNode(tagName, properties, children, key);
 }
 

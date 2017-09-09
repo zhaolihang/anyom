@@ -11,10 +11,10 @@ let assert = console.assert;
 
 class Button extends Component {
     render() {
-        let children = this.props.children;
+        let title = this.props.title;
         log('>>> Button render this.props ->', this.props);
         return (
-            <button class={'button'} name={'simple button'}>{children || '按钮'}</button>
+            <button class={'button'} name={'simple button'}>{title || '按钮'}</button>
         );
     }
 }
@@ -24,7 +24,7 @@ class App extends Component {
     render() {
         return (
             <div class={'app'}>
-                <Button>but</Button>
+                <Button title={'自定义文字按钮'}></Button>
             </div>
         );
     }
