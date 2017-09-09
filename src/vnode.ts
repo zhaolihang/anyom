@@ -30,7 +30,7 @@ export interface IRNode {
 export class VNode {
 
     count = 0;
-    constructor(public tagName: ITagType, public properties?: IPropType, public children?: VNode[], public key?: number | string) {
+    constructor(public tagName: ITagType, public properties?: IPropType, public children?: VNode[], public key?: string) {
         this.tagName = tagName
         this.properties = properties || noProperties
         this.children = children || noChildren

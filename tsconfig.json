@@ -1,8 +1,7 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "module": "commonjs",
-        "lib": ["es5", "es2015.promise", "es6", "dom"],
+        "module": "umd",
         "target": "es5",
         "sourceMap": true,
         "allowJs": true,
@@ -10,7 +9,8 @@
         "strictNullChecks": false,
         "outDir": "dist",
         "jsx": "react",
-        "jsxFactory": "h"
+        "jsxFactory": "h",
+        "moduleResolution": "node"
     },
     "include": [
         "src/**/*",
