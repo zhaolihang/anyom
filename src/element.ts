@@ -55,7 +55,7 @@ export class RNodeProxy implements IRNode {
     constructor(public vNode: VNode) {
         if (typeof (vNode.tagName) === 'string') {
             this.rNodeType = RNodeType.NATIVE;
-            this.element = this.createHTMLByVNode(vNode);
+            this.element = this.createXOMByVNode(vNode);
         } else if (typeof (vNode.tagName) === 'function') {
             this.rNodeType = RNodeType.COMPONENT;
             this.element = this.createComponentByVNode(vNode);
@@ -64,7 +64,7 @@ export class RNodeProxy implements IRNode {
         }
     }
 
-    private createHTMLByVNode(vNode: VNode) {
+    private createXOMByVNode(vNode: VNode) {
         if (vNode.tagName === textNodeTagName) {
             return <Text>(document.createTextNode(vNode.properties.value));
         } else {
@@ -86,13 +86,13 @@ export class RNodeProxy implements IRNode {
         this.childNodes.push(x);
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.htmlAppendChild(x);
+            this.xomAppendChild(x);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentAppendChild(x);
         }
     }
 
-    private htmlAppendChild(x: IRNode) {
+    private xomAppendChild(x: IRNode) {
         (this.element as HTMLElement).appendChild(x.getElement());
     }
     private componentAppendChild(x: IRNode) {
@@ -109,13 +109,13 @@ export class RNodeProxy implements IRNode {
         }
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.htmlRemoveChild(x);
+            this.xomRemoveChild(x);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentRemoveChild(x);
         }
     }
 
-    private htmlRemoveChild(x: IRNode) {
+    private xomRemoveChild(x: IRNode) {
         (this.element as HTMLElement).removeChild(x.getElement());
     }
     private componentRemoveChild(x: IRNode) {
@@ -133,13 +133,13 @@ export class RNodeProxy implements IRNode {
         }
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.htmlReplaceChild(newNode, oldNode);
+            this.xomReplaceChild(newNode, oldNode);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentReplaceChild(newNode, oldNode);
         }
     }
 
-    private htmlReplaceChild(newNode: IRNode, oldNode: IRNode) {
+    private xomReplaceChild(newNode: IRNode, oldNode: IRNode) {
         (this.element as HTMLElement).replaceChild(newNode.getElement(), oldNode.getElement());
     }
     private componentReplaceChild(newNode: IRNode, oldNode: IRNode) {
@@ -161,13 +161,13 @@ export class RNodeProxy implements IRNode {
         }
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.htmlInsertBefore(newNode, insertTo);
+            this.xomInsertBefore(newNode, insertTo);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentInsertBefore(newNode, insertTo);
         }
     }
 
-    private htmlInsertBefore(newNode: IRNode, insertTo: IRNode | null) {
+    private xomInsertBefore(newNode: IRNode, insertTo: IRNode | null) {
         (this.element as HTMLElement).insertBefore(newNode.getElement(), insertTo && insertTo.getElement());
     }
     private componentInsertBefore(newNode: IRNode, insertTo: IRNode | null) {
@@ -178,15 +178,15 @@ export class RNodeProxy implements IRNode {
         this[propName] = propValue;
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.htmlSetAttribute(propName, propValue, previous);
+            this.xomSetAttribute(propName, propValue, previous);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentSetAttribute(propName, propValue, previous);
         }
     }
 
-    private htmlSetAttribute(propName: string, propValue: any, previous?: any) {
+    private xomSetAttribute(propName: string, propValue: any, previous?: any) {
         let element: HTMLElement = this.element;
-        let event = this.getHtmlEventName(propName);
+        let event = this.getXOMEventName(propName);
         if (event) {
             if (previous && previous[propName]) {
                 element.removeEventListener(event.name, previous[propName], event.capture);
@@ -225,14 +225,14 @@ export class RNodeProxy implements IRNode {
 
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.htmlSetAttributeObject(propName, propValue, previous);
+            this.xomSetAttributeObject(propName, propValue, previous);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentSetAttributeObject(propName, propValue, previous);
         }
 
     }
 
-    private htmlSetAttributeObject(propName: string, propValue: any, previous?: any) {
+    private xomSetAttributeObject(propName: string, propValue: any, previous?: any) {
         let replacer = undefined;
         let element = (this.element as HTMLElement);
         if (propName === 'style') {
@@ -255,15 +255,15 @@ export class RNodeProxy implements IRNode {
         this[propName] = null;
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.htmlRemoveAttribute(propName, previous);
+            this.xomRemoveAttribute(propName, previous);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentRemoveAttribute(propName, previous);
         }
     }
 
-    private htmlRemoveAttribute(propName: string, previous?: any) {
+    private xomRemoveAttribute(propName: string, previous?: any) {
         let element: HTMLElement = this.element;
-        let event = this.getHtmlEventName(propName);
+        let event = this.getXOMEventName(propName);
         if (event) {
             if (previous && previous[propName]) {
                 element.removeEventListener(event.name, previous[propName], event.capture);
@@ -276,7 +276,7 @@ export class RNodeProxy implements IRNode {
         (this.element as Component).removeAttribute(propName, previous);
     }
 
-    private getHtmlEventName(propName: string) {
+    private getXOMEventName(propName: string) {
         //propName eg: 'on-click-capture'
         propName = propName.toLowerCase();
         if (startsWith(propName, 'on-')) {
