@@ -12,12 +12,14 @@ let assert = console.assert;
 class Button extends Component {
     render() {
         let title = this.props.title;
+        let onclick = this.props.onclick;
         log('>>> Button render this.props ->', this.props);
         return (
             <button on-click={(e) => {
-                log(e);
-                this.setAttribute('title', Math.random());
-            }} class={'button'} name={'simple button'}>{title || '按钮'}</button>
+                if (onclick) {
+                    onclick(e);
+                }
+            }} class={'button'} >{title || '按钮'}</button>
         );
     }
 }
@@ -25,10 +27,13 @@ class Button extends Component {
 
 class App extends Component {
     render() {
+        let buttonTitle = this.props.buttonTitle || '951';
         return (
             <div class={'app'}>
-                Hello world!
-                <Button title={'951'}></Button>
+                <span style={{ display: 'block' }}>Hello world!</span>
+                <Button onclick={() => {
+                    this.setAttribute('buttonTitle', Math.random());
+                }} title={buttonTitle}></Button>
             </div>
         );
     }
@@ -46,7 +51,8 @@ root.appendChild(rootRNode);
 rootXom.appendChild(root.getElement());
 
 let rootVNode2 = (<div >
-    <Button title={'222'}></Button>
+    <App>
+    </App>
 </div >)
 
 setTimeout(() => {
