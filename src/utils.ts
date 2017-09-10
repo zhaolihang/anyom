@@ -26,3 +26,16 @@ export function overwrite(target, src) {
     }
     return target;
 }
+
+export function startsWith(str: string, searchStr: string, position = 0) {
+    return str.substr(position || 0, searchStr.length) === searchStr;
+}
+
+export function endsWith(str: string, searchStr: string, position = 0) {
+    if (!(position < str.length))
+        position = str.length;
+    else
+        position |= 0; // round position
+    return str.substr(position - searchStr.length, searchStr.length) === searchStr;
+}
+

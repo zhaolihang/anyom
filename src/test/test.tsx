@@ -14,7 +14,10 @@ class Button extends Component {
         let title = this.props.title;
         log('>>> Button render this.props ->', this.props);
         return (
-            <button class={'button'} name={'simple button'}>{title || '按钮'}</button>
+            <button on-click={(e) => {
+                log(e);
+                this.setAttribute('title', Math.random());
+            }} class={'button'} name={'simple button'}>{title || '按钮'}</button>
         );
     }
 }
@@ -34,7 +37,7 @@ class App extends Component {
 
 
 let rootVNode1 = (<div>
-    <input value={'123'} ></input>
+    <Button title={'111'}></Button>
 </div>)
 let rootXom = document.getElementById('body');
 let rootRNode = render(rootVNode1)
@@ -43,17 +46,7 @@ root.appendChild(rootRNode);
 rootXom.appendChild(root.getElement());
 
 let rootVNode2 = (<div >
-    <input value={'00'} ></input>
-    <Button></Button>
-    <App>
-        <div style={{ height: '100px', backgroundColor: 'red' }}>
-            Here is a list:
-            <ul >
-                <li style="background-color:blue">Item 1</li>
-                <li>Item 2</li>
-            </ul>
-        </div>
-    </App>
+    <Button title={'222'}></Button>
 </div >)
 
 setTimeout(() => {

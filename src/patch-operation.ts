@@ -78,7 +78,6 @@ function reorderChildren(xomNode: IRNode, moves) {
     for (let j = 0; j < moves.inserts.length; j++) {
         insert = moves.inserts[j]
         node = keyMap[insert.key]
-        // this is the weirdest bug i've ever seen in webkit
         xomNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to])
     }
 }

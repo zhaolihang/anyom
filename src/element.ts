@@ -1,6 +1,7 @@
 import { ITagType, VNode } from "./vnode";
 import { Component } from "./component";
 import { textNodeTagName } from "./h";
+import { startsWith, endsWith } from "./utils";
 
 export enum RNodeType {
     NATIVE = 'NATIVE',
@@ -184,16 +185,35 @@ export class RNodeProxy implements IRNode {
     }
 
     private htmlSetAttribute(propName: string, propValue: any, previous?: any) {
-        if (this.element.setAttribute) {
+        let element: HTMLElement = this.element;
+        let event = this.getHtmlEventName(propName);
+        if (event) {
+            if (previous && previous[propName]) {
+                element.removeEventListener(event.name, previous[propName], event.capture);
+            }
+            if (!(typeof propValue === 'function')) {
+                throw new Error('事件的值必须是函数');
+            }
+            element.addEventListener(event.name, propValue, event.capture);
+            return;
+        }
+
+        if (element.setAttribute) {
             if (propName === 'style' && typeof propValue === 'string') {
-                (this.element as HTMLElement).style.cssText = propValue;
+                element.style.cssText = propValue;
             } else {
-                (this.element as HTMLElement).setAttribute(propName, propValue);
+                element.setAttribute(propName, propValue);
+            }
+        } else {
+            if (element instanceof Text) {
+                if ((element as Text).nodeValue != propValue) {
+                    (element as Text).nodeValue = propValue;
+                }
             }
         }
     }
     private componentSetAttribute(propName: string, propValue: any, previous?: any) {
-        this.getElement().setAttribute(propName, propValue);
+        (this.element as Component).setAttribute(propName, propValue, previous);
     }
 
     setAttributeObject(propName: string, propValue: any, previous?: any) {
@@ -228,19 +248,7 @@ export class RNodeProxy implements IRNode {
         }
     }
     private componentSetAttributeObject(propName: string, propValue: any, previous?: any) {
-        let replacer = undefined;
-        let element = (this.getElement() as HTMLElement);
-        if (propName === 'style') {
-            for (let k in propValue) {
-                let value = propValue[k]
-                element.style[k] = (value === undefined) ? replacer : value
-            }
-        } else {
-            for (let k in propValue) {
-                let value = propValue[k]
-                element[propName][k] = (value === undefined) ? replacer : value
-            }
-        }
+        (this.element as Component).setAttributeObject(propName, propValue, previous);
     }
 
     removeAttribute(propName: string, previous?: any) {
@@ -254,10 +262,30 @@ export class RNodeProxy implements IRNode {
     }
 
     private htmlRemoveAttribute(propName: string, previous?: any) {
-        (this.element as HTMLElement).removeAttribute(propName);
+        let element: HTMLElement = this.element;
+        let event = this.getHtmlEventName(propName);
+        if (event) {
+            if (previous && previous[propName]) {
+                element.removeEventListener(event.name, previous[propName], event.capture);
+            }
+            return
+        }
+        element.removeAttribute(propName);
     }
     private componentRemoveAttribute(propName: string, previous?: any) {
-        this.getElement().removeAttribute(propName);
+        (this.element as Component).removeAttribute(propName, previous);
+    }
+
+    private getHtmlEventName(propName: string) {
+        //propName eg: 'on-click-capture'
+        propName = propName.toLowerCase();
+        if (startsWith(propName, 'on-')) {
+            if (endsWith(propName, '-capture')) {
+                return { name: propName.substring(3, propName.length - 1 - 8), capture: true };
+            } else {
+                return { name: propName.substring(3), capture: false };
+            }
+        }
     }
 
 }
