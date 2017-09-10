@@ -3,7 +3,7 @@ import { diff } from "../diff";
 import { patch } from "../patch";
 import { render } from "../create-element";
 import { VPatch, VPatchType, VNode } from "../vnode";
-import { RNode } from "../element";
+import { RNodeProxy } from "../element";
 import { Component } from "../component";
 
 let log = console.log;
@@ -38,7 +38,7 @@ let rootVNode1 = (<div>
 </div>)
 let rootXom = document.getElementById('body');
 let rootRNode = render(rootVNode1)
-let root = new RNode(new VNode('div'));
+let root = new RNodeProxy(new VNode('div'));
 root.appendChild(rootRNode);
 rootXom.appendChild(root.getElement());
 

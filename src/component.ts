@@ -18,6 +18,10 @@ export class Component {
         this.state = this.state || {};
     }
 
+    getRNode(): IRNode {
+        return this.renderRNode || this.forceUpdate();
+    }
+
     setProps(props) {
         let s = this.props;
         overwrite(s, props);

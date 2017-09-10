@@ -1,12 +1,12 @@
 import { VNode } from "./vnode";
 import { applyProperties } from "./apply-properties";
-import { createRNodeByVNode, IRNode } from "./element";
+import { createRNodeProxyByVNode, IRNode } from "./element";
 
 export function createElement(vnode: VNode): IRNode {
     if (!vnode) {
         throw new Error('虚拟节点不能为空');
     }
-    let node: IRNode = createRNodeByVNode(vnode);
+    let node: IRNode = createRNodeProxyByVNode(vnode);
     let props = vnode.properties
     applyProperties(node, props);
 
