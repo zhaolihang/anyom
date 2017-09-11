@@ -19,7 +19,11 @@ class Button extends Component {
                 if (onclick) {
                     onclick(e);
                 }
-            }} class={'button'} >{title || '按钮'}</button>
+            }} class={'button'} >{title || '按钮'}
+                <div ref='button div'>
+                    this is a button div
+                </div>
+            </button>
         );
     }
 }
@@ -35,8 +39,8 @@ class App extends Component {
                     log(this.refs)
                     this.setAttribute('buttonTitle', Math.random());
                 }} title={buttonTitle}>
-                    <div ref='div'>
-                        this is a div
+                    <div ref='app div'>
+                        this is a app div
                     </div>
                 </Button>
             </div>
