@@ -16,6 +16,7 @@ export interface IRNode {
     rNodeType: RNodeType;
 
     getElement(): HTMLElement;
+    getObjectAttribute(propName: string): any;
 
     appendChild: (x: IRNode) => void;
     removeChild: (x: IRNode) => void;
@@ -52,29 +53,41 @@ export class RNodeProxy implements IRNode {
         return (<Component>this.element).getRNode().getElement();
     }
 
-    constructor(public vNode: VNode) {
+    getObjectAttribute(propName: string): any {
+        if (this.rNodeType === RNodeType.NATIVE) {
+            return (<HTMLElement>this.element)[propName];
+        } else {
+            return this[propName];
+        }
+    }
+
+    constructor(public vNode: VNode, context?: Component) {
         if (typeof (vNode.tagName) === 'string') {
             this.rNodeType = RNodeType.NATIVE;
-            this.element = this.createXOMByVNode(vNode);
+            this.element = this.createXOMByVNode(vNode, context);
         } else if (typeof (vNode.tagName) === 'function') {
             this.rNodeType = RNodeType.COMPONENT;
-            this.element = this.createComponentByVNode(vNode);
+            this.element = this.createComponentByVNode(vNode, context);
         } else {
             throw new Error('tagName 只能是string 或 Component的子类构造函数');
         }
     }
 
-    private createXOMByVNode(vNode: VNode) {
+    private createXOMByVNode(vNode: VNode, context?: Component) {
         if (vNode.tagName === textNodeTagName) {
             return <Text>(document.createTextNode(vNode.properties.value));
         } else {
-            return <HTMLElement>(document.createElement(vNode.tagName));
+            let xomElement = <HTMLElement>(document.createElement(vNode.tagName));
+            if (context && vNode.properties && vNode.properties.ref) {
+                context.refs[vNode.properties.ref] = xomElement
+            }
+            return xomElement;
         }
     }
 
-    private createComponentByVNode(vNode: VNode): Component {
-        let Consr = vNode.tagName;
-        let com: Component = new Consr(vNode.properties);
+    private createComponentByVNode(vNode: VNode, context?: Component): Component {
+        let Consr: typeof Component = vNode.tagName;
+        let com: Component = new Consr(vNode.properties, context);
         if (!(com instanceof Component)) {
             throw new Error('tagName 不是 Component的子类构造函数');
         }
@@ -202,7 +215,11 @@ export class RNodeProxy implements IRNode {
             if (propName === 'style' && typeof propValue === 'string') {
                 element.style.cssText = propValue;
             } else {
-                element.setAttribute(propName, propValue);
+                if (typeof propValue === 'object') {
+                    element[propName] = propValue;
+                } else {
+                    element.setAttribute(propName, propValue);
+                }
             }
         } else {
             if (element instanceof Text) {
@@ -217,6 +234,7 @@ export class RNodeProxy implements IRNode {
     }
 
     setAttributeObject(propName: string, propValue: any, previous?: any) {
+        this[propName] = this[propName] || {}
         let replacer = undefined;
         for (let k in propValue) {
             let value = propValue[k]
@@ -233,26 +251,21 @@ export class RNodeProxy implements IRNode {
     }
 
     private xomSetAttributeObject(propName: string, propValue: any, previous?: any) {
-        let replacer = undefined;
         let element = (this.element as HTMLElement);
-        if (propName === 'style') {
-            for (let k in propValue) {
-                let value = propValue[k]
-                element.style[k] = (value === undefined) ? replacer : value
-            }
-        } else {
-            for (let k in propValue) {
-                let value = propValue[k]
-                element[propName][k] = (value === undefined) ? replacer : value
-            }
+        element[propName] || (element[propName] = {});
+        let replacer = undefined;
+        for (let k in propValue) {
+            let value = propValue[k]
+            element[propName][k] = (value === undefined) ? replacer : value
         }
     }
+
     private componentSetAttributeObject(propName: string, propValue: any, previous?: any) {
         (this.element as Component).setAttributeObject(propName, propValue, previous);
     }
 
     removeAttribute(propName: string, previous?: any) {
-        this[propName] = null;
+        delete this[propName];
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
             this.xomRemoveAttribute(propName, previous);
@@ -268,9 +281,13 @@ export class RNodeProxy implements IRNode {
             if (previous && previous[propName]) {
                 element.removeEventListener(event.name, previous[propName], event.capture);
             }
-            return
+        } else {
+            if (previous && previous[propName] && typeof previous[propName] === 'object') {
+                element[propName] = undefined;
+            } else {
+                element.removeAttribute(propName);
+            }
         }
-        element.removeAttribute(propName);
     }
     private componentRemoveAttribute(propName: string, previous?: any) {
         (this.element as Component).removeAttribute(propName, previous);
@@ -290,6 +307,6 @@ export class RNodeProxy implements IRNode {
 
 }
 
-export function createRNodeProxyByVNode(vnode: VNode): IRNode {
-    return new RNodeProxy(vnode);
+export function createRNodeProxyByVNode(vnode: VNode, context?: Component): IRNode {
+    return new RNodeProxy(vnode, context);
 }

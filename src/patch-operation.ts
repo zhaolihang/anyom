@@ -2,31 +2,33 @@
 import { VPatch, VPatchType } from "./vnode";
 import { applyProperties } from "./apply-properties";
 import { IRNode } from "./element";
+import { RenderOptions } from "./patch";
+import { Component } from "./component";
 
-export function patchOp(vpatch: VPatch, xomNode: IRNode, renderOptions) {
+export function patchOp(vpatch: VPatch, xomNode: IRNode, context?: Component, renderOptions = RenderOptions) {
     let type = vpatch.type
     let vNode = vpatch.vNode
     let patch = vpatch.patch
 
     switch (type) {
         case VPatchType.REMOVE:
-            return removeNode(xomNode, vNode)
+            return removeNode(xomNode, vNode, context)
         case VPatchType.INSERT:
-            return insertNode(xomNode, patch, renderOptions)
+            return insertNode(xomNode, patch, context, renderOptions)
         case VPatchType.REPLACE:
-            return vNodePatch(xomNode, vNode, patch, renderOptions)
+            return vNodePatch(xomNode, vNode, patch, context, renderOptions)
         case VPatchType.ORDER:
-            reorderChildren(xomNode, patch)
+            reorderChildren(xomNode, patch, context)
             return xomNode
         case VPatchType.PROPS:
-            applyProperties(xomNode, patch, vNode.properties)
+            applyProperties(xomNode, patch, vNode.properties, context)
             return xomNode
         default:
             return xomNode
     }
 }
 
-function removeNode(xomNode: IRNode, vNode) {
+function removeNode(xomNode: IRNode, vNode, context?: Component) {
     let parentNode = xomNode.parentNode
 
     if (parentNode) {
@@ -36,8 +38,8 @@ function removeNode(xomNode: IRNode, vNode) {
     return null
 }
 
-function insertNode(parentNode: IRNode, vNode, renderOptions) {
-    let newNode = renderOptions.render(vNode, renderOptions)
+function insertNode(parentNode: IRNode, vNode, context?: Component, renderOptions = RenderOptions) {
+    let newNode = renderOptions.render(vNode)
 
     if (parentNode) {
         parentNode.appendChild(newNode)
@@ -46,9 +48,9 @@ function insertNode(parentNode: IRNode, vNode, renderOptions) {
     return parentNode
 }
 
-function vNodePatch(xomNode: IRNode, leftVNode, vNode, renderOptions) {
+function vNodePatch(xomNode: IRNode, leftVNode, vNode, context?: Component, renderOptions = RenderOptions) {
     let parentNode = xomNode.parentNode
-    let newNode = renderOptions.render(vNode, renderOptions)
+    let newNode = renderOptions.render(vNode)
 
     if (parentNode && newNode !== xomNode) {
         parentNode.replaceChild(newNode, xomNode)
@@ -58,7 +60,7 @@ function vNodePatch(xomNode: IRNode, leftVNode, vNode, renderOptions) {
 }
 
 
-function reorderChildren(xomNode: IRNode, moves) {
+function reorderChildren(xomNode: IRNode, moves, context?: Component) {
     let childNodes = xomNode.childNodes
     let keyMap = {}
     let node

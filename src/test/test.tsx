@@ -31,7 +31,8 @@ class App extends Component {
         return (
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
-                <Button onclick={() => {
+                <Button ref='ButtonRef' onclick={() => {
+                    log(this.refs['ButtonRef'])
                     this.setAttribute('buttonTitle', Math.random());
                 }} title={buttonTitle}></Button>
             </div>
@@ -41,7 +42,7 @@ class App extends Component {
 
 
 
-let rootVNode1 = (<div>
+let rootVNode1 = (<div style={'height:100px; background-color:red;'}>
     <Button title={'111'}></Button>
 </div>)
 let rootXom = document.getElementById('body');

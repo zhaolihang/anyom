@@ -8,14 +8,18 @@ import { IRNode } from "./element";
 
 export class Component {
     renderRNode: IRNode;
-    context: any;
+    context: Component;
+    refs: { [name: string]: Component | HTMLElement } = {};
     protected props: any;
     protected state: any;
     protected renderedVNode: VNode;
-    constructor(props, context?) {
+    constructor(props, context?: Component) {
         this.props = props || {};
-        this.context = context || {};
+        this.context = context;
         this.state = this.state || {};
+        if (this.context && typeof this.props.ref === 'string') {
+            this.context.refs[this.props.ref] = this;
+        }
     }
 
     getRNode(): IRNode {
@@ -42,13 +46,6 @@ export class Component {
         this.forceUpdate();
     }
 
-
-    // setProps(props) {
-    //     let s = this.props;
-    //     overwrite(s, props);
-    //     this.forceUpdate();
-    // }
-
     setState(state) {
         let s = this.state;
         overwrite(s, state);
@@ -59,12 +56,12 @@ export class Component {
         let newVNode = this.render();
         if (this.renderedVNode && this.renderRNode) {
             let patches = diff(this.renderedVNode, newVNode);
-            let newRootRNode = patch(this.renderRNode, patches);
+            let newRootRNode = patch(this.renderRNode, patches,this);
             this.renderedVNode = newVNode;
             this.renderRNode = newRootRNode;
         } else {
             this.renderedVNode = newVNode;
-            this.renderRNode = createElement(this.renderedVNode);
+            this.renderRNode = createElement(this.renderedVNode, this);
         }
         return this.renderRNode;
     }

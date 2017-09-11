@@ -4,13 +4,11 @@ import { patchOp } from "./patch-operation";
 import { createElement, render } from "./create-element";
 import { IDiffMap } from "./diff";
 import { IRNode } from "./element";
+import { Component } from "./component";
 
-export function patch(rootNode: IRNode, patches: IDiffMap, renderOptions?): IRNode {
-    renderOptions = renderOptions || {}
-    renderOptions.patch = renderOptions.patch && renderOptions.patch !==
-        patch ? renderOptions.patch : patchRecursive;
-    renderOptions.render = renderOptions.render || render;
-    let resultNode = renderOptions.patch(rootNode, patches, renderOptions);
+export const RenderOptions = { patch: patchRecursive, render };
+export function patch(rootNode: IRNode, patches: IDiffMap, context?: Component, renderOptions = RenderOptions): IRNode {
+    let resultNode = renderOptions.patch(rootNode, patches, context, renderOptions);
     if (rootNode !== resultNode) {
         if (rootNode.parentNode) {
             let parentNode = rootNode.parentNode;
@@ -20,7 +18,7 @@ export function patch(rootNode: IRNode, patches: IDiffMap, renderOptions?): IRNo
     return resultNode;
 }
 
-function patchRecursive(rootNode: IRNode, patches: IDiffMap, renderOptions: { render: (...any) => any }) {
+function patchRecursive(rootNode: IRNode, patches: IDiffMap, context?: Component, renderOptions = RenderOptions) {
     let indices = patchIndices(patches)
 
     if (indices.length === 0) {
@@ -31,13 +29,13 @@ function patchRecursive(rootNode: IRNode, patches: IDiffMap, renderOptions: { re
 
     for (let i = 0; i < indices.length; i++) {
         let nodeIndex = indices[i]
-        rootNode = applyPatch(rootNode, index[nodeIndex], patches[nodeIndex], renderOptions);
+        rootNode = applyPatch(rootNode, index[nodeIndex], patches[nodeIndex], context, renderOptions);
     }
 
     return rootNode
 }
 
-function applyPatch(rootNode: IRNode, xomNode: IRNode, patchList, renderOptions) {
+function applyPatch(rootNode: IRNode, xomNode: IRNode, patchList, context?: Component, renderOptions = RenderOptions) {
     if (!xomNode) {
         return rootNode
     }
@@ -46,14 +44,14 @@ function applyPatch(rootNode: IRNode, xomNode: IRNode, patchList, renderOptions)
 
     if (isArray(patchList)) {
         for (let i = 0; i < patchList.length; i++) {
-            newNode = patchOp(patchList[i], xomNode, renderOptions)
+            newNode = patchOp(patchList[i], xomNode, context, renderOptions)
 
             if (xomNode === rootNode) {
                 rootNode = newNode
             }
         }
     } else {
-        newNode = patchOp(patchList, xomNode, renderOptions)
+        newNode = patchOp(patchList, xomNode, context, renderOptions)
 
         if (xomNode === rootNode) {
             rootNode = newNode

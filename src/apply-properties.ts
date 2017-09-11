@@ -1,8 +1,9 @@
 import { isObject, getPrototype } from "./utils";
 import { IPropType } from "./vnode";
 import { IRNode } from "./element";
+import { Component } from "./component";
 
-export function applyProperties(node: IRNode, props: IPropType, previous?: IPropType) {
+export function applyProperties(node: IRNode, props: IPropType, previous?: IPropType, context?: Component) {
     for (let propName in props) {
         let propValue = props[propName]
 
@@ -26,14 +27,14 @@ function setAttributeObject(node: IRNode, propName, propValue, previous) {
     node.setAttributeObject(propName, propValue, previous);
 }
 
-function removeAttribute(node, propName, previous) {
+function removeAttribute(node: IRNode, propName, previous) {
     if (previous) {
         node.removeAttribute(propName, previous);
         node[propName] = null
     }
 }
 
-function patchObject(node, props, previous, propName, propValue) {
+function patchObject(node: IRNode, props, previous, propName, propValue) {
     let previousValue = previous ? previous[propName] : undefined
 
     if (previousValue && isObject(previousValue) &&
@@ -42,7 +43,7 @@ function patchObject(node, props, previous, propName, propValue) {
         return
     }
 
-    if (!isObject(node[propName])) {
+    if (!isObject(node.getObjectAttribute(propName))) {
         setAttribute(node, propName, {}, undefined);
     }
 
