@@ -32,9 +32,13 @@ class App extends Component {
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
                 <Button ref='ButtonRef' onclick={() => {
-                    log(this.refs['ButtonRef'])
+                    log(this.refs)
                     this.setAttribute('buttonTitle', Math.random());
-                }} title={buttonTitle}></Button>
+                }} title={buttonTitle}>
+                    <div ref='div'>
+                        this is a div
+                    </div>
+                </Button>
             </div>
         );
     }

@@ -198,6 +198,9 @@ export class RNodeProxy implements IRNode {
     }
 
     private xomSetAttribute(propName: string, propValue: any, previous?: any) {
+        if (propName === 'ref') {
+            return
+        }
         let element: HTMLElement = this.element;
         let event = this.getXOMEventName(propName);
         if (event) {
@@ -275,6 +278,9 @@ export class RNodeProxy implements IRNode {
     }
 
     private xomRemoveAttribute(propName: string, previous?: any) {
+        if (propName === 'ref') {
+            return
+        }
         let element: HTMLElement = this.element;
         let event = this.getXOMEventName(propName);
         if (event) {
