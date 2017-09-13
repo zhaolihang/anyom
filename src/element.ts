@@ -36,7 +36,7 @@ export class RNodeProxy {
 
     getObjectAttribute(propName: string): any {
         if (this.rNodeType === RNodeType.NATIVE) {
-            return (<HTMLElement>this.element)[propName];
+            return (<HTMLElement>this.element)[propName] || this[propName];
         } else {
             return this[propName];
         }
@@ -81,24 +81,24 @@ export class RNodeProxy {
 
     }
 
-    appendChild(x: RNodeProxy) {
+    appendChild(x: RNodeProxy, context?: Component) {
 
         x.parentNode = this;
         this.childNodes.push(x);
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomAppendChild(x);
+            this.xomAppendChild(x, context);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
-            this.componentAppendChild(x);
+            this.componentAppendChild(x, context);
         }
 
     }
 
-    private xomAppendChild(x: RNodeProxy) {
+    private xomAppendChild(x: RNodeProxy, context?: Component) {
         (this.element as HTMLElement).appendChild(x.getElement());
     }
 
-    private componentAppendChild(x: RNodeProxy) {
+    private componentAppendChild(x: RNodeProxy, context?: Component) {
         this.getElement().appendChild(x.getElement());
     }
 
@@ -148,9 +148,9 @@ export class RNodeProxy {
 
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomReplaceChild(newNode, oldNode);
+            this.xomReplaceChild(newNode, oldNode, context);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
-            this.componentReplaceChild(newNode, oldNode);
+            this.componentReplaceChild(newNode, oldNode, context);
         }
     }
 
@@ -185,18 +185,18 @@ export class RNodeProxy {
 
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomInsertBefore(newNode, insertTo);
+            this.xomInsertBefore(newNode, insertTo, context);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
-            this.componentInsertBefore(newNode, insertTo);
+            this.componentInsertBefore(newNode, insertTo, context);
         }
 
     }
 
-    private xomInsertBefore(newNode: RNodeProxy, insertTo: RNodeProxy | null) {
+    private xomInsertBefore(newNode: RNodeProxy, insertTo: RNodeProxy | null, context?: Component) {
         (this.element as HTMLElement).insertBefore(newNode.getElement(), insertTo && insertTo.getElement());
     }
 
-    private componentInsertBefore(newNode: RNodeProxy, insertTo: RNodeProxy | null) {
+    private componentInsertBefore(newNode: RNodeProxy, insertTo: RNodeProxy | null, context?: Component) {
         this.getElement().replaceChild(newNode.getElement(), insertTo && insertTo.getElement());
     }
 
@@ -257,6 +257,7 @@ export class RNodeProxy {
         }
 
     }
+
     private componentSetAttribute(propName: string, propValue: any, previous?: any, context?: Component) {
         (this.element as Component).setAttribute(propName, propValue, previous, context);
     }
@@ -279,19 +280,19 @@ export class RNodeProxy {
 
     }
 
-    private xomSetAttributeObject(propName: string, propValue: any, previous?: any) {
+    private xomSetAttributeObject(propName: string, propValue: any, previous?: any, context?: Component) {
 
         let element = (this.element as HTMLElement);
         element[propName] || (element[propName] = {});
         let replacer = undefined;
         for (let k in propValue) {
-            let value = propValue[k]
-            element[propName][k] = (value === undefined) ? replacer : value
+            let value = propValue[k];
+            element[propName][k] = (value === undefined) ? replacer : value;
         }
 
     }
 
-    private componentSetAttributeObject(propName: string, propValue: any, previous?: any) {
+    private componentSetAttributeObject(propName: string, propValue: any, previous?: any, context?: Component) {
         (this.element as Component).setAttributeObject(propName, propValue, previous);
     }
 

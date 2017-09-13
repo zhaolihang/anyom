@@ -12,7 +12,7 @@ export function patch(rootNode: RNodeProxy, patches: IDiffMap, context?: Compone
     if (rootNode !== resultNode) {
         let parentNode = rootNode.parentNode;
         if (parentNode) {
-            parentNode.replaceChild(resultNode, rootNode);
+            parentNode.replaceChild(resultNode, rootNode,context);
         }
     }
     return resultNode;
