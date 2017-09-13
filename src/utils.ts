@@ -9,11 +9,11 @@ export function isArray(x) {
 
 export function getPrototype(value) {
     if (Object.getPrototypeOf) {
-        return Object.getPrototypeOf(value)
+        return Object.getPrototypeOf(value);
     } else if (value.__proto__) {
-        return value.__proto__
+        return value.__proto__;
     } else if (value.constructor) {
-        return value.constructor.prototype
+        return value.constructor.prototype;
     }
 }
 
@@ -32,10 +32,12 @@ export function startsWith(str: string, searchStr: string, position = 0) {
 }
 
 export function endsWith(str: string, searchStr: string, position = 0) {
-    if (!(position < str.length))
+    if (!(position < str.length)) {
         position = str.length;
-    else
+    }
+    else {
         position |= 0; // round position
+    }
     return str.substr(position - searchStr.length, searchStr.length) === searchStr;
 }
 

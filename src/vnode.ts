@@ -1,36 +1,37 @@
 export type ITagType = any;
 export type IPropType = { [x: string]: any };
 
-let noProperties = {}
-let noChildren = []
+let noProperties = {};
+let noChildren = [];
 
 export function isVNode(x) {
-    return x && (x instanceof VNode)
+    return x && (x.__type === '__VNode');
 }
 
 export class VNode {
 
     count = 0;
     constructor(public tagName: ITagType, public properties?: IPropType, public children?: VNode[], public key?: string) {
-        this.tagName = tagName
-        this.properties = properties || noProperties
-        this.children = children || noChildren
-        this.key = key != null ? String(key) : undefined
+        this.tagName = tagName;
+        this.properties = properties || noProperties;
+        this.children = children || noChildren;
+        this.key = key != null ? String(key) : undefined;
 
-        let count = (children && children.length) || 0
-        let descendants = 0
+        let count = (children && children.length) || 0;
+        let descendants = 0;
 
         for (let i = 0; i < count; i++) {
-            let child = children[i]
+            let child = children[i];
             if (isVNode(child)) {
-                descendants += child.count || 0
+                descendants += child.count || 0;
             } else {
-                throw new Error('must be VNode')
+                throw new Error('must be VNode');
             }
         }
-        this.count = count + descendants
+        this.count = count + descendants;
     }
 }
+(VNode.prototype as any).__type = '__VNode';
 
 //
 
@@ -44,11 +45,10 @@ export enum VPatchType {
 }
 
 export function isPatch(x) {
-    return x && (x instanceof VPatch)
+    return x && (x instanceof VPatch);
 }
 
 export class VPatch {
     constructor(public type: VPatchType, public vNode: VNode, public patch?: any) {
     }
 }
-

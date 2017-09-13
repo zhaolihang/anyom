@@ -8,15 +8,15 @@ export function createElement(vnode: VNode, context?: Component): RNodeProxy {
         throw new Error('虚拟节点不能为空');
     }
     let node: RNodeProxy = createRNodeProxyByVNode(vnode, context);
-    let props = vnode.properties
+    let props = vnode.properties;
     applyProperties(node, props, undefined, context);
 
     let children = vnode.children;
 
     for (let i = 0; i < children.length; i++) {
-        let childNode = createElement(children[i], context)
+        let childNode = createElement(children[i], context);
         if (childNode) {
-            node.appendChild(childNode)
+            node.appendChild(childNode);
         }
     }
 

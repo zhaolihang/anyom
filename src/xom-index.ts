@@ -7,74 +7,74 @@
 import { VNode } from "./vnode";
 import { RNodeProxy } from "./element";
 
-let noChild = {}
+let noChild = {};
 
 export function xomIndex(rootNode: RNodeProxy, tree: VNode, indices: number[], nodes = undefined) {
     if (!indices || indices.length === 0) {
-        return {}
+        return {};
     } else {
-        indices.sort(ascending)
-        return recurse(rootNode, tree, indices, nodes, 0)
+        indices.sort(ascending);
+        return recurse(rootNode, tree, indices, nodes, 0);
     }
 }
 
 function recurse(rootNode: RNodeProxy, tree, indices, nodes: { [index: number]: RNodeProxy }, rootIndex) {
-    nodes = nodes || {}
+    nodes = nodes || {};
 
 
     if (rootNode) {
         if (indexInRange(indices, rootIndex, rootIndex)) {
-            nodes[rootIndex] = rootNode
+            nodes[rootIndex] = rootNode;
         }
 
-        let vChildren = tree.children
+        let vChildren = tree.children;
 
         if (vChildren) {
 
-            let childNodes = rootNode.childNodes
+            let childNodes = rootNode.childNodes;
 
             for (let i = 0; i < tree.children.length; i++) {
-                rootIndex += 1
+                rootIndex += 1;
 
-                let vChild = vChildren[i] || noChild
-                let nextIndex = rootIndex + (vChild.count || 0)
+                let vChild = vChildren[i] || noChild;
+                let nextIndex = rootIndex + (vChild.count || 0);
 
                 // skip recursion down the tree if there are no nodes down here
                 if (indexInRange(indices, rootIndex, nextIndex)) {
-                    recurse(childNodes[i], vChild, indices, nodes, rootIndex)
+                    recurse(childNodes[i], vChild, indices, nodes, rootIndex);
                 }
 
-                rootIndex = nextIndex
+                rootIndex = nextIndex;
             }
         }
     }
 
-    return nodes
+    return nodes;
 }
 
 // Binary search for an index in the interval [left, right]
 function indexInRange(indices, left, right) {
     if (indices.length === 0) {
-        return false
+        return false;
     }
 
-    let minIndex = 0
-    let maxIndex = indices.length - 1
-    let currentIndex
-    let currentItem
+    let minIndex = 0;
+    let maxIndex = indices.length - 1;
+    let currentIndex;
+    let currentItem;
 
     while (minIndex <= maxIndex) {
-        currentIndex = ((maxIndex + minIndex) / 2) >> 0
-        currentItem = indices[currentIndex]
+        currentIndex = ((maxIndex + minIndex) / 2) >> 0;
+        currentItem = indices[currentIndex];
 
         if (minIndex === maxIndex) {
-            return currentItem >= left && currentItem <= right
+            return currentItem >= left && currentItem <= right;
         } else if (currentItem < left) {
-            minIndex = currentIndex + 1
+            minIndex = currentIndex + 1;
         } else if (currentItem > right) {
-            maxIndex = currentIndex - 1
+            maxIndex = currentIndex - 1;
         } else {
-            return true
+            return true;
         }
     }
 
@@ -82,5 +82,5 @@ function indexInRange(indices, left, right) {
 }
 
 function ascending(a, b) {
-    return a > b ? 1 : -1
+    return a > b ? 1 : -1;
 }

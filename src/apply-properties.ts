@@ -4,8 +4,9 @@ import { RNodeProxy } from "./element";
 import { Component } from "./component";
 
 export function applyProperties(node: RNodeProxy, props: IPropType, previous?: IPropType, context?: Component) {
+
     for (let propName in props) {
-        let propValue = props[propName]
+        let propValue = props[propName];
 
         if (propValue === undefined) {
             removeAttribute(node, propName, previous, context);
@@ -17,27 +18,31 @@ export function applyProperties(node: RNodeProxy, props: IPropType, previous?: I
             }
         }
     }
+
 }
+
 function setAttribute(node: RNodeProxy, propName, propValue, previous, context) {
     node.setAttribute(propName, propValue, previous, context);
 }
+
 function setAttributeObject(node: RNodeProxy, propName, propValue, previous) {
     node.setAttributeObject(propName, propValue, previous);
 }
+
 function removeAttribute(node: RNodeProxy, propName, previous, context) {
     if (previous) {
         node.removeAttribute(propName, previous, context);
-        node[propName] = null
+        node[propName] = null;
     }
 }
 
 function patchObject(node: RNodeProxy, props, previous, propName, propValue, context) {
-    let previousValue = previous ? previous[propName] : undefined
+    let previousValue = previous ? previous[propName] : undefined;
 
-    if (previousValue && isObject(previousValue) &&
-        getPrototype(previousValue) !== getPrototype(propValue)) {
+    if (previousValue && isObject(previousValue)
+        && getPrototype(previousValue) !== getPrototype(propValue)) {
         setAttribute(node, propName, propValue, previousValue, context);
-        return
+        return;
     }
 
     if (!isObject(node.getObjectAttribute(propName))) {

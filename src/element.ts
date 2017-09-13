@@ -7,39 +7,19 @@ export enum RNodeType {
     NATIVE = 'NATIVE',
     COMPONENT = 'COMPONENT',
 }
-// export interface RNodeProxy {
-//     vNode: VNode;
-//     parentNode: RNodeProxy;
-//     childNodes: RNodeProxy[];
-
-//     element: any;
-//     rNodeType: RNodeType;
-
-//     getElement(): HTMLElement;
-//     getObjectAttribute(propName: string): any;
-
-//     appendChild: (x: RNodeProxy) => void;
-//     removeChild: (x: RNodeProxy) => void;
-//     replaceChild: (newNode: RNodeProxy, oldNode: RNodeProxy) => void;
-//     insertBefore: (newNode: RNodeProxy, insertTo: RNodeProxy | null) => void;
-
-//     setAttribute: (propName: string, propValue: any, previous?: any) => void;
-//     setAttributeObject: (propName: string, propValue: any, previous?: any) => void;
-//     removeAttribute: (propName: string, previous?: any) => void;
-// }
-
 
 /**
  * RNodeProxy is a Proxy
  */
 export class RNodeProxy {
-    parentNode: RNodeProxy = null
+    parentNode: RNodeProxy = null;
     childNodes: RNodeProxy[] = [];
 
     rNodeType: RNodeType;
     element: any;
 
     getElement(): HTMLElement {
+
         if (this.rNodeType === RNodeType.NATIVE) {
             return (<HTMLElement>this.element);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
@@ -47,6 +27,7 @@ export class RNodeProxy {
         } else {
             throw new Error('未知类型');
         }
+
     }
 
     private componentGetElement(): HTMLElement {
@@ -62,6 +43,7 @@ export class RNodeProxy {
     }
 
     constructor(public vNode: VNode, context?: Component) {
+
         if (typeof (vNode.tagName) === 'string') {
             this.rNodeType = RNodeType.NATIVE;
             this.element = this.createXOMByVNode(vNode, context);
@@ -71,30 +53,36 @@ export class RNodeProxy {
         } else {
             throw new Error('tagName 只能是string 或 Component的子类构造函数');
         }
+
     }
 
     private createXOMByVNode(vNode: VNode, context?: Component) {
+
         if (vNode.tagName === textNodeTagName) {
             return <Text>(document.createTextNode(vNode.properties.value));
         } else {
             let xomElement = <HTMLElement>(document.createElement(vNode.tagName));
             if (context && vNode.properties && vNode.properties.ref) {
-                context.refs[vNode.properties.ref] = xomElement
+                context.refs[vNode.properties.ref] = xomElement;
             }
             return xomElement;
         }
+
     }
 
     private createComponentByVNode(vNode: VNode, context?: Component): Component {
+
         let Consr: typeof Component = vNode.tagName;
         let com: Component = new Consr(vNode.properties, context);
         if (!(com instanceof Component)) {
             throw new Error('tagName 不是 Component的子类构造函数');
         }
         return com;
+
     }
 
     appendChild(x: RNodeProxy) {
+
         x.parentNode = this;
         this.childNodes.push(x);
         ///
@@ -103,16 +91,19 @@ export class RNodeProxy {
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentAppendChild(x);
         }
+
     }
 
     private xomAppendChild(x: RNodeProxy) {
         (this.element as HTMLElement).appendChild(x.getElement());
     }
+
     private componentAppendChild(x: RNodeProxy) {
         this.getElement().appendChild(x.getElement());
     }
 
     removeChild(x: RNodeProxy, context?: Component) {
+
         let index = this.childNodes.indexOf(x);
         if (~index) {
             x.parentNode = null;
@@ -120,12 +111,14 @@ export class RNodeProxy {
         } else {
             throw Error('被移除的节点没找到,是否是算法错误');
         }
+
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
             this.xomRemoveChild(x, context);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentRemoveChild(x, context);
         }
+
     }
 
     private xomRemoveChild(x: RNodeProxy, context?: Component) {
@@ -134,6 +127,7 @@ export class RNodeProxy {
         }
         (this.element as HTMLElement).removeChild(x.getElement());
     }
+
     private componentRemoveChild(x: RNodeProxy, context?: Component) {
         if (context && x['ref']) {
             delete context.refs[x['ref']];
@@ -142,6 +136,7 @@ export class RNodeProxy {
     }
 
     replaceChild(newNode: RNodeProxy, oldNode: RNodeProxy, context?: Component) {
+
         let index = this.childNodes.indexOf(oldNode);
         if (~index) {
             oldNode.parentNode = null;
@@ -150,6 +145,7 @@ export class RNodeProxy {
         } else {
             throw Error('被替换的节点没找到,是否是算法错误');
         }
+
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
             this.xomReplaceChild(newNode, oldNode);
@@ -164,6 +160,7 @@ export class RNodeProxy {
         }
         (this.element as HTMLElement).replaceChild(newNode.getElement(), oldNode.getElement());
     }
+
     private componentReplaceChild(newNode: RNodeProxy, oldNode: RNodeProxy, context?: Component) {
         if (context && oldNode['ref']) {
             delete context.refs[oldNode['ref']];
@@ -172,6 +169,7 @@ export class RNodeProxy {
     }
 
     insertBefore(newNode: RNodeProxy, insertTo: RNodeProxy | null, context?: Component) {
+
         if (insertTo) {
             let index = this.childNodes.indexOf(insertTo);
             if (~index) {
@@ -184,22 +182,26 @@ export class RNodeProxy {
             newNode.parentNode = this;
             this.childNodes.push(newNode);
         }
+
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
             this.xomInsertBefore(newNode, insertTo);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentInsertBefore(newNode, insertTo);
         }
+
     }
 
     private xomInsertBefore(newNode: RNodeProxy, insertTo: RNodeProxy | null) {
         (this.element as HTMLElement).insertBefore(newNode.getElement(), insertTo && insertTo.getElement());
     }
+
     private componentInsertBefore(newNode: RNodeProxy, insertTo: RNodeProxy | null) {
         this.getElement().replaceChild(newNode.getElement(), insertTo && insertTo.getElement());
     }
 
     setAttribute(propName: string, propValue: any, previous?: any, context?: Component) {
+
         this[propName] = propValue;
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
@@ -210,6 +212,7 @@ export class RNodeProxy {
     }
 
     private xomSetAttribute(propName: string, propValue: any, previous?: any, context?: Component) {
+
         let element: HTMLElement = this.element;
         if (propName === 'ref') {
             if (context) {
@@ -222,6 +225,7 @@ export class RNodeProxy {
             }
             return;
         }
+
         let event = this.getXOMEventName(propName);
         if (event) {
             if (previous && previous[propName]) {
@@ -251,17 +255,19 @@ export class RNodeProxy {
                 }
             }
         }
+
     }
     private componentSetAttribute(propName: string, propValue: any, previous?: any, context?: Component) {
         (this.element as Component).setAttribute(propName, propValue, previous, context);
     }
 
     setAttributeObject(propName: string, propValue: any, previous?: any, context?: Component) {
-        this[propName] = this[propName] || {}
+
+        this[propName] = this[propName] || {};
         let replacer = undefined;
         for (let k in propValue) {
-            let value = propValue[k]
-            this[propName][k] = (value === undefined) ? replacer : value
+            let value = propValue[k];
+            this[propName][k] = (value === undefined) ? replacer : value;
         }
 
         ///
@@ -274,6 +280,7 @@ export class RNodeProxy {
     }
 
     private xomSetAttributeObject(propName: string, propValue: any, previous?: any) {
+
         let element = (this.element as HTMLElement);
         element[propName] || (element[propName] = {});
         let replacer = undefined;
@@ -281,6 +288,7 @@ export class RNodeProxy {
             let value = propValue[k]
             element[propName][k] = (value === undefined) ? replacer : value
         }
+
     }
 
     private componentSetAttributeObject(propName: string, propValue: any, previous?: any) {
@@ -304,11 +312,12 @@ export class RNodeProxy {
             if (context) {
                 let propValue = previous[propName];
                 if (context.refs[propValue] === element) {
-                    delete context.refs[propValue]
+                    delete context.refs[propValue];
                 }
             }
             return;
         }
+
         let event = this.getXOMEventName(propName);
         if (event) {
             if (previous && previous[propName]) {
@@ -321,7 +330,9 @@ export class RNodeProxy {
                 element.removeAttribute(propName);
             }
         }
+
     }
+
     private componentRemoveAttribute(propName: string, previous?: any, context?: Component) {
         (this.element as Component).removeAttribute(propName, previous, context);
     }
