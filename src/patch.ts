@@ -7,12 +7,13 @@ import { RNodeProxy } from "./element";
 import { Component } from "./component";
 
 export const RenderOptions = { patch: patchRecursive, render };
+
 export function patch(rootNode: RNodeProxy, patches: IDiffMap, context?: Component, renderOptions = RenderOptions): RNodeProxy {
     let resultNode = renderOptions.patch(rootNode, patches, context, renderOptions);
     if (rootNode !== resultNode) {
         let parentNode = rootNode.parentNode;
         if (parentNode) {
-            parentNode.replaceChild(resultNode, rootNode,context);
+            parentNode.replaceChild(resultNode, rootNode, context);
         }
     }
     return resultNode;

@@ -4,10 +4,18 @@ import { diff } from "./diff";
 import { patch } from "./patch";
 import { createElement } from "./create-element";
 import { RNodeProxy } from "./element";
+import { queueComponent } from "./scheduler";
 
+
+export enum RenderMode {
+    SYNC = 1,
+    ASYNC,
+}
 
 export class Component {
+    private static id = 1;
 
+    id: number;
     renderRNode: RNodeProxy;
     context: Component;
     refs: { [name: string]: Component | HTMLElement } = {};
@@ -16,6 +24,8 @@ export class Component {
     protected renderedVNode: VNode;
 
     constructor(props, context?: Component) {
+
+        this.id = Component.id++;
 
         this.props = props || {};
         this.context = context;
@@ -27,7 +37,8 @@ export class Component {
     }
 
     getRNode(): RNodeProxy {
-        return this.renderRNode || this.forceUpdate();
+        this.renderRNode || this.forceUpdate(RenderMode.SYNC);
+        return this.renderRNode;
     }
 
     setAttribute(propName: string, propValue: any, previous?: any, context?: Component) {
@@ -85,21 +96,23 @@ export class Component {
         this.forceUpdate();
     }
 
-    forceUpdate(): RNodeProxy {
+    forceUpdate(renderMode: RenderMode = RenderMode.ASYNC) {
 
-        let newVNode = this.render();
+        if (renderMode === RenderMode.SYNC) {
+            let newVNode = this.render();
 
-        if (this.renderedVNode && this.renderRNode) {
-            let patches = diff(this.renderedVNode, newVNode);
-            let newRootRNode = patch(this.renderRNode, patches, this);
-            this.renderedVNode = newVNode;
-            this.renderRNode = newRootRNode;
+            if (this.renderedVNode && this.renderRNode) {
+                let patches = diff(this.renderedVNode, newVNode);
+                let newRootRNode = patch(this.renderRNode, patches, this);
+                this.renderedVNode = newVNode;
+                this.renderRNode = newRootRNode;
+            } else {
+                this.renderedVNode = newVNode;
+                this.renderRNode = createElement(this.renderedVNode, this);
+            }
         } else {
-            this.renderedVNode = newVNode;
-            this.renderRNode = createElement(this.renderedVNode, this);
+            queueComponent(this);
         }
-
-        return this.renderRNode;
 
     }
 
