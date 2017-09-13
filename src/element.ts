@@ -7,34 +7,34 @@ export enum RNodeType {
     NATIVE = 'NATIVE',
     COMPONENT = 'COMPONENT',
 }
-export interface IRNode {
-    vNode: VNode;
-    parentNode: IRNode;
-    childNodes: IRNode[];
+// export interface RNodeProxy {
+//     vNode: VNode;
+//     parentNode: RNodeProxy;
+//     childNodes: RNodeProxy[];
 
-    element: any;
-    rNodeType: RNodeType;
+//     element: any;
+//     rNodeType: RNodeType;
 
-    getElement(): HTMLElement;
-    getObjectAttribute(propName: string): any;
+//     getElement(): HTMLElement;
+//     getObjectAttribute(propName: string): any;
 
-    appendChild: (x: IRNode) => void;
-    removeChild: (x: IRNode) => void;
-    replaceChild: (newNode: IRNode, oldNode: IRNode) => void;
-    insertBefore: (newNode: IRNode, insertTo: IRNode | null) => void;
+//     appendChild: (x: RNodeProxy) => void;
+//     removeChild: (x: RNodeProxy) => void;
+//     replaceChild: (newNode: RNodeProxy, oldNode: RNodeProxy) => void;
+//     insertBefore: (newNode: RNodeProxy, insertTo: RNodeProxy | null) => void;
 
-    setAttribute: (propName: string, propValue: any, previous?: any) => void;
-    setAttributeObject: (propName: string, propValue: any, previous?: any) => void;
-    removeAttribute: (propName: string, previous?: any) => void;
-}
+//     setAttribute: (propName: string, propValue: any, previous?: any) => void;
+//     setAttributeObject: (propName: string, propValue: any, previous?: any) => void;
+//     removeAttribute: (propName: string, previous?: any) => void;
+// }
 
 
 /**
  * RNodeProxy is a Proxy
  */
-export class RNodeProxy implements IRNode {
-    parentNode: IRNode = null
-    childNodes: IRNode[] = [];
+export class RNodeProxy {
+    parentNode: RNodeProxy = null
+    childNodes: RNodeProxy[] = [];
 
     rNodeType: RNodeType;
     element: any;
@@ -94,7 +94,7 @@ export class RNodeProxy implements IRNode {
         return com;
     }
 
-    appendChild(x: IRNode) {
+    appendChild(x: RNodeProxy) {
         x.parentNode = this;
         this.childNodes.push(x);
         ///
@@ -105,14 +105,14 @@ export class RNodeProxy implements IRNode {
         }
     }
 
-    private xomAppendChild(x: IRNode) {
+    private xomAppendChild(x: RNodeProxy) {
         (this.element as HTMLElement).appendChild(x.getElement());
     }
-    private componentAppendChild(x: IRNode) {
+    private componentAppendChild(x: RNodeProxy) {
         this.getElement().appendChild(x.getElement());
     }
 
-    removeChild(x: IRNode) {
+    removeChild(x: RNodeProxy, context?: Component) {
         let index = this.childNodes.indexOf(x);
         if (~index) {
             x.parentNode = null;
@@ -122,20 +122,26 @@ export class RNodeProxy implements IRNode {
         }
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomRemoveChild(x);
+            this.xomRemoveChild(x, context);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
-            this.componentRemoveChild(x);
+            this.componentRemoveChild(x, context);
         }
     }
 
-    private xomRemoveChild(x: IRNode) {
+    private xomRemoveChild(x: RNodeProxy, context?: Component) {
+        if (context && x['ref']) {
+            delete context.refs[x['ref']];
+        }
         (this.element as HTMLElement).removeChild(x.getElement());
     }
-    private componentRemoveChild(x: IRNode) {
+    private componentRemoveChild(x: RNodeProxy, context?: Component) {
+        if (context && x['ref']) {
+            delete context.refs[x['ref']];
+        }
         this.getElement().removeChild(x.getElement());
     }
 
-    replaceChild(newNode: IRNode, oldNode: IRNode) {
+    replaceChild(newNode: RNodeProxy, oldNode: RNodeProxy, context?: Component) {
         let index = this.childNodes.indexOf(oldNode);
         if (~index) {
             oldNode.parentNode = null;
@@ -152,14 +158,20 @@ export class RNodeProxy implements IRNode {
         }
     }
 
-    private xomReplaceChild(newNode: IRNode, oldNode: IRNode) {
+    private xomReplaceChild(newNode: RNodeProxy, oldNode: RNodeProxy, context?: Component) {
+        if (context && oldNode['ref']) {
+            delete context.refs[oldNode['ref']];
+        }
         (this.element as HTMLElement).replaceChild(newNode.getElement(), oldNode.getElement());
     }
-    private componentReplaceChild(newNode: IRNode, oldNode: IRNode) {
+    private componentReplaceChild(newNode: RNodeProxy, oldNode: RNodeProxy, context?: Component) {
+        if (context && oldNode['ref']) {
+            delete context.refs[oldNode['ref']];
+        }
         this.getElement().replaceChild(newNode.getElement(), oldNode.getElement());
     }
 
-    insertBefore(newNode: IRNode, insertTo: IRNode | null) {
+    insertBefore(newNode: RNodeProxy, insertTo: RNodeProxy | null, context?: Component) {
         if (insertTo) {
             let index = this.childNodes.indexOf(insertTo);
             if (~index) {
@@ -180,28 +192,36 @@ export class RNodeProxy implements IRNode {
         }
     }
 
-    private xomInsertBefore(newNode: IRNode, insertTo: IRNode | null) {
+    private xomInsertBefore(newNode: RNodeProxy, insertTo: RNodeProxy | null) {
         (this.element as HTMLElement).insertBefore(newNode.getElement(), insertTo && insertTo.getElement());
     }
-    private componentInsertBefore(newNode: IRNode, insertTo: IRNode | null) {
+    private componentInsertBefore(newNode: RNodeProxy, insertTo: RNodeProxy | null) {
         this.getElement().replaceChild(newNode.getElement(), insertTo && insertTo.getElement());
     }
 
-    setAttribute(propName: string, propValue: any, previous?: any) {
+    setAttribute(propName: string, propValue: any, previous?: any, context?: Component) {
         this[propName] = propValue;
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomSetAttribute(propName, propValue, previous);
+            this.xomSetAttribute(propName, propValue, previous, context);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
-            this.componentSetAttribute(propName, propValue, previous);
+            this.componentSetAttribute(propName, propValue, previous, context);
         }
     }
 
-    private xomSetAttribute(propName: string, propValue: any, previous?: any) {
-        if (propName === 'ref') {
-            return
-        }
+    private xomSetAttribute(propName: string, propValue: any, previous?: any, context?: Component) {
         let element: HTMLElement = this.element;
+        if (propName === 'ref') {
+            if (context) {
+                context.refs[propValue] = element;
+                if (previous && previous[propName]) {
+                    if (context.refs[previous[propName]] === element) {
+                        delete context.refs[previous[propName]]
+                    }
+                }
+            }
+            return;
+        }
         let event = this.getXOMEventName(propName);
         if (event) {
             if (previous && previous[propName]) {
@@ -232,11 +252,11 @@ export class RNodeProxy implements IRNode {
             }
         }
     }
-    private componentSetAttribute(propName: string, propValue: any, previous?: any) {
-        (this.element as Component).setAttribute(propName, propValue, previous);
+    private componentSetAttribute(propName: string, propValue: any, previous?: any, context?: Component) {
+        (this.element as Component).setAttribute(propName, propValue, previous, context);
     }
 
-    setAttributeObject(propName: string, propValue: any, previous?: any) {
+    setAttributeObject(propName: string, propValue: any, previous?: any, context?: Component) {
         this[propName] = this[propName] || {}
         let replacer = undefined;
         for (let k in propValue) {
@@ -267,21 +287,28 @@ export class RNodeProxy implements IRNode {
         (this.element as Component).setAttributeObject(propName, propValue, previous);
     }
 
-    removeAttribute(propName: string, previous?: any) {
+    removeAttribute(propName: string, previous?: any, context?: Component) {
         delete this[propName];
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomRemoveAttribute(propName, previous);
+            this.xomRemoveAttribute(propName, previous, context);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
-            this.componentRemoveAttribute(propName, previous);
+            this.componentRemoveAttribute(propName, previous, context);
         }
     }
 
-    private xomRemoveAttribute(propName: string, previous?: any) {
-        if (propName === 'ref') {
-            return
-        }
+    private xomRemoveAttribute(propName: string, previous?: any, context?: Component) {
         let element: HTMLElement = this.element;
+
+        if (propName === 'ref' && previous && previous[propName]) {
+            if (context) {
+                let propValue = previous[propName];
+                if (context.refs[propValue] === element) {
+                    delete context.refs[propValue]
+                }
+            }
+            return;
+        }
         let event = this.getXOMEventName(propName);
         if (event) {
             if (previous && previous[propName]) {
@@ -295,8 +322,8 @@ export class RNodeProxy implements IRNode {
             }
         }
     }
-    private componentRemoveAttribute(propName: string, previous?: any) {
-        (this.element as Component).removeAttribute(propName, previous);
+    private componentRemoveAttribute(propName: string, previous?: any, context?: Component) {
+        (this.element as Component).removeAttribute(propName, previous, context);
     }
 
     private getXOMEventName(propName: string) {
@@ -313,6 +340,6 @@ export class RNodeProxy implements IRNode {
 
 }
 
-export function createRNodeProxyByVNode(vnode: VNode, context?: Component): IRNode {
+export function createRNodeProxyByVNode(vnode: VNode, context?: Component): RNodeProxy {
     return new RNodeProxy(vnode, context);
 }

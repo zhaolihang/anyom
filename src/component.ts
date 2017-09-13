@@ -3,11 +3,11 @@ import { VNode } from "./vnode";
 import { diff } from "./diff";
 import { patch } from "./patch";
 import { createElement } from "./create-element";
-import { IRNode } from "./element";
+import { RNodeProxy } from "./element";
 
 
 export class Component {
-    renderRNode: IRNode;
+    renderRNode: RNodeProxy;
     context: Component;
     refs: { [name: string]: Component | HTMLElement } = {};
     protected props: any;
@@ -22,11 +22,21 @@ export class Component {
         }
     }
 
-    getRNode(): IRNode {
+    getRNode(): RNodeProxy {
         return this.renderRNode || this.forceUpdate();
     }
-    setAttribute(propName: string, propValue: any, previous?: any) {
+    setAttribute(propName: string, propValue: any, previous?: any, context?: Component) {
         overwrite(this.props, { [propName]: propValue });
+        if (propName === 'ref') {
+            if (context) {
+                context.refs[propValue] = this;
+                if (previous && previous[propName]) {
+                    if (context.refs[previous[propName]] === this) {
+                        delete context.refs[previous[propName]]
+                    }
+                }
+            }
+        }
         this.forceUpdate();
     }
     setAttributeObject(propName: string, propValue: any, previous?: any) {
@@ -41,7 +51,15 @@ export class Component {
         }
         this.forceUpdate();
     }
-    removeAttribute(propName: string, previous?: any) {
+    removeAttribute(propName: string, previous?: any, context?: Component) {
+        let propValue = this.props[propName]
+        if (propName === 'ref') {
+            if (context) {
+                if (context.refs[propName] === this) {
+                    delete context.refs[previous[propName]]
+                }
+            }
+        }
         delete this.props[propName]
         this.forceUpdate();
     }
@@ -52,11 +70,11 @@ export class Component {
         this.forceUpdate();
     }
 
-    forceUpdate(): IRNode {
+    forceUpdate(): RNodeProxy {
         let newVNode = this.render();
         if (this.renderedVNode && this.renderRNode) {
             let patches = diff(this.renderedVNode, newVNode);
-            let newRootRNode = patch(this.renderRNode, patches,this);
+            let newRootRNode = patch(this.renderRNode, patches, this);
             this.renderedVNode = newVNode;
             this.renderRNode = newRootRNode;
         } else {

@@ -5,11 +5,11 @@
 // interest.
 
 import { VNode } from "./vnode";
-import { IRNode } from "./element";
+import { RNodeProxy } from "./element";
 
 let noChild = {}
 
-export function xomIndex(rootNode: IRNode, tree: VNode, indices: number[], nodes = undefined) {
+export function xomIndex(rootNode: RNodeProxy, tree: VNode, indices: number[], nodes = undefined) {
     if (!indices || indices.length === 0) {
         return {}
     } else {
@@ -18,7 +18,7 @@ export function xomIndex(rootNode: IRNode, tree: VNode, indices: number[], nodes
     }
 }
 
-function recurse(rootNode: IRNode, tree, indices, nodes: { [index: number]: IRNode }, rootIndex) {
+function recurse(rootNode: RNodeProxy, tree, indices, nodes: { [index: number]: RNodeProxy }, rootIndex) {
     nodes = nodes || {}
 
 

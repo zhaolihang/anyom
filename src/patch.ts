@@ -3,11 +3,11 @@ import { isArray } from "./utils";
 import { patchOp } from "./patch-operation";
 import { createElement, render } from "./create-element";
 import { IDiffMap } from "./diff";
-import { IRNode } from "./element";
+import { RNodeProxy } from "./element";
 import { Component } from "./component";
 
 export const RenderOptions = { patch: patchRecursive, render };
-export function patch(rootNode: IRNode, patches: IDiffMap, context?: Component, renderOptions = RenderOptions): IRNode {
+export function patch(rootNode: RNodeProxy, patches: IDiffMap, context?: Component, renderOptions = RenderOptions): RNodeProxy {
     let resultNode = renderOptions.patch(rootNode, patches, context, renderOptions);
     if (rootNode !== resultNode) {
         if (rootNode.parentNode) {
@@ -18,7 +18,7 @@ export function patch(rootNode: IRNode, patches: IDiffMap, context?: Component, 
     return resultNode;
 }
 
-function patchRecursive(rootNode: IRNode, patches: IDiffMap, context?: Component, renderOptions = RenderOptions) {
+function patchRecursive(rootNode: RNodeProxy, patches: IDiffMap, context?: Component, renderOptions = RenderOptions) {
     let indices = patchIndices(patches)
 
     if (indices.length === 0) {
@@ -35,7 +35,7 @@ function patchRecursive(rootNode: IRNode, patches: IDiffMap, context?: Component
     return rootNode
 }
 
-function applyPatch(rootNode: IRNode, xomNode: IRNode, patchList, context?: Component, renderOptions = RenderOptions) {
+function applyPatch(rootNode: RNodeProxy, xomNode: RNodeProxy, patchList, context?: Component, renderOptions = RenderOptions) {
     if (!xomNode) {
         return rootNode
     }

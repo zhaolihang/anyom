@@ -1,11 +1,11 @@
 
 import { VPatch, VPatchType } from "./vnode";
 import { applyProperties } from "./apply-properties";
-import { IRNode } from "./element";
+import { RNodeProxy } from "./element";
 import { RenderOptions } from "./patch";
 import { Component } from "./component";
 
-export function patchOp(vpatch: VPatch, xomNode: IRNode, context?: Component, renderOptions = RenderOptions) {
+export function patchOp(vpatch: VPatch, xomNode: RNodeProxy, context?: Component, renderOptions = RenderOptions) {
     let type = vpatch.type
     let vNode = vpatch.vNode
     let patch = vpatch.patch
@@ -28,18 +28,18 @@ export function patchOp(vpatch: VPatch, xomNode: IRNode, context?: Component, re
     }
 }
 
-function removeNode(xomNode: IRNode, vNode, context?: Component) {
+function removeNode(xomNode: RNodeProxy, vNode, context?: Component) {
     let parentNode = xomNode.parentNode
 
     if (parentNode) {
-        parentNode.removeChild(xomNode)
+        parentNode.removeChild(xomNode,context)
     }
 
     return null
 }
 
-function insertNode(parentNode: IRNode, vNode, context?: Component, renderOptions = RenderOptions) {
-    let newNode = renderOptions.render(vNode)
+function insertNode(parentNode: RNodeProxy, vNode, context?: Component, renderOptions = RenderOptions) {
+    let newNode = renderOptions.render(vNode,context)
 
     if (parentNode) {
         parentNode.appendChild(newNode)
@@ -48,19 +48,19 @@ function insertNode(parentNode: IRNode, vNode, context?: Component, renderOption
     return parentNode
 }
 
-function vNodePatch(xomNode: IRNode, leftVNode, vNode, context?: Component, renderOptions = RenderOptions) {
+function vNodePatch(xomNode: RNodeProxy, leftVNode, vNode, context?: Component, renderOptions = RenderOptions) {
     let parentNode = xomNode.parentNode
-    let newNode = renderOptions.render(vNode)
+    let newNode = renderOptions.render(vNode,context)
 
     if (parentNode && newNode !== xomNode) {
-        parentNode.replaceChild(newNode, xomNode)
+        parentNode.replaceChild(newNode, xomNode,context)
     }
 
     return newNode
 }
 
 
-function reorderChildren(xomNode: IRNode, moves, context?: Component) {
+function reorderChildren(xomNode: RNodeProxy, moves, context?: Component) {
     let childNodes = xomNode.childNodes
     let keyMap = {}
     let node
@@ -73,13 +73,13 @@ function reorderChildren(xomNode: IRNode, moves, context?: Component) {
         if (remove.key) {
             keyMap[remove.key] = node
         }
-        xomNode.removeChild(node)
+        xomNode.removeChild(node,context)
     }
 
     let length = childNodes.length
     for (let j = 0; j < moves.inserts.length; j++) {
         insert = moves.inserts[j]
         node = keyMap[insert.key]
-        xomNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to])
+        xomNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to],context)
     }
 }

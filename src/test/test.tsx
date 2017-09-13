@@ -32,12 +32,14 @@ class Button extends Component {
 class App extends Component {
     render() {
         let buttonTitle = this.props.buttonTitle || '951';
+        let refName = this.props.refName || 'ButtonRef';
         return (
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
-                <Button ref='ButtonRef' onclick={() => {
+                <Button ref={refName} onclick={() => {
                     log(this.refs)
                     this.setAttribute('buttonTitle', Math.random());
+                    this.setAttribute('refName', 'ButtonRef'+Math.random());
                 }} title={buttonTitle}>
                     <div ref='app div'>
                         this is a app div
