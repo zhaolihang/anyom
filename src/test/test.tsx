@@ -26,9 +26,6 @@ class Button extends Component {
                     onclick(e);
                 }
             }} class={'button'} >{title || '按钮'}
-                <div>
-                    this is a button div
-                </div>
             </button>
         );
     }
@@ -37,17 +34,17 @@ class Button extends Component {
 
 class App extends Component {
     render() {
-        let btnTitle = this.props.btnTitle || '951-btn';
+        let btnTitle = this.props.btnTitle || 'SecondBut';
+        let name = this.props.name;
+        let input = name ? <input key={'input1'}></input> : <input key={'input2'}></input>;
         return (
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
                 <Button onclick={() => {
-                    this.setAttribute('btnTitle', Math.random());
+                    this.setAttribute('name', !!!name);
                 }} title={btnTitle}>
-                    <div>
-                        this is a app div
-                    </div>
                 </Button>
+                {input}
             </div>
         );
     }
