@@ -1,6 +1,6 @@
 import { VNode } from "./vnode";
 import { applyProperties } from "./apply-properties";
-import { createRealNodeProxyByVNode, RealNodeProxy } from "./element";
+import { createRealNodeProxy, RealNodeProxy } from "./element";
 
 export function createElement(vnode: VNode): RealNodeProxy {
 
@@ -8,7 +8,7 @@ export function createElement(vnode: VNode): RealNodeProxy {
         throw new Error('虚拟节点不能为空');
     }
 
-    let node: RealNodeProxy = createRealNodeProxyByVNode(vnode);
+    let node: RealNodeProxy = createRealNodeProxy(vnode);
     let props = vnode.properties;
     applyProperties(node, props, undefined);
 

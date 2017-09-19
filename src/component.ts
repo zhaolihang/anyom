@@ -27,7 +27,7 @@ export class Component {
 
     }
 
-    getRealNode(): RealNodeProxy {
+    getRealNodeProxy(): RealNodeProxy {
         this.renderRealNode || this.forceUpdate(RenderMode.SYNC);
         return this.renderRealNode;
     }

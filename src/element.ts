@@ -20,29 +20,32 @@ export class RealNodeProxy {
     element: any;
 
     constructor(public vNode: VNode) {
+        this.createElement()
+    }
 
+    private createElement() {
+        let vNode = this.vNode;
         if (typeof (vNode.tagName) === 'string') {
             this.rNodeType = RNodeType.NATIVE;
-            this.element = this.createXOMByVNode(vNode);
+            this.element = this.createRealNode(vNode);
         } else if (typeof (vNode.tagName) === 'function') {
             this.rNodeType = RNodeType.COMPONENT;
-            this.element = this.createComponentByVNode(vNode);
+            this.element = this.createComponent(vNode);
         } else {
             throw new Error('tagName 只能是string 或 Component的子类构造函数');
         }
-
     }
 
-    private createXOMByVNode(vNode: VNode) {
+    private createRealNode(vNode: VNode) {
         if (vNode.tagName === TextNodeTagName) {
             return <Text>(document.createTextNode(vNode.properties.value));
         } else {
-            let xomElement = <HTMLElement>(document.createElement(vNode.tagName));
-            return xomElement;
+            let realNode = <HTMLElement>(document.createElement(vNode.tagName));
+            return realNode;
         }
     }
 
-    private createComponentByVNode(vNode: VNode): Component {
+    private createComponent(vNode: VNode): Component {
         let Consr: typeof Component = vNode.tagName;
         let com: Component = new Consr(vNode.properties);
         if (!(com instanceof Component)) {
@@ -51,11 +54,11 @@ export class RealNodeProxy {
         return com;
     }
 
-    getElement(): HTMLElement {
+    getRealNode<T = HTMLElement>(): T {
         if (this.rNodeType === RNodeType.NATIVE) {
-            return (<HTMLElement>this.element);
+            return (<T>this.element);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
-            return (<Component>this.element).getRealNode().getElement();
+            return (<Component>this.element).getRealNodeProxy().getRealNode();
         }
         throw new Error('未知类型');
     }
@@ -66,25 +69,25 @@ export class RealNodeProxy {
 
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomAppendChild(x);
+            this.realNodeAppendChild(x);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentAppendChild(x);
         }
 
     }
 
-    private xomAppendChild(x: RealNodeProxy) {
-        (this.element as HTMLElement).appendChild(x.getElement());
+    private realNodeAppendChild(x: RealNodeProxy) {
+        (this.element as HTMLElement).appendChild(x.getRealNode());
     }
 
     private componentAppendChild(x: RealNodeProxy) {
-        this.getElement().appendChild(x.getElement());
+        this.getRealNode().appendChild(x.getRealNode());
     }
 
     removeChild(x: RealNodeProxy) {
 
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomRemoveChild(x);
+            this.realNodeRemoveChild(x);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentRemoveChild(x);
         }
@@ -100,17 +103,17 @@ export class RealNodeProxy {
 
     }
 
-    private xomRemoveChild(x: RealNodeProxy) {
-        (this.element as HTMLElement).removeChild(x.getElement());
+    private realNodeRemoveChild(x: RealNodeProxy) {
+        (this.element as HTMLElement).removeChild(x.getRealNode());
     }
 
     private componentRemoveChild(x: RealNodeProxy) {
-        this.getElement().removeChild(x.getElement());
+        this.getRealNode().removeChild(x.getRealNode());
     }
 
     replaceChild(newNode: RealNodeProxy, oldNode: RealNodeProxy) {
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomReplaceChild(newNode, oldNode);
+            this.realNodeReplaceChild(newNode, oldNode);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentReplaceChild(newNode, oldNode);
         }
@@ -126,12 +129,12 @@ export class RealNodeProxy {
         }
     }
 
-    private xomReplaceChild(newNode: RealNodeProxy, oldNode: RealNodeProxy) {
-        (this.element as HTMLElement).replaceChild(newNode.getElement(), oldNode.getElement());
+    private realNodeReplaceChild(newNode: RealNodeProxy, oldNode: RealNodeProxy) {
+        (this.element as HTMLElement).replaceChild(newNode.getRealNode(), oldNode.getRealNode());
     }
 
     private componentReplaceChild(newNode: RealNodeProxy, oldNode: RealNodeProxy) {
-        this.getElement().replaceChild(newNode.getElement(), oldNode.getElement());
+        this.getRealNode().replaceChild(newNode.getRealNode(), oldNode.getRealNode());
     }
 
     insertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null) {
@@ -151,19 +154,19 @@ export class RealNodeProxy {
 
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomInsertBefore(newNode, insertTo);
+            this.realNodeInsertBefore(newNode, insertTo);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentInsertBefore(newNode, insertTo);
         }
 
     }
 
-    private xomInsertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null) {
-        (this.element as HTMLElement).insertBefore(newNode.getElement(), insertTo && insertTo.getElement());
+    private realNodeInsertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null) {
+        (this.element as HTMLElement).insertBefore(newNode.getRealNode(), insertTo && insertTo.getRealNode());
     }
 
     private componentInsertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null) {
-        this.getElement().replaceChild(newNode.getElement(), insertTo && insertTo.getElement());
+        this.getRealNode().replaceChild(newNode.getRealNode(), insertTo && insertTo.getRealNode());
     }
 
 
@@ -174,7 +177,7 @@ export class RealNodeProxy {
     setAttribute(propName: string, propValue: any, previous?: any) {
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomSetAttribute(propName, propValue, previous);
+            this.realNodeSetAttribute(propName, propValue, previous);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentSetAttribute(propName, propValue, previous);
         }
@@ -182,11 +185,11 @@ export class RealNodeProxy {
         this[propName] = propValue;
     }
 
-    private xomSetAttribute(propName: string, propValue: any, previous?: any) {
+    private realNodeSetAttribute(propName: string, propValue: any, previous?: any) {
 
         let element: HTMLElement = this.element;
 
-        let event = this.getXOMEventName(propName);
+        let event = this.getRealNodeEventName(propName);
         if (event) {
             if (previous && previous[propName]) {
                 element.removeEventListener(event.name, previous[propName], event.capture);
@@ -230,13 +233,13 @@ export class RealNodeProxy {
 
         ///
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomSetAttributeObject(propName, propValue, previous);
+            this.realNodeSetAttributeObject(propName, propValue, previous);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentSetAttributeObject(propName, propValue, previous);
         }
     }
 
-    private xomSetAttributeObject(propName: string, propValue: any, previous?: any) {
+    private realNodeSetAttributeObject(propName: string, propValue: any, previous?: any) {
 
         let element = (this.element as HTMLElement);
         let replacer = undefined;
@@ -253,7 +256,7 @@ export class RealNodeProxy {
 
     removeAttribute(propName: string, previous?: any) {
         if (this.rNodeType === RNodeType.NATIVE) {
-            this.xomRemoveAttribute(propName, previous);
+            this.realNodeRemoveAttribute(propName, previous);
         } else if (this.rNodeType === RNodeType.COMPONENT) {
             this.componentRemoveAttribute(propName, previous);
         }
@@ -262,10 +265,10 @@ export class RealNodeProxy {
         delete this[propName];
     }
 
-    private xomRemoveAttribute(propName: string, previous?: any) {
+    private realNodeRemoveAttribute(propName: string, previous?: any) {
         let element: HTMLElement = this.element;
 
-        let event = this.getXOMEventName(propName);
+        let event = this.getRealNodeEventName(propName);
         if (event) {
             if (previous && previous[propName]) {
                 element.removeEventListener(event.name, previous[propName], event.capture);
@@ -284,7 +287,7 @@ export class RealNodeProxy {
         (this.element as Component).removeAttribute(propName, previous);
     }
 
-    private getXOMEventName(propName: string) {
+    private getRealNodeEventName(propName: string) {
         //propName eg: 'on-click-capture'
         propName = propName.toLowerCase();
         if (startsWith(propName, 'on-')) {
@@ -298,6 +301,6 @@ export class RealNodeProxy {
 
 }
 
-export function createRealNodeProxyByVNode(vnode: VNode): RealNodeProxy {
+export function createRealNodeProxy(vnode: VNode): RealNodeProxy {
     return new RealNodeProxy(vnode);
 }

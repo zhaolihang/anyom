@@ -9,7 +9,7 @@ import { RealNodeProxy } from "./element";
 
 let noChild = {};
 
-export function xomIndex(rootNode: RealNodeProxy, tree: VNode, indices: number[], nodes = undefined) {
+export function realNodeIndex(rootNode: RealNodeProxy, tree: VNode, indices: number[], nodes = undefined) {
     if (!indices || indices.length === 0) {
         return {};
     } else {

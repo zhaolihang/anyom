@@ -1,4 +1,4 @@
-import { xomIndex } from "./xom-index";
+import { realNodeIndex } from "./real-node-index";
 import { isArray } from "./utils";
 import { patchOp } from "./patch-operation";
 import { render } from "./create-element";
@@ -27,7 +27,7 @@ function patchRecursive(rootNode: RealNodeProxy, patches: IDiffMap, renderOption
         return rootNode;
     }
 
-    let index = xomIndex(rootNode, patches.a, indices);
+    let index = realNodeIndex(rootNode, patches.a, indices);
 
     for (let i = 0; i < indices.length; i++) {
         let nodeIndex = indices[i];
@@ -37,8 +37,8 @@ function patchRecursive(rootNode: RealNodeProxy, patches: IDiffMap, renderOption
     return rootNode;
 }
 
-function applyPatch(rootNode: RealNodeProxy, xomNode: RealNodeProxy, patchList, renderOptions = RenderOptions) {
-    if (!xomNode) {
+function applyPatch(rootNode: RealNodeProxy, childNode: RealNodeProxy, patchList, renderOptions = RenderOptions) {
+    if (!childNode) {
         return rootNode;
     }
 
@@ -46,16 +46,16 @@ function applyPatch(rootNode: RealNodeProxy, xomNode: RealNodeProxy, patchList, 
 
     if (isArray(patchList)) {
         for (let i = 0; i < patchList.length; i++) {
-            newNode = patchOp(patchList[i], xomNode, renderOptions);
+            newNode = patchOp(patchList[i], childNode, renderOptions);
 
-            if (xomNode === rootNode) {
+            if (childNode === rootNode) {
                 rootNode = newNode;
             }
         }
     } else {
-        newNode = patchOp(patchList, xomNode, renderOptions);
+        newNode = patchOp(patchList, childNode, renderOptions);
 
-        if (xomNode === rootNode) {
+        if (childNode === rootNode) {
             rootNode = newNode;
         }
     }

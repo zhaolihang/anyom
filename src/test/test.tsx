@@ -9,9 +9,9 @@ import { Component } from "../component";
 const log = console.log;
 const assert = console.assert;
 
-const rootXom = document.getElementById('body');
+const rootRealNode = document.getElementById('body');
 const rootRealNodeProxy = new RealNodeProxy(new VNode('div'));
-rootXom.appendChild(rootRealNodeProxy.getElement());
+rootRealNode.appendChild(rootRealNodeProxy.getRealNode());
 
 
 
