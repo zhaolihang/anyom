@@ -1,66 +1,65 @@
 
 import { VPatch, VPatchType } from "./vnode";
 import { applyProperties } from "./apply-properties";
-import { RNodeProxy } from "./element";
+import { RealNodeProxy } from "./element";
 import { RenderOptions } from "./patch";
-import { Component } from "./component";
 
-export function patchOp(vpatch: VPatch, node: RNodeProxy, context?: Component, renderOptions = RenderOptions) {
+export function patchOp(vpatch: VPatch, node: RealNodeProxy, renderOptions = RenderOptions) {
     let type = vpatch.type;
     let vNode = vpatch.vNode;
     let patch = vpatch.patch;
 
     switch (type) {
         case VPatchType.REMOVE:
-            return removeNode(node, vNode, context);
+            return removeNode(node, vNode);
         case VPatchType.INSERT:
-            return insertNode(node, patch, context, renderOptions);
+            return insertNode(node, patch, renderOptions);
         case VPatchType.REPLACE:
-            return vNodePatch(node, vNode, patch, context, renderOptions);
+            return vNodePatch(node, vNode, patch, renderOptions);
         case VPatchType.ORDER:
-            reorderChildren(node, patch, context);
+            reorderChildren(node, patch);
             return node;
         case VPatchType.PROPS:
-            applyProperties(node, patch, vNode.properties, context);
+            applyProperties(node, patch, vNode.properties);
             return node;
         default:
             return node;
     }
 }
 
-function removeNode(node: RNodeProxy, vNode, context?: Component) {
+function removeNode(node: RealNodeProxy, vNode) {
     let parentNode = node.parentNode;
 
     if (parentNode) {
-        parentNode.removeChild(node, context);
+        parentNode.removeChild(node);
     }
 
     return null;
 }
 
-function insertNode(parentNode: RNodeProxy, vNode, context?: Component, renderOptions = RenderOptions) {
-    let newNode = renderOptions.render(vNode, context);
+function insertNode(parentNode: RealNodeProxy, vNode, renderOptions = RenderOptions) {
+    let newNode = renderOptions.render(vNode);
 
     if (parentNode) {
-        parentNode.appendChild(newNode, context);
+        parentNode.appendChild(newNode);
     }
 
     return parentNode;
 }
 
-function vNodePatch(node: RNodeProxy, leftVNode, vNode, context?: Component, renderOptions = RenderOptions) {
+function vNodePatch(node: RealNodeProxy, leftVNode, vNode, renderOptions = RenderOptions) {
     let parentNode = node.parentNode;
-    let newNode = renderOptions.render(vNode, context);
+    let newNode = renderOptions.render(vNode);
 
     if (parentNode && newNode !== node) {
-        parentNode.replaceChild(newNode, node, context);
+        parentNode.replaceChild(newNode, node);
     }
 
     return newNode;
 }
 
 
-function reorderChildren(parentNode: RNodeProxy, moves, context?: Component) {
+function reorderChildren(parentNode: RealNodeProxy, moves) {
 
     let childNodes = parentNode.childNodes;
     let keyMap = {};
@@ -74,14 +73,14 @@ function reorderChildren(parentNode: RNodeProxy, moves, context?: Component) {
         if (remove.key) {
             keyMap[remove.key] = node;
         }
-        parentNode.removeChild(node, context);
+        parentNode.removeChild(node);
     }
 
     let length = childNodes.length;
     for (let j = 0; j < moves.inserts.length; j++) {
         insert = moves.inserts[j];
         node = keyMap[insert.key];
-        parentNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to], context);
+        parentNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to]);
     }
 
 }

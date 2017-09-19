@@ -53,20 +53,15 @@ export function queueComponent(component: Component) {
     }
 }
 
-type TimeoutFunType = (fun: (...any) => any, time: number) => any;
-let timeoutFun: TimeoutFunType = setTimeout;
+type TimerFunType = (fun: (...any) => any, time: number) => any;
+let timerFun: TimerFunType = setTimeout;
 
-export const setTimeoutFun = (v: TimeoutFunType) => {
-    timeoutFun = v;
+export const setTimerFun = (v: TimerFunType) => {
+    timerFun = v;
 };
-export const getTimeoutFun = () => {
-    return timeoutFun;
+export const getTimerFun = () => {
+    return timerFun;
 };
-
-function delayTime(cb, time) {
-    timeoutFun(cb, time);
-}
-
 
 // for nextTick()
 const callbacks = [];
@@ -93,6 +88,6 @@ export function nextTick(cb?: Function, ctx?: Object) {
     });
     if (!pending) {
         pending = true;
-        delayTime(nextTickHandler, 0);
+        timerFun(nextTickHandler, 0);
     }
 };

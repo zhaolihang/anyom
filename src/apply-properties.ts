@@ -1,53 +1,47 @@
 import { isObject, getPrototype } from "./utils";
 import { IPropType } from "./vnode";
-import { RNodeProxy } from "./element";
-import { Component } from "./component";
+import { RealNodeProxy } from "./element";
 
-export function applyProperties(node: RNodeProxy, props: IPropType, previous?: IPropType, context?: Component) {
+export function applyProperties(node: RealNodeProxy, props: IPropType, previous?: IPropType) {
 
     for (let propName in props) {
         let propValue = props[propName];
 
         if (propValue === undefined) {
-            removeAttribute(node, propName, previous, context);
+            removeAttribute(node, propName, previous);
         } else {
             if (isObject(propValue)) {
-                patchObject(node, props, previous, propName, propValue, context);
+                patchObject(node, props, previous, propName, propValue);
             } else {
-                setAttribute(node, propName, propValue, previous, context);
+                setAttribute(node, propName, propValue, previous);
             }
         }
     }
 
 }
 
-function setAttribute(node: RNodeProxy, propName, propValue, previous, context?: Component) {
-    node.setAttribute(propName, propValue, previous, context);
+function setAttribute(node: RealNodeProxy, propName, propValue, previous) {
+    node.setAttribute(propName, propValue, previous);
 }
 
-function setAttributeObject(node: RNodeProxy, propName, propValue, previous, context?: Component) {
-    node.setAttributeObject(propName, propValue, previous, context);
-}
-
-function removeAttribute(node: RNodeProxy, propName, previous, context?: Component) {
+function removeAttribute(node: RealNodeProxy, propName, previous) {
     if (previous) {
-        node.removeAttribute(propName, previous, context);
-        node[propName] = null;
+        node.removeAttribute(propName, previous);
     }
 }
 
-function patchObject(node: RNodeProxy, props, previous, propName, propValue, context?: Component) {
+function patchObject(node: RealNodeProxy, props, previous, propName, propValue) {
     let previousValue = previous ? previous[propName] : undefined;
 
     if (previousValue && isObject(previousValue)
         && getPrototype(previousValue) !== getPrototype(propValue)) {
-        setAttribute(node, propName, propValue, previousValue, context);
+        setAttribute(node, propName, propValue, previousValue);
         return;
     }
 
-    if (!isObject(node.getObjectAttribute(propName))) {
-        setAttribute(node, propName, {}, undefined, context);
+    if (!isObject(node.getAttribute(propName))) {
+        setAttribute(node, propName, {}, undefined);
     }
 
-    setAttributeObject(node, propName, propValue, previousValue, context);
+    node.setAttributeObject(propName, propValue, previousValue);
 }

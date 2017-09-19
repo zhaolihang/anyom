@@ -3,7 +3,7 @@ import { VNode } from "./vnode";
 import { diff } from "./diff";
 import { patch } from "./patch";
 import { createElement } from "./create-element";
-import { RNodeProxy } from "./element";
+import { RealNodeProxy } from "./element";
 import { queueComponent } from "./scheduler";
 
 
@@ -16,53 +16,29 @@ export class Component {
     private static id = 1;
 
     id: number;
-    renderRNode: RNodeProxy;
-    context: Component;
-    refs: { [name: string]: Component | HTMLElement } = {};
+    renderRealNode: RealNodeProxy;
     protected props: any;
-    protected state: any;
+    protected state: any = {};
     protected renderedVNode: VNode;
 
-    constructor(props, context?: Component) {
-
+    constructor(props) {
         this.id = Component.id++;
-
         this.props = props || {};
-        this.context = context;
-        this.state = this.state || {};
-        if (this.context && typeof this.props.ref === 'string') {
-            this.context.refs[this.props.ref] = this;
-        }
 
     }
 
-    getRNode(): RNodeProxy {
-        this.renderRNode || this.forceUpdate(RenderMode.SYNC);
-        return this.renderRNode;
+    getRealNode(): RealNodeProxy {
+        this.renderRealNode || this.forceUpdate(RenderMode.SYNC);
+        return this.renderRealNode;
     }
 
-    setAttribute(propName: string, propValue: any, previous?: any, context?: Component) {
-
+    setAttribute(propName: string, propValue: any, previous?: any) {
         overwrite(this.props, { [propName]: propValue });
-
-        if (propName === 'ref') {
-            if (context) {
-                context.refs[propValue] = this;
-                if (previous && previous[propName]) {
-                    if (context.refs[previous[propName]] === this) {
-                        delete context.refs[previous[propName]];
-                    }
-                }
-            }
-        }
-
-        this.forceUpdate();
-
+        this.forceUpdate(RenderMode.ASYNC);
     }
 
     setAttributeObject(propName: string, propValue: any, previous?: any) {
 
-        let replacer = undefined;
         for (let k in propValue) {
             let value = propValue[k];
             if (value === undefined) {
@@ -71,44 +47,34 @@ export class Component {
                 this.props[propName][k] = value;
             }
         }
-        this.forceUpdate();
+        this.forceUpdate(RenderMode.ASYNC);
 
     }
 
-    removeAttribute(propName: string, previous?: any, context?: Component) {
-
-        let propValue = this.props[propName]
-        if (propName === 'ref') {
-            if (context) {
-                if (context.refs[propName] === this) {
-                    delete context.refs[previous[propName]];
-                }
-            }
-        }
+    removeAttribute(propName: string, previous?: any) {
         delete this.props[propName];
-        this.forceUpdate();
-
+        this.forceUpdate(RenderMode.ASYNC);
     }
 
     setState(state) {
         let s = this.state;
-        overwrite(s, state);
-        this.forceUpdate();
+        overwrite(s, state || {});
+        this.forceUpdate(RenderMode.ASYNC);
     }
 
-    forceUpdate(renderMode: RenderMode = RenderMode.ASYNC) {
-
+    forceUpdate(renderMode: RenderMode) {
+        renderMode = renderMode || RenderMode.ASYNC;
         if (renderMode === RenderMode.SYNC) {
             let newVNode = this.render();
 
-            if (this.renderedVNode && this.renderRNode) {
+            if (this.renderedVNode && this.renderRealNode) {
                 let patches = diff(this.renderedVNode, newVNode);
-                let newRootRNode = patch(this.renderRNode, patches, this);
+                let newRootRNode = patch(this.renderRealNode, patches);
                 this.renderedVNode = newVNode;
-                this.renderRNode = newRootRNode;
+                this.renderRealNode = newRootRNode;
             } else {
                 this.renderedVNode = newVNode;
-                this.renderRNode = createElement(this.renderedVNode, this);
+                this.renderRealNode = createElement(this.renderedVNode);
             }
         } else {
             queueComponent(this);

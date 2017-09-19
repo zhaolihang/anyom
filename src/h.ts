@@ -3,7 +3,7 @@ import { isArray } from "./utils";
 
 const stack = [];
 const EMPTY_CHILDREN = [];
-export const textNodeTagName = '#text';
+export const TextNodeTagName = '#text';
 
 export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VNode {
     
@@ -36,7 +36,7 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
         } else {
 
             if (typeof child === 'string' || typeof child === 'number' || typeof child === 'boolean') {
-                child = new VNode(textNodeTagName, { value: String(child) });
+                child = new VNode(TextNodeTagName, { value: String(child) });
             }
 
             if (!isVNode(child)) {

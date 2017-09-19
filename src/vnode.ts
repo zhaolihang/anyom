@@ -5,7 +5,7 @@ let noProperties = {};
 let noChildren = [];
 
 export function isVNode(x) {
-    return x && (x.__type === '__VNode');
+    return x && (x.__type__ === '__VNode__');
 }
 
 export class VNode {
@@ -31,7 +31,7 @@ export class VNode {
         this.count = count + descendants;
     }
 }
-(VNode.prototype as any).__type = '__VNode';
+(VNode.prototype as any).__type__ = '__VNode__';
 
 //
 
@@ -45,10 +45,12 @@ export enum VPatchType {
 }
 
 export function isPatch(x) {
-    return x && (x instanceof VPatch);
+    return x && (x.__type__ === '__VPatch__');
 }
 
 export class VPatch {
     constructor(public type: VPatchType, public vNode: VNode, public patch?: any) {
     }
 }
+(VPatch.prototype as any).__type__ = '__VPatch__';
+

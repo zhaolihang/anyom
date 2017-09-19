@@ -3,7 +3,7 @@ import { diff } from "../diff";
 import { patch } from "../patch";
 import { render } from "../create-element";
 import { VPatch, VPatchType, VNode } from "../vnode";
-import { RNodeProxy } from "../element";
+import { RealNodeProxy } from "../element";
 import { Component } from "../component";
 
 let log = console.log;
@@ -20,7 +20,7 @@ class Button extends Component {
                     onclick(e);
                 }
             }} class={'button'} >{title || '按钮'}
-                <div ref='button div'>
+                <div>
                     this is a button div
                 </div>
             </button>
@@ -32,16 +32,13 @@ class Button extends Component {
 class App extends Component {
     render() {
         let buttonTitle = this.props.buttonTitle || '951';
-        let refName = this.props.refName || 'ButtonRef';
         return (
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
-                <Button ref={refName} onclick={() => {
-                    log(this.refs)
+                <Button onclick={() => {
                     this.setAttribute('buttonTitle', Math.random());
-                    this.setAttribute('refName', 'ButtonRef'+Math.random());
-                }} title={buttonTitle}>
-                    <div ref='app div'>
+                }} title={buttonTitle} testObj={{ a: 0, b: Math.random() }}>
+                    <div >
                         this is a app div
                     </div>
                 </Button>
@@ -53,17 +50,18 @@ class App extends Component {
 
 
 let rootVNode1 = (<div style={'height:100px; background-color:red;'}>
-    <Button title={'111'}></Button>
+    <Button title={'111'} testObj={{ a: 1, b: 2, c: 3 }}></Button>
 </div>)
 let rootXom = document.getElementById('body');
 let rootRNode = render(rootVNode1)
-let root = new RNodeProxy(new VNode('div'));
+let root = new RealNodeProxy(new VNode('div'));
 root.appendChild(rootRNode);
 rootXom.appendChild(root.getElement());
 
 let rootVNode2 = (<div >
-    <App>
-    </App>
+    <Button title={'111'} testObj={{ a: 1, b: 999 }}></Button>
+    {/* <App>
+    </App> */}
 </div >)
 
 setTimeout(() => {
