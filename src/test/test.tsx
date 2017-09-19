@@ -6,8 +6,14 @@ import { VPatch, VPatchType, VNode } from "../vnode";
 import { RealNodeProxy } from "../element";
 import { Component } from "../component";
 
-let log = console.log;
-let assert = console.assert;
+const log = console.log;
+const assert = console.assert;
+
+const rootXom = document.getElementById('body');
+const rootRealNodeProxy = new RealNodeProxy(new VNode('div'));
+rootXom.appendChild(rootRealNodeProxy.getElement());
+
+
 
 class Button extends Component {
     render() {
@@ -31,14 +37,14 @@ class Button extends Component {
 
 class App extends Component {
     render() {
-        let buttonTitle = this.props.buttonTitle || '951';
+        let btnTitle = this.props.btnTitle || '951-btn';
         return (
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
                 <Button onclick={() => {
-                    this.setAttribute('buttonTitle', Math.random());
-                }} title={buttonTitle} testObj={{ a: 0, b: Math.random() }}>
-                    <div >
+                    this.setAttribute('btnTitle', Math.random());
+                }} title={btnTitle}>
+                    <div>
                         this is a app div
                     </div>
                 </Button>
@@ -48,33 +54,29 @@ class App extends Component {
 }
 
 
-
-let rootVNode1 = (<div style={'height:100px; background-color:red;'}>
-    <Button title={'111'} testObj={{ a: 1, b: 2, c: 3 }}></Button>
+let firstVNode = (<div style={'height:100px; background-color:red;'}>
+    <Button title={'FirstButton'}></Button>
 </div>)
-let rootXom = document.getElementById('body');
-let rootRNode = render(rootVNode1)
-let root = new RealNodeProxy(new VNode('div'));
-root.appendChild(rootRNode);
-rootXom.appendChild(root.getElement());
 
-let rootVNode2 = (<div >
-    <Button title={'111'} testObj={{ a: 1, b: 999 }}></Button>
-    {/* <App>
-    </App> */}
+let firstRealNode = render(firstVNode)
+rootRealNodeProxy.appendChild(firstRealNode);
+
+let secondVNode = (<div >
+    <App>
+    </App>
 </div >)
 
 setTimeout(() => {
-    let patches = diff(rootVNode1, rootVNode2);
+    let patches = diff(firstVNode, secondVNode);
     log('*********************************************');
     log(patches);
 
     log('---------------------------------------------');
-    log(rootRNode);
-    let newRootRNode = patch(rootRNode, patches);
+    log(firstRealNode);
+    let newRootRNode = patch(firstRealNode, patches);
     log('---------------------------------------------');
     log(newRootRNode);
 
     log('---------------------------------------------');
-    log(newRootRNode === rootRNode);
+    log(newRootRNode === firstRealNode);
 }, 1000);
