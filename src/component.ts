@@ -13,7 +13,7 @@ export enum RenderMode {
 }
 
 export class Component {
-    private static id = 1;
+    private static increasingID = 1;
 
     id: number;
     renderRealNode: RealNodeProxy;
@@ -22,7 +22,7 @@ export class Component {
     protected renderedVNode: VNode;
 
     constructor(props) {
-        this.id = Component.id++;
+        this.id = Component.increasingID++;
         this.props = props || {};
 
     }
