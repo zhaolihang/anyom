@@ -8,9 +8,18 @@ export function isVNode(x) {
     return x && (x.__type__ === '__VNode__');
 }
 
-export class VNode {
+export enum VNodeType {
+    None = 0,
+    Component,
+    NodeTag,
+    Text,
+}
 
+export class VNode {
     count = 0;
+    type = VNodeType.None;
+    commands: { name: string, value: any }[];
+    ref: string;
     constructor(public tagName: ITagType, public properties?: IPropType, public children?: VNode[], public key?: string) {
         this.tagName = tagName;
         this.properties = properties || noProperties;

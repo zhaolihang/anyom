@@ -1,6 +1,5 @@
-import { ITagType, VNode } from "./vnode";
+import { ITagType, VNode, VNodeType } from "./vnode";
 import { Component } from "./component";
-import { TextNodeTagName } from "./h";
 import { startsWith, endsWith } from "./utils";
 
 export enum RealNodeType {
@@ -25,23 +24,23 @@ export class RealNodeProxy {
 
     private createElement() {
         let vNode = this.vNode;
-        if (typeof (vNode.tagName) === 'string') {
-            this.realNodeType = RealNodeType.NATIVE;
-            this.element = this.createRealNode(vNode);
-        } else if (typeof (vNode.tagName) === 'function') {
+        if (vNode.type === VNodeType.Component) {
             this.realNodeType = RealNodeType.COMPONENT;
             this.element = this.createComponent(vNode);
         } else {
-            throw new Error('tagName 只能是string 或 Component的子类构造函数');
+            this.realNodeType = RealNodeType.NATIVE;
+            this.element = this.createRealNode(vNode);
         }
     }
 
     private createRealNode(vNode: VNode) {
-        if (vNode.tagName === TextNodeTagName) {
+        if (vNode.type === VNodeType.Text) {
             return <Text>(document.createTextNode(vNode.properties.value));
-        } else {
+        } else if (vNode.type === VNodeType.NodeTag) {
             let realNode = <HTMLElement>(document.createElement(vNode.tagName));
             return realNode;
+        } else {
+            throw new Error('类型错误');
         }
     }
 

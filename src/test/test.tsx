@@ -2,7 +2,7 @@ import { h } from "../h";
 import { diff } from "../diff";
 import { patch } from "../patch";
 import { render } from "../create-element";
-import { VPatch, VPatchType, VNode } from "../vnode";
+import { VPatch, VPatchType, VNode, VNodeType } from "../vnode";
 import { RealNodeProxy } from "../element";
 import { Component } from "../component";
 
@@ -10,7 +10,9 @@ const log = console.log;
 const assert = console.assert;
 
 const rootRealNode = document.getElementById('body');
-const rootRealNodeProxy = new RealNodeProxy(new VNode('div'));
+let divNode = new VNode('div');
+divNode.type = VNodeType.NodeTag;
+const rootRealNodeProxy = new RealNodeProxy(divNode);
 rootRealNode.appendChild(rootRealNodeProxy.getRealNode());
 
 
@@ -51,7 +53,7 @@ class App extends Component {
 }
 
 
-let firstVNode = (<div>
+let firstVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
     {/* <Button title={'FirstButton'}></Button> */}
     <div key={'1'}>111</div>
     <div key={'2'}>222</div>
@@ -62,7 +64,7 @@ let firstVNode = (<div>
 let firstRealNode = render(firstVNode)
 rootRealNodeProxy.appendChild(firstRealNode);
 
-let secondVNode = (<div >
+let secondVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
     {/* <App>
     </App> */}
     <div key={'10'}>101010</div>
