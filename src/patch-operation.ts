@@ -68,19 +68,10 @@ function reorderChildren(parentNode: RealNodeProxy, moves) {
     let insert: { to: number, key: string };
 
     let reorderKeyMap: { [key: string]: true } = {};
-    let removeKeyMap: { [key: string]: true } = {};
-    for (let i = 0; i < moves.removes.length; i++) {
-        let remove = moves.removes[i];
-        if (remove.key) {
-            removeKeyMap[remove.key] = true;
-        }
-    }
-
+    let insertKeyMap: { [key: string]: true } = {};
     for (let j = 0; j < moves.inserts.length; j++) {
         let insert = moves.inserts[j];
-        if (removeKeyMap[insert.key]) {
-            reorderKeyMap[insert.key] = true;
-        }
+        insertKeyMap[insert.key] = true;
     }
 
     //
@@ -89,6 +80,9 @@ function reorderChildren(parentNode: RealNodeProxy, moves) {
         node = childNodes[remove.from];
         if (remove.key) {
             keyMap[remove.key] = node;
+            if (insertKeyMap[remove.key]) {
+                reorderKeyMap[remove.key] = true;
+            }
         }
         if (reorderKeyMap[remove.key]) {
             parentNode.removeChild(node, true);
@@ -102,11 +96,11 @@ function reorderChildren(parentNode: RealNodeProxy, moves) {
         insert = moves.inserts[j];
         node = keyMap[insert.key];
         if (reorderKeyMap[insert.key]) {
-            parentNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to],true);
+            parentNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to], true);
         } else {
             parentNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to]);
         }
-        
+
     }
 
 }
