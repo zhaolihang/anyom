@@ -6,14 +6,32 @@ const EMPTY_CHILDREN = [];
 export const TextNodeTagName = '#text';
 
 export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VNode {
-    
     properties == null ? undefined : properties;
+
+    // key
     let key;
-    if (properties && properties.hasOwnProperty('key')) {
+    if (properties && properties.key != null) {
         key = properties.key;
-        properties.key = undefined;
+        delete properties.key;
     }
 
+    // ref
+    let ref;
+    if (properties && properties.ref != null) {
+        ref = properties.ref;
+        delete properties.ref;
+    }
+
+    // commands 指令
+    let commands: { name: string, value: any }[];
+    if (properties && properties.commands != null) {
+        if (isArray(properties.commands)) {
+            commands = properties.commands;
+        }
+        delete properties.commands;
+    }
+
+    // children
     let children = EMPTY_CHILDREN, child, i;
     for (i = args.length; i-- > 0;) {
         stack.push(args[i]);
@@ -23,13 +41,12 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
         if (!stack.length) {
             stack.push(properties.children);
         }
-        console.log('delete properties.children;')
         delete properties.children;
     }
 
     while (stack.length) {
 
-        if ((child = stack.pop()) && child.pop !== undefined) {
+        if ((child = stack.pop()) && isArray(child)) {
             for (i = child.length; i--;) {
                 stack.push(child[i]);
             }

@@ -51,16 +51,24 @@ class App extends Component {
 }
 
 
-let firstVNode = (<div style={'height:100px; background-color:red;'}>
-    <Button title={'FirstButton'}></Button>
+let firstVNode = (<div>
+    {/* <Button title={'FirstButton'}></Button> */}
+    <div key={'1'}>111</div>
+    <div key={'2'}>222</div>
+    <div key={'3'}>333</div>
+    <div key={'4'}>444</div>
 </div>)
 
 let firstRealNode = render(firstVNode)
 rootRealNodeProxy.appendChild(firstRealNode);
 
 let secondVNode = (<div >
-    <App>
-    </App>
+    {/* <App>
+    </App> */}
+    <div key={'10'}>101010</div>
+    <div key={'4'}>444</div>
+    <div key={'3'}>333</div>
+    <div key={'2'}>222</div>
 </div >)
 
 setTimeout(() => {

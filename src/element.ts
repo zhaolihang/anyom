@@ -3,7 +3,7 @@ import { Component } from "./component";
 import { TextNodeTagName } from "./h";
 import { startsWith, endsWith } from "./utils";
 
-export enum RNodeType {
+export enum RealNodeType {
     NATIVE = 'NATIVE',
     COMPONENT = 'COMPONENT',
 }
@@ -16,7 +16,7 @@ export class RealNodeProxy {
     parentNode: RealNodeProxy = null;
     childNodes: RealNodeProxy[] = [];
 
-    rNodeType: RNodeType;
+    realNodeType: RealNodeType;
     element: any;
 
     constructor(public vNode: VNode) {
@@ -26,10 +26,10 @@ export class RealNodeProxy {
     private createElement() {
         let vNode = this.vNode;
         if (typeof (vNode.tagName) === 'string') {
-            this.rNodeType = RNodeType.NATIVE;
+            this.realNodeType = RealNodeType.NATIVE;
             this.element = this.createRealNode(vNode);
         } else if (typeof (vNode.tagName) === 'function') {
-            this.rNodeType = RNodeType.COMPONENT;
+            this.realNodeType = RealNodeType.COMPONENT;
             this.element = this.createComponent(vNode);
         } else {
             throw new Error('tagName 只能是string 或 Component的子类构造函数');
@@ -55,9 +55,9 @@ export class RealNodeProxy {
     }
 
     getRealNode<T = HTMLElement>(): T {
-        if (this.rNodeType === RNodeType.NATIVE) {
+        if (this.realNodeType === RealNodeType.NATIVE) {
             return (<T>this.element);
-        } else if (this.rNodeType === RNodeType.COMPONENT) {
+        } else if (this.realNodeType === RealNodeType.COMPONENT) {
             return (<Component>this.element).getRealNodeProxy().getRealNode();
         }
         throw new Error('未知类型');
@@ -68,9 +68,9 @@ export class RealNodeProxy {
         this.childNodes.push(x);
 
         ///
-        if (this.rNodeType === RNodeType.NATIVE) {
+        if (this.realNodeType === RealNodeType.NATIVE) {
             this.realNodeAppendChild(x);
-        } else if (this.rNodeType === RNodeType.COMPONENT) {
+        } else if (this.realNodeType === RealNodeType.COMPONENT) {
             this.componentAppendChild(x);
         }
 
@@ -84,11 +84,11 @@ export class RealNodeProxy {
         this.getRealNode().appendChild(x.getRealNode());
     }
 
-    removeChild(x: RealNodeProxy) {
+    removeChild(x: RealNodeProxy, reorder = false) {
 
-        if (this.rNodeType === RNodeType.NATIVE) {
+        if (this.realNodeType === RealNodeType.NATIVE) {
             this.realNodeRemoveChild(x);
-        } else if (this.rNodeType === RNodeType.COMPONENT) {
+        } else if (this.realNodeType === RealNodeType.COMPONENT) {
             this.componentRemoveChild(x);
         }
 
@@ -112,9 +112,9 @@ export class RealNodeProxy {
     }
 
     replaceChild(newNode: RealNodeProxy, oldNode: RealNodeProxy) {
-        if (this.rNodeType === RNodeType.NATIVE) {
+        if (this.realNodeType === RealNodeType.NATIVE) {
             this.realNodeReplaceChild(newNode, oldNode);
-        } else if (this.rNodeType === RNodeType.COMPONENT) {
+        } else if (this.realNodeType === RealNodeType.COMPONENT) {
             this.componentReplaceChild(newNode, oldNode);
         }
 
@@ -137,7 +137,7 @@ export class RealNodeProxy {
         this.getRealNode().replaceChild(newNode.getRealNode(), oldNode.getRealNode());
     }
 
-    insertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null) {
+    insertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null, reorder = false) {
 
         if (insertTo) {
             let index = this.childNodes.indexOf(insertTo);
@@ -153,9 +153,9 @@ export class RealNodeProxy {
         }
 
         ///
-        if (this.rNodeType === RNodeType.NATIVE) {
+        if (this.realNodeType === RealNodeType.NATIVE) {
             this.realNodeInsertBefore(newNode, insertTo);
-        } else if (this.rNodeType === RNodeType.COMPONENT) {
+        } else if (this.realNodeType === RealNodeType.COMPONENT) {
             this.componentInsertBefore(newNode, insertTo);
         }
 
@@ -176,9 +176,9 @@ export class RealNodeProxy {
 
     setAttribute(propName: string, propValue: any, previous?: any) {
         ///
-        if (this.rNodeType === RNodeType.NATIVE) {
+        if (this.realNodeType === RealNodeType.NATIVE) {
             this.realNodeSetAttribute(propName, propValue, previous);
-        } else if (this.rNodeType === RNodeType.COMPONENT) {
+        } else if (this.realNodeType === RealNodeType.COMPONENT) {
             this.componentSetAttribute(propName, propValue, previous);
         }
 
@@ -232,9 +232,9 @@ export class RealNodeProxy {
         }
 
         ///
-        if (this.rNodeType === RNodeType.NATIVE) {
+        if (this.realNodeType === RealNodeType.NATIVE) {
             this.realNodeSetAttributeObject(propName, propValue, previous);
-        } else if (this.rNodeType === RNodeType.COMPONENT) {
+        } else if (this.realNodeType === RealNodeType.COMPONENT) {
             this.componentSetAttributeObject(propName, propValue, previous);
         }
     }
@@ -255,9 +255,9 @@ export class RealNodeProxy {
     }
 
     removeAttribute(propName: string, previous?: any) {
-        if (this.rNodeType === RNodeType.NATIVE) {
+        if (this.realNodeType === RealNodeType.NATIVE) {
             this.realNodeRemoveAttribute(propName, previous);
-        } else if (this.rNodeType === RNodeType.COMPONENT) {
+        } else if (this.realNodeType === RealNodeType.COMPONENT) {
             this.componentRemoveAttribute(propName, previous);
         }
 
