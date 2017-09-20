@@ -43,5 +43,5 @@ function patchObject(node: RealNodeProxy, props, previous, propName, propValue) 
         setAttribute(node, propName, {}, undefined);
     }
 
-    node.setAttributeObject(propName, propValue, previousValue);
+    node.setObjectAttribute(propName, propValue, previousValue);
 }

@@ -225,7 +225,7 @@ export class RealNodeProxy {
         (this.element as Component).setAttribute(propName, propValue, previous);
     }
 
-    setAttributeObject(propName: string, propValue: any, previous?: any) {
+    setObjectAttribute(propName: string, propValue: any, previous?: any) {
         for (let k in propValue) {
             let value = propValue[k];
             this[propName][k] = value;
@@ -233,13 +233,13 @@ export class RealNodeProxy {
 
         ///
         if (this.realNodeType === RealNodeType.NATIVE) {
-            this.realNodeSetAttributeObject(propName, propValue, previous);
+            this.realNodeSetObjectAttribute(propName, propValue, previous);
         } else if (this.realNodeType === RealNodeType.COMPONENT) {
-            this.componentSetAttributeObject(propName, propValue, previous);
+            this.componentSetObjectAttribute(propName, propValue, previous);
         }
     }
 
-    private realNodeSetAttributeObject(propName: string, propValue: any, previous?: any) {
+    private realNodeSetObjectAttribute(propName: string, propValue: any, previous?: any) {
 
         let element = (this.element as HTMLElement);
         let replacer = undefined;
@@ -250,7 +250,7 @@ export class RealNodeProxy {
 
     }
 
-    private componentSetAttributeObject(propName: string, propValue: any, previous?: any) {
+    private componentSetObjectAttribute(propName: string, propValue: any, previous?: any) {
         (this.element as Component).setAttributeObject(propName, propValue, previous);
     }
 
