@@ -4,15 +4,17 @@ export type IPropType = { [x: string]: any };
 let noProperties = {};
 let noChildren = [];
 
+export const TextNodeTagName = {};
+
 export function isVNode(x) {
     return x && (x.__type__ === '__VNode__');
 }
 
 export enum VNodeType {
     None = 0,
-    Component,
-    NodeTag,
-    Text,
+    Component = 'Component',
+    Node = 'Node',
+    Text = 'Text',
 }
 
 export class VNode {
@@ -20,7 +22,17 @@ export class VNode {
     type = VNodeType.None;
     commands: { name: string, value: any }[];
     ref: string;
+
     constructor(public tagName: ITagType, public properties?: IPropType, public children?: VNode[], public key?: string) {
+        const tagNameType = typeof tagName;
+        if (tagName === TextNodeTagName) {
+            this.type = VNodeType.Text;
+        } else if (tagNameType === 'string') {
+            this.type = VNodeType.Node;
+        } else if (tagNameType === 'function') {
+            this.type = VNodeType.Component;
+        }
+
         this.tagName = tagName;
         this.properties = properties || noProperties;
         this.children = children || noChildren;
@@ -39,6 +51,7 @@ export class VNode {
         }
         this.count = count + descendants;
     }
+
 }
 (VNode.prototype as any).__type__ = '__VNode__';
 

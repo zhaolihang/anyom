@@ -36,7 +36,7 @@ export class RealNodeProxy {
     private createRealNode(vNode: VNode) {
         if (vNode.type === VNodeType.Text) {
             return <Text>(document.createTextNode(vNode.properties.value));
-        } else if (vNode.type === VNodeType.NodeTag) {
+        } else if (vNode.type === VNodeType.Node) {
             let realNode = <HTMLElement>(document.createElement(vNode.tagName));
             return realNode;
         } else {
@@ -83,7 +83,7 @@ export class RealNodeProxy {
         this.getRealNode().appendChild(x.getRealNode());
     }
 
-    removeChild(x: RealNodeProxy, reorder = false) {
+    removeChild(x: RealNodeProxy, recycle = false) {
 
         if (this.realNodeType === RealNodeType.NATIVE) {
             this.realNodeRemoveChild(x);
@@ -136,7 +136,7 @@ export class RealNodeProxy {
         this.getRealNode().replaceChild(newNode.getRealNode(), oldNode.getRealNode());
     }
 
-    insertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null, reorder = false) {
+    insertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null, recycle = false) {
 
         if (insertTo) {
             let index = this.childNodes.indexOf(insertTo);

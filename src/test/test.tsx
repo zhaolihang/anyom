@@ -2,7 +2,7 @@ import { h } from "../h";
 import { diff } from "../diff";
 import { patch } from "../patch";
 import { render } from "../create-element";
-import { VPatch, VPatchType, VNode, VNodeType } from "../vnode";
+import { VPatch, VPatchType, VNode } from "../vnode";
 import { RealNodeProxy } from "../element";
 import { Component } from "../component";
 
@@ -11,7 +11,6 @@ const assert = console.assert;
 
 const rootRealNode = document.getElementById('body');
 let divNode = new VNode('div');
-divNode.type = VNodeType.NodeTag;
 const rootRealNodeProxy = new RealNodeProxy(divNode);
 rootRealNode.appendChild(rootRealNodeProxy.getRealNode());
 
@@ -71,6 +70,7 @@ let secondVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
     <div key={'4'}>444</div>
     <div key={'3'}>333</div>
     <div key={'2'}>222</div>
+    <img src="http://nodejs.cn/static/images/logo.svg"></img>
 </div >)
 
 setTimeout(() => {

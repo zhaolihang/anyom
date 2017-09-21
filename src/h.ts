@@ -1,19 +1,11 @@
-import { ITagType, IPropType, VNode, isVNode, VNodeType } from "./vnode";
+import { ITagType, IPropType, VNode, isVNode, TextNodeTagName } from "./vnode";
 import { isArray } from "./utils";
 
 const stack: VNode[] = [];
 const EMPTY_CHILDREN = [];
-export const TextNodeTagName = '#text';
 
 export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VNode {
     properties == null ? undefined : properties;
-
-    // key
-    let key;
-    if (properties && properties.key != null) {
-        key = properties.key;
-        delete properties.key;
-    }
 
     // ref
     let ref;
@@ -29,6 +21,14 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
             commands = properties.commands;
         }
         delete properties.commands;
+    }
+
+    ////////////////////////////////////////////////////
+    // key
+    let key;
+    if (properties && properties.key != null) {
+        key = properties.key;
+        delete properties.key;
     }
 
     // children
@@ -56,7 +56,6 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
 
             if (typeof child === 'string' || typeof child === 'number' || typeof child === 'boolean') {
                 child = new VNode(TextNodeTagName, { value: String(child) });
-                (<VNode>child).type = VNodeType.Text;
             }
 
             if (!isVNode(child)) {
@@ -75,13 +74,6 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
     let vnode = new VNode(tagName, properties, children, key);
     vnode.commands = commands;
     vnode.ref = ref;
-    if (typeof tagName === 'string') {
-        vnode.type = VNodeType.NodeTag;
-    } else if (typeof tagName === 'function') {
-        vnode.type = VNodeType.Component;
-    } else {
-        throw new Error('类型错误');
-    }
 
     return vnode;
 }
