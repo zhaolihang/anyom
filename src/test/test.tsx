@@ -36,13 +36,13 @@ class Button extends Component {
 class App extends Component {
     render() {
         let btnTitle = this.props.btnTitle || 'SecondBut';
-        let name = this.props.name;
-        let input = name ? <input key={'input1'}></input> : <input key={'input2'}></input>;
+        let isName = this.props.isName;
+        let input = isName ? <input key='name' ref='name' placeholder='name'></input> : <input key='password' ref='password' placeholder='password'></input>;
         return (
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
-                <Button onclick={() => {
-                    this.setAttribute('name', !!!name);
+                <Button ref="button" onclick={() => {
+                    this.setAttribute('isName', !!!isName);
                 }} title={btnTitle}>
                 </Button>
                 {input}
@@ -64,13 +64,14 @@ let firstRealNode = render(firstVNode)
 rootRealNodeProxy.appendChild(firstRealNode);
 
 let secondVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
-    {/* <App>
-    </App> */}
+
     <div key={'10'}>101010</div>
     <div key={'4'}>444</div>
     <div key={'3'}>333</div>
     <div key={'2'}>222</div>
     <img src="http://nodejs.cn/static/images/logo.svg"></img>
+    <App>
+    </App>
 </div >)
 
 setTimeout(() => {

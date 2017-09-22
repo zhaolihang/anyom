@@ -31,6 +31,9 @@ export class RealNodeProxy {
             this.realNodeType = RealNodeType.NATIVE;
             this.element = this.createRealNode();
         }
+        if (this.context && this.vNode.ref) {
+            this.context.refs[this.vNode.ref] = this.element;
+        }
     }
 
     private createRealNode() {
@@ -102,6 +105,14 @@ export class RealNodeProxy {
             throw Error('被移除的节点没找到,是否是算法错误');
         }
 
+        if (!recycle) {
+            if (x.context && x.vNode.ref) {
+                if (x.context.refs[x.vNode.ref] === x) {
+                    delete x.context.refs[x.vNode.ref]
+                }
+            }
+        }
+
     }
 
     private realNodeRemoveChild(x: RealNodeProxy) {
@@ -127,6 +138,12 @@ export class RealNodeProxy {
             this.childNodes.splice(index, 1, newNode);
         } else {
             throw Error('被替换的节点没找到,是否是算法错误');
+        }
+
+        if (oldNode.context && oldNode.vNode.ref) {
+            if (oldNode.context.refs[oldNode.vNode.ref] === oldNode) {
+                delete oldNode.context.refs[oldNode.vNode.ref]
+            }
         }
     }
 
