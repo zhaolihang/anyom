@@ -72,6 +72,7 @@ let secondVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
     <img src="http://nodejs.cn/static/images/logo.svg"></img>
     <App>
     </App>
+    <div innerHTML="<div>innerHtml</div>"></div>
 </div >)
 
 setTimeout(() => {

@@ -219,22 +219,24 @@ export class RealNodeProxy {
             return;
         }
 
-        if (element.setAttribute) {
-            if (propName === 'style' && typeof propValue === 'string') {
-                element.style.cssText = propValue;
+        if (this.vNode.type === VNodeType.Node) {
+            // ref: https://javascript.info/dom-attributes-and-properties
+            if (element.hasAttribute(propName)) {
+                element.setAttribute(propName, propValue);
             } else {
-                if (typeof propValue === 'object') {
-                    element[propName] = propValue;
+                if (propName === 'style' && typeof propValue === 'string') {
+                    element.style.cssText = propValue;
                 } else {
-                    element.setAttribute(propName, propValue);
+                    element[propName] = propValue;
                 }
+            }
+
+        } else if (this.vNode.type === VNodeType.Text) {
+            if ((element as any).nodeValue != propValue) {// element is Text
+                (element as any).nodeValue = propValue;
             }
         } else {
-            if (element instanceof Text) {
-                if ((element as Text).nodeValue != propValue) {
-                    (element as Text).nodeValue = propValue;
-                }
-            }
+            throw new Error('类型错误');
         }
 
     }
@@ -292,10 +294,10 @@ export class RealNodeProxy {
                 element.removeEventListener(event.name, previous[propName], event.capture);
             }
         } else {
-            if (previous && previous[propName] && typeof previous[propName] === 'object') {
-                element[propName] = undefined;
-            } else {
+            if (element.hasAttribute(propName)) {
                 element.removeAttribute(propName);
+            } else {
+                element[propName] = undefined;
             }
         }
 
