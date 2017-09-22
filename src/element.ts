@@ -1,7 +1,8 @@
-import { ITagType, VNode, VNodeType } from "./vnode";
+import { ITagType, VNode, VNodeType, ICommandsType } from "./vnode";
 import { Component } from "./component";
 import { startsWith, endsWith } from "./utils";
 import { LifeCycleType } from "./lifecycle";
+import { getCommand } from "./commands";
 
 export enum RealNodeType {
     NATIVE = 'NATIVE',
@@ -16,32 +17,36 @@ export class RealNodeProxy {
     parentNode: RealNodeProxy = null;
     childNodes: RealNodeProxy[] = [];
 
+    vNodeType: VNodeType = VNodeType.None;
     realNodeType: RealNodeType;
     element: any;
+    ref: string;
+    commands: ICommandsType;
 
-    constructor(public vNode: VNode, public context?: Component) {
-        this.createElement()
+    constructor(vNode: VNode, public context?: Component) {
+        this.vNodeType = vNode.type;
+        this.ref = vNode.ref;
+        this.commands = vNode.commands;
+        this.createElement(vNode)
     }
 
-    private createElement() {
-        let vNode = this.vNode;
-        if (vNode.type === VNodeType.Component) {
+    private createElement(vNode: VNode) {
+        if (this.vNodeType === VNodeType.Component) {
             this.realNodeType = RealNodeType.COMPONENT;
-            this.element = this.createComponent();
+            this.element = this.createComponent(vNode);
         } else {
             this.realNodeType = RealNodeType.NATIVE;
-            this.element = this.createRealNode();
+            this.element = this.createRealNode(vNode);
         }
-        if (this.context && this.vNode.ref) {
-            this.context.refs[this.vNode.ref] = this.element;
-        }
+
+        this.setRef(this.ref);
+        this.setCommands(this.commands);
     }
 
-    private createRealNode() {
-        let vNode = this.vNode;
-        if (vNode.type === VNodeType.Text) {
+    private createRealNode(vNode: VNode) {
+        if (this.vNodeType === VNodeType.Text) {
             return <Text>(document.createTextNode(vNode.properties.value));
-        } else if (vNode.type === VNodeType.Node) {
+        } else if (this.vNodeType === VNodeType.Node) {
             let realNode = <HTMLElement>(document.createElement(vNode.tagName));
             return realNode;
         } else {
@@ -49,8 +54,7 @@ export class RealNodeProxy {
         }
     }
 
-    private createComponent(): Component {
-        let vNode = this.vNode;
+    private createComponent(vNode: VNode): Component {
         let Consr: typeof Component = vNode.tagName;
         let com: Component = new Consr(vNode.properties);
         if (!(com instanceof Component)) {
@@ -117,11 +121,8 @@ export class RealNodeProxy {
         }
 
         if (!recycle) {
-            if (x.context && x.vNode.ref) {
-                if (x.context.refs[x.vNode.ref] === x.element) {
-                    delete x.context.refs[x.vNode.ref];
-                }
-            }
+            x.setRef(undefined, x.ref);
+            x.setCommands(undefined, x.commands);
             //
             if (x.realNodeType === RealNodeType.COMPONENT) {
                 let com: Component = x.element;
@@ -156,15 +157,11 @@ export class RealNodeProxy {
             newNode.parentNode = this;
             this.childNodes.splice(index, 1, newNode);
         } else {
-            throw Error('被替换的节点没找到,是否是算法错误');
+            throw new Error('被替换的节点没找到,是否是算法错误');
         }
 
-        if (oldNode.context && oldNode.vNode.ref) {
-            if (oldNode.context.refs[oldNode.vNode.ref] === oldNode.element) {
-                delete oldNode.context.refs[oldNode.vNode.ref]
-            }
-        }
-
+        oldNode.setRef(undefined, oldNode.ref);
+        oldNode.setCommands(undefined, oldNode.commands);
         //
         if (newNode.realNodeType === RealNodeType.COMPONENT) {
             let com: Component = newNode.element;
@@ -262,7 +259,7 @@ export class RealNodeProxy {
             return;
         }
 
-        if (this.vNode.type === VNodeType.Node) {
+        if (this.vNodeType === VNodeType.Node) {
             // ref: https://javascript.info/dom-attributes-and-properties
             if (element.hasAttribute(propName)) {
                 element.setAttribute(propName, propValue);
@@ -274,7 +271,7 @@ export class RealNodeProxy {
                 }
             }
 
-        } else if (this.vNode.type === VNodeType.Text) {
+        } else if (this.vNodeType === VNodeType.Text) {
             if ((element as any).nodeValue != propValue) {// element is Text
                 (element as any).nodeValue = propValue;
             }
@@ -348,6 +345,85 @@ export class RealNodeProxy {
 
     private componentRemoveAttribute(propName: string, previous?: any) {
         (this.element as Component).removeAttribute(propName, previous);
+    }
+
+    setRef(newRef: string, previousRef?: string) {
+        // console.log('setRef', newRef, previousRef);
+        if (this.context) {
+            if (previousRef) {
+                if (this.context.refs[previousRef] === this.element) {
+                    delete this.context.refs[previousRef];
+                }
+            }
+            if (newRef) {
+                this.context.refs[newRef] = this.element;
+            }
+        }
+        this.ref = newRef;
+    }
+
+    setCommands(cmdPatch: ICommandsType, previousCmds?: ICommandsType) {
+        // console.log('setCommands', cmdPatch, previousCmds);
+        if (cmdPatch) {
+            if (previousCmds) {
+                for (let key in cmdPatch) {
+                    let cmd = getCommand(key);
+                    let value = cmdPatch[key];
+                    let oldValue = previousCmds[key];
+                    if (value) {
+                        if (oldValue) {
+                            if (cmd.update) {
+                                cmd.update(this.getRealNode(), value, oldValue);
+                            }
+                        } else {
+                            if (cmd.bind) {
+                                cmd.bind(this.getRealNode(), value);
+                            }
+                        }
+                    } else {
+                        if (oldValue) {
+                            if (cmd.unbind) {
+                                cmd.unbind(this.getRealNode());
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (let key in cmdPatch) {// 新添加
+                    let cmd = getCommand(key);
+                    let value = cmdPatch[key];
+                    if (cmd.bind) {
+                        cmd.bind(this.getRealNode(), value);
+                    }
+                }
+            }
+
+        } else {
+            if (previousCmds) {
+                for (let key in previousCmds) {
+                    let cmd = getCommand(key);
+                    if (cmd.unbind) {
+                        cmd.unbind(this.getRealNode());
+                    }
+                }
+            }
+        }
+
+        ///
+        if (cmdPatch) {
+            this.commands = this.commands || {};
+            for (let key in cmdPatch) {
+                let value = cmdPatch[key];
+                if (value === undefined) {
+                    delete this.commands[key];
+                } else {
+                    this.commands[key] = value
+                }
+            }
+            if (Object.keys(this.commands).length === 0) {
+                this.commands = undefined;
+            }
+        }
     }
 
     private getRealNodeEventName(propName: string) {

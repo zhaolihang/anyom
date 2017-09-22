@@ -47,9 +47,9 @@ function patchObject(node: RealNodeProxy, props, previous, propName, propValue) 
 }
 
 export function applyRef(node: RealNodeProxy, newRef: string, previousRef?: string) {
-
+    node.setRef(newRef, previousRef);
 }
 
-export function applyCommonds(node: RealNodeProxy, newCmds: ICommandsType, previousCmds?: ICommandsType) {
-
+export function applyCommands(node: RealNodeProxy, cmdPatch: ICommandsType, previousCmds?: ICommandsType) {
+    node.setCommands(cmdPatch, previousCmds);
 }

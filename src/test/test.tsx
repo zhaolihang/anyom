@@ -5,15 +5,46 @@ import { render } from "../create-element";
 import { VPatch, VPatchType, VNode } from "../vnode";
 import { RealNodeProxy } from "../element";
 import { Component } from "../component";
+import { setCommand, getCommand } from "../commands";
 
 const log = console.log;
 const assert = console.assert;
+
+setCommand('testCmd_1', {
+
+    bind(node, newValue) {
+        log('testCmd_1 bind', newValue);
+    },
+
+    update(node, newValue, oldValue) {
+        log('testCmd_1 update', newValue, oldValue);
+    },
+
+    unbind(node) {
+        log('testCmd_1 unbind');
+    },
+});
+
+setCommand('testCmd_2', {
+
+    bind(node, newValue) {
+        log('testCmd_2 bind', newValue);
+    },
+
+    update(node, newValue, oldValue) {
+        log('testCmd_2 update', newValue, oldValue);
+    },
+
+    unbind(node) {
+        log('testCmd_2 unbind');
+    },
+});
+
 
 const rootNode = document.getElementById('body');
 let divVNode = new VNode('div');
 const rootRealNodeProxy = new RealNodeProxy(divVNode);
 rootNode.appendChild(rootRealNodeProxy.getRealNode());
-
 
 
 class Button extends Component {
@@ -51,11 +82,13 @@ class App extends Component {
         let btnTitle = this.props.btnTitle || 'SecondBut';
         let isName = this.props.isName;
         let input = isName ? <input key='name' ref='name' type='text' placeholder='name'></input> : <input key='password' ref='password' type='password' placeholder='password'></input>;
+        this.props.num = this.props.num || 1;
         return (
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
-                <Button ref="button" onclick={() => {
+                <Button ref={'butRefName' + (this.props.num)} onclick={() => {
                     this.setAttribute('isName', !!!isName);
+                    this.setAttribute('num', this.props.num + 1);
                 }} title={btnTitle}>
                 </Button>
                 {input}
@@ -64,8 +97,7 @@ class App extends Component {
     }
 }
 
-
-let firstVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
+let firstVNode = (<div commands={{ testCmd_1: { a: 123 }, testCmd_2: true }}>
     {/* <Button title={'FirstButton'}></Button> */}
     <div key={'1'}>111</div>
     <div key={'2'}>222</div>
@@ -76,7 +108,7 @@ let firstVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
 let firstNode = render(firstVNode)
 rootRealNodeProxy.appendChild(firstNode);
 
-let secondVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
+let secondVNode = (<div commands={{ testCmd_1: { a: 456 } }}>
 
     <div key={'10'}>101010</div>
     <div key={'4'}>444</div>

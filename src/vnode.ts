@@ -67,7 +67,7 @@ export enum VPatchType {
     INSERT = 'INSERT',
     REMOVE = 'REMOVE',
     REF = 'REF',
-    COMMONDS = 'COMMONDS',
+    COMMANDS = 'COMMANDS',
 }
 
 export function isPatch(x) {

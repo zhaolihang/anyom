@@ -19,11 +19,15 @@ function diffProps(a: IPropType, b: IPropType) {
                 diff = diff || {};
                 diff[aKey] = bValue;
             } else {
-                let objectDiff = diffProps(aValue, bValue);
-                if (objectDiff) {
+                if (!deepEqual(aValue, bValue)) {
                     diff = diff || {};
-                    diff[aKey] = objectDiff;
+                    diff[aKey] = bValue;
                 }
+                // let objectDiff = diffProps(aValue, bValue);
+                // if (objectDiff) {
+                //     diff = diff || {};
+                //     diff[aKey] = objectDiff;
+                // }
             }
         } else {
             diff = diff || {};
@@ -41,7 +45,7 @@ function diffProps(a: IPropType, b: IPropType) {
     return diff;
 }
 
-function diffCommonds(aCmds, bCmds) {
+function diffCommands(aCmds, bCmds) {
     let diff;
     for (let aKey in aCmds) {
         if (!(aKey in bCmds)) {
@@ -114,9 +118,9 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
                     apply = appendPatch(apply, new VPatch(VPatchType.REF, a, b.ref));
                 }
 
-                let cmdPatch = diffCommonds(a.commands || {}, b.commands || {});
+                let cmdPatch = diffCommands(a.commands || {}, b.commands || {});
                 if (cmdPatch) {
-                    apply = appendPatch(apply, new VPatch(VPatchType.COMMONDS, a, cmdPatch));
+                    apply = appendPatch(apply, new VPatch(VPatchType.COMMANDS, a, cmdPatch));
                 }
 
                 apply = diffChildren(a, b, patch, apply, index);
