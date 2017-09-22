@@ -9,10 +9,10 @@ import { Component } from "../component";
 const log = console.log;
 const assert = console.assert;
 
-const rootRealNode = document.getElementById('body');
-let divNode = new VNode('div');
-const rootRealNodeProxy = new RealNodeProxy(divNode);
-rootRealNode.appendChild(rootRealNodeProxy.getRealNode());
+const rootNode = document.getElementById('body');
+let divVNode = new VNode('div');
+const rootRealNodeProxy = new RealNodeProxy(divVNode);
+rootNode.appendChild(rootRealNodeProxy.getRealNode());
 
 
 
@@ -60,8 +60,8 @@ let firstVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
     <div key={'4'}>444</div>
 </div>)
 
-let firstRealNode = render(firstVNode)
-rootRealNodeProxy.appendChild(firstRealNode);
+let firstNode = render(firstVNode)
+rootRealNodeProxy.appendChild(firstNode);
 
 let secondVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
 
@@ -81,11 +81,15 @@ setTimeout(() => {
     log(patches);
 
     log('---------------------------------------------');
-    log(firstRealNode);
-    let newRootRNode = patch(firstRealNode, patches);
+    log(firstNode);
+    let newRootRNode = patch(firstNode, patches);
     log('---------------------------------------------');
     log(newRootRNode);
 
     log('---------------------------------------------');
-    log(newRootRNode === firstRealNode);
+    log(newRootRNode === firstNode);
 }, 1000);
+
+(window as any).getRootNode = function () {
+    return rootRealNodeProxy;
+}
