@@ -1,6 +1,6 @@
 
 import { VPatch, VPatchType, VNode } from "./vnode";
-import { applyProperties } from "./apply-properties";
+import { applyProperties, applyRef, applyCommonds } from "./apply-properties";
 import { RealNodeProxy } from "./element";
 import { RenderOptions } from "./patch";
 import { Component } from "./component";
@@ -22,6 +22,12 @@ export function patchOp(vpatch: VPatch, node: RealNodeProxy, context?: Component
             return node;
         case VPatchType.PROPS:
             applyProperties(node, patch, vNode.properties);
+            return node;
+        case VPatchType.REF:
+            applyRef(node, patch, vNode.ref);
+            return node;
+        case VPatchType.COMMONDS:
+            applyCommonds(node, patch, vNode.commands);
             return node;
         default:
             return node;

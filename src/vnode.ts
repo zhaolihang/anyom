@@ -1,5 +1,6 @@
 export type ITagType = any;
 export type IPropType = { [x: string]: any };
+export type ICommandsType = { [commandName: string]: any }; // { commandName:commandArgs }
 
 let noProperties = {};
 let noChildren = [];
@@ -20,7 +21,7 @@ export enum VNodeType {
 export class VNode {
     count = 0;
     type = VNodeType.None;
-    commands: { name: string, value: any }[];
+    commands: ICommandsType;
     ref: string;
     namespace: string;
 
@@ -65,6 +66,8 @@ export enum VPatchType {
     ORDER = 'ORDER',
     INSERT = 'INSERT',
     REMOVE = 'REMOVE',
+    REF = 'REF',
+    COMMONDS = 'COMMONDS',
 }
 
 export function isPatch(x) {

@@ -1,5 +1,5 @@
-import { ITagType, IPropType, VNode, isVNode, TextNodeTagName } from "./vnode";
-import { isArray } from "./utils";
+import { ITagType, IPropType, VNode, isVNode, TextNodeTagName, ICommandsType } from "./vnode";
+import { isArray, isObject } from "./utils";
 
 const stack: VNode[] = [];
 const EMPTY_CHILDREN = [];
@@ -15,9 +15,9 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
     }
 
     // commands 指令
-    let commands: { name: string, value: any }[];
+    let commands: ICommandsType;
     if (properties && properties.commands != null) {
-        if (isArray(properties.commands)) {
+        if (isObject(properties.commands)) {
             commands = properties.commands;
         }
         delete properties.commands;

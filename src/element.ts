@@ -1,6 +1,7 @@
 import { ITagType, VNode, VNodeType } from "./vnode";
 import { Component } from "./component";
 import { startsWith, endsWith } from "./utils";
+import { LifeCycleType } from "./lifecycle";
 
 export enum RealNodeType {
     NATIVE = 'NATIVE',
@@ -55,6 +56,9 @@ export class RealNodeProxy {
         if (!(com instanceof Component)) {
             throw new Error('tagName 不是 Component的子类构造函数');
         }
+        if (typeof com[LifeCycleType.Created] === 'function') {
+            com[LifeCycleType.Created]();
+        }
         return com;
     }
 
@@ -78,6 +82,13 @@ export class RealNodeProxy {
             this.componentAppendChild(x);
         }
 
+        //
+        if (x.realNodeType === RealNodeType.COMPONENT) {
+            let com: Component = x.element;
+            if (typeof com[LifeCycleType.Mounted] === 'function') {
+                com[LifeCycleType.Mounted]();
+            }
+        }
     }
 
     private realNodeAppendChild(x: RealNodeProxy) {
@@ -111,7 +122,15 @@ export class RealNodeProxy {
                     delete x.context.refs[x.vNode.ref];
                 }
             }
+            //
+            if (x.realNodeType === RealNodeType.COMPONENT) {
+                let com: Component = x.element;
+                if (typeof com[LifeCycleType.UnMounted] === 'function') {
+                    com[LifeCycleType.UnMounted]();
+                }
+            }
         }
+
 
     }
 
@@ -145,6 +164,21 @@ export class RealNodeProxy {
                 delete oldNode.context.refs[oldNode.vNode.ref]
             }
         }
+
+        //
+        if (newNode.realNodeType === RealNodeType.COMPONENT) {
+            let com: Component = newNode.element;
+            if (typeof com[LifeCycleType.Mounted] === 'function') {
+                com[LifeCycleType.Mounted]();
+            }
+        }
+
+        if (oldNode.realNodeType === RealNodeType.COMPONENT) {
+            let com: Component = oldNode.element;
+            if (typeof com[LifeCycleType.UnMounted] === 'function') {
+                com[LifeCycleType.UnMounted]();
+            }
+        }
     }
 
     private realNodeReplaceChild(newNode: RealNodeProxy, oldNode: RealNodeProxy) {
@@ -175,6 +209,15 @@ export class RealNodeProxy {
             this.realNodeInsertBefore(newNode, insertTo);
         } else if (this.realNodeType === RealNodeType.COMPONENT) {
             this.componentInsertBefore(newNode, insertTo);
+        }
+
+        if (!recycle) {
+            if (newNode.realNodeType === RealNodeType.COMPONENT) {
+                let com: Component = newNode.element;
+                if (typeof com[LifeCycleType.Mounted] === 'function') {
+                    com[LifeCycleType.Mounted]();
+                }
+            }
         }
 
     }

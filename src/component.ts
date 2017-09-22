@@ -5,6 +5,7 @@ import { patch } from "./patch";
 import { createElement } from "./create-element";
 import { RealNodeProxy } from "./element";
 import { queueComponent } from "./scheduler";
+import { LifeCycleType } from "./lifecycle";
 
 
 export enum RenderMode {
@@ -15,11 +16,12 @@ export enum RenderMode {
 export class Component {
     private static increasingID = 1;
 
-    id: number;
-    renderRealNode: RealNodeProxy;
+    protected renderedRealNode: RealNodeProxy;
+    protected renderedVNode: VNode;
+
     protected props: any;
     protected state: any = {};
-    protected renderedVNode: VNode;
+    id: number;
     refs = {};
 
     constructor(props) {
@@ -29,8 +31,8 @@ export class Component {
     }
 
     getRealNodeProxy(): RealNodeProxy {
-        this.renderRealNode || this.forceUpdate(RenderMode.SYNC);
-        return this.renderRealNode;
+        this.renderedRealNode || this.forceUpdate(RenderMode.SYNC);
+        return this.renderedRealNode;
     }
 
     setAttribute(propName: string, propValue: any, previous?: any) {
@@ -68,14 +70,17 @@ export class Component {
         if (renderMode === RenderMode.SYNC) {
             let newVNode = this.render();
 
-            if (this.renderedVNode && this.renderRealNode) {
+            if (this.renderedVNode && this.renderedRealNode) {
                 let patches = diff(this.renderedVNode, newVNode);
-                let newRootRNode = patch(this.renderRealNode, patches, this);
+                let newRootRNode = patch(this.renderedRealNode, patches, this);
                 this.renderedVNode = newVNode;
-                this.renderRealNode = newRootRNode;
+                this.renderedRealNode = newRootRNode;
+                if (typeof this[LifeCycleType.Updated] === 'function') {
+                    this[LifeCycleType.Updated]();
+                }
             } else {
                 this.renderedVNode = newVNode;
-                this.renderRealNode = createElement(this.renderedVNode, this);
+                this.renderedRealNode = createElement(this.renderedVNode, this);
             }
         } else {
             queueComponent(this);

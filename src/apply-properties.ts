@@ -1,5 +1,5 @@
 import { isObject, getPrototype } from "./utils";
-import { IPropType } from "./vnode";
+import { IPropType, ICommandsType } from "./vnode";
 import { RealNodeProxy } from "./element";
 
 export function applyProperties(node: RealNodeProxy, props: IPropType, previous?: IPropType) {
@@ -44,4 +44,12 @@ function patchObject(node: RealNodeProxy, props, previous, propName, propValue) 
     }
 
     node.setObjectAttribute(propName, propValue, previousValue);
+}
+
+export function applyRef(node: RealNodeProxy, newRef: string, previousRef?: string) {
+
+}
+
+export function applyCommonds(node: RealNodeProxy, newCmds: ICommandsType, previousCmds?: ICommandsType) {
+
 }

@@ -34,6 +34,19 @@ class Button extends Component {
 
 
 class App extends Component {
+    created() {
+        log('created');
+    }
+    mounted() {
+        log('mounted');
+    }
+    unmounted() {
+        log('unmounted');
+    }
+    updated() {
+        log('updated');
+    }
+
     render() {
         let btnTitle = this.props.btnTitle || 'SecondBut';
         let isName = this.props.isName;

@@ -1,5 +1,5 @@
 import { VNode, VPatch, VPatchType, isVNode, ITagType, IPropType } from "./vnode";
-import { isObject, isArray, getPrototype } from "./utils";
+import { isObject, isArray, getPrototype, deepEqual } from "./utils";
 
 function diffProps(a: IPropType, b: IPropType) {
 
@@ -41,6 +41,44 @@ function diffProps(a: IPropType, b: IPropType) {
     return diff;
 }
 
+function diffCommonds(aCmds, bCmds) {
+    let diff;
+    for (let aKey in aCmds) {
+        if (!(aKey in bCmds)) {
+            diff = diff || {};
+            diff[aKey] = undefined;
+        }
+        let aValue = aCmds[aKey];
+        let bValue = bCmds[aKey];
+
+        if (aValue === bValue) {
+            continue;
+        } else if (isObject(aValue) && isObject(bValue)) {
+            if (getPrototype(bValue) !== getPrototype(aValue)) {
+                diff = diff || {};
+                diff[aKey] = bValue;
+            } else {
+                if (!deepEqual(aValue, bValue)) {
+                    diff = diff || {};
+                    diff[aKey] = bValue;
+                }
+            }
+        } else {
+            diff = diff || {};
+            diff[aKey] = bValue;
+        }
+    }
+
+    for (let bKey in bCmds) {
+        if (!(bKey in aCmds)) {
+            diff = diff || {};
+            diff[bKey] = bCmds[bKey];
+        }
+    }
+
+    return diff;
+}
+
 
 type VPatchResultType = VPatch | VPatch[];
 
@@ -66,11 +104,21 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
         apply = appendPatch(apply, new VPatch(VPatchType.REMOVE, a, b));
     } else if (isVNode(b)) {
         if (isVNode(a)) {
-            if (a.tagName === b.tagName && a.key === b.key) {
+            if (a.tagName === b.tagName && a.namespace === b.namespace && a.key === b.key) {
                 let propsPatch = diffProps(a.properties, b.properties);
                 if (propsPatch) {
                     apply = appendPatch(apply, new VPatch(VPatchType.PROPS, a, propsPatch));
                 }
+
+                if (a.ref !== b.ref) {
+                    apply = appendPatch(apply, new VPatch(VPatchType.REF, a, b.ref));
+                }
+
+                let cmdPatch = diffCommonds(a.commands || {}, b.commands || {});
+                if (cmdPatch) {
+                    apply = appendPatch(apply, new VPatch(VPatchType.COMMONDS, a, cmdPatch));
+                }
+
                 apply = diffChildren(a, b, patch, apply, index);
             } else {
                 apply = appendPatch(apply, new VPatch(VPatchType.REPLACE, a, b));
