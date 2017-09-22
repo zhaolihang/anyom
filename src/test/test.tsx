@@ -13,31 +13,33 @@ const assert = console.assert;
 setCommand('testCmd_1', {
 
     bind(node, newValue) {
-        log('testCmd_1 bind', newValue);
+        log('testCmd_1 bind', node, newValue);
     },
 
     update(node, newValue, oldValue) {
-        log('testCmd_1 update', newValue, oldValue);
+        log('testCmd_1 update', node, newValue, oldValue);
     },
 
     unbind(node) {
-        log('testCmd_1 unbind');
+        log('testCmd_1 unbind', node);
     },
+
 });
 
 setCommand('testCmd_2', {
 
     bind(node, newValue) {
-        log('testCmd_2 bind', newValue);
+        log('testCmd_2 bind', node, newValue);
     },
 
     update(node, newValue, oldValue) {
-        log('testCmd_2 update', newValue, oldValue);
+        log('testCmd_2 update', node, newValue, oldValue);
     },
 
     unbind(node) {
-        log('testCmd_2 unbind');
+        log('testCmd_2 unbind', node);
     },
+
 });
 
 
@@ -51,7 +53,6 @@ class Button extends Component {
     render() {
         let title = this.props.title;
         let onclick = this.props.onclick;
-        log('>>> Button render this.props ->', this.props);
         return (
             <button on-click={(e) => {
                 if (onclick) {
@@ -66,23 +67,23 @@ class Button extends Component {
 
 class App extends Component {
     created() {
-        log('created');
+        log('App created');
+        this.props.num = 0;
     }
     mounted() {
-        log('mounted');
+        log('App mounted');
     }
     unmounted() {
-        log('unmounted');
+        log('App unmounted');
     }
     updated() {
-        log('updated');
+        log('App updated');
     }
 
     render() {
         let btnTitle = this.props.btnTitle || 'SecondBut';
         let isName = this.props.isName;
         let input = isName ? <input key='name' ref='name' type='text' placeholder='name'></input> : <input key='password' ref='password' type='password' placeholder='password'></input>;
-        this.props.num = this.props.num || 1;
         return (
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
@@ -105,8 +106,8 @@ let firstVNode = (<div commands={{ testCmd_1: { a: 123 }, testCmd_2: true }}>
     <div key={'4'}>444</div>
 </div>)
 
-let firstNode = render(firstVNode)
-rootRealNodeProxy.appendChild(firstNode);
+let firstNodeProxy = render(firstVNode)
+rootRealNodeProxy.appendChild(firstNodeProxy);
 
 let secondVNode = (<div commands={{ testCmd_1: { a: 456 } }}>
 
@@ -123,16 +124,16 @@ let secondVNode = (<div commands={{ testCmd_1: { a: 456 } }}>
 setTimeout(() => {
     let patches = diff(firstVNode, secondVNode);
     log('*********************************************');
-    log(patches);
+    log('patches', patches);
 
     log('---------------------------------------------');
-    log(firstNode);
-    let newRootRNode = patch(firstNode, patches);
+    log('firstNodeProxy', firstNodeProxy);
+    let newFirstNodeProxy = patch(firstNodeProxy, patches);
     log('---------------------------------------------');
-    log(newRootRNode);
+    log('newFirstNodeProxy', newFirstNodeProxy);
 
     log('---------------------------------------------');
-    log(newRootRNode === firstNode);
+    log('newFirstNodeProxy === firstNodeProxy', newFirstNodeProxy === firstNodeProxy);
 }, 1000);
 
 (window as any).getRootNode = function () {
