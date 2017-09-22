@@ -22,6 +22,7 @@ export class VNode {
     type = VNodeType.None;
     commands: { name: string, value: any }[];
     ref: string;
+    namespace: string;
 
     constructor(public tagName: ITagType, public properties?: IPropType, public children?: VNode[], public key?: string) {
         const tagNameType = typeof tagName;

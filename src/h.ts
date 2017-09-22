@@ -23,6 +23,13 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
         delete properties.commands;
     }
 
+    // namespace 
+    let namespace: string;
+    if (properties && properties.namespace != null) {
+        namespace = properties.namespace;
+        delete properties.namespace;
+    }
+
     ////////////////////////////////////////////////////
     // key
     let key;
@@ -74,6 +81,7 @@ export function h(tagName: ITagType, properties?: IPropType, ...args: any[]): VN
     let vnode = new VNode(tagName, properties, children, key);
     vnode.commands = commands;
     vnode.ref = ref;
+    vnode.namespace = namespace;
 
     return vnode;
 }
