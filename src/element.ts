@@ -107,8 +107,8 @@ export class RealNodeProxy {
 
         if (!recycle) {
             if (x.context && x.vNode.ref) {
-                if (x.context.refs[x.vNode.ref] === x) {
-                    delete x.context.refs[x.vNode.ref]
+                if (x.context.refs[x.vNode.ref] === x.element) {
+                    delete x.context.refs[x.vNode.ref];
                 }
             }
         }
@@ -141,7 +141,7 @@ export class RealNodeProxy {
         }
 
         if (oldNode.context && oldNode.vNode.ref) {
-            if (oldNode.context.refs[oldNode.vNode.ref] === oldNode) {
+            if (oldNode.context.refs[oldNode.vNode.ref] === oldNode.element) {
                 delete oldNode.context.refs[oldNode.vNode.ref]
             }
         }
