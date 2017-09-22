@@ -37,7 +37,7 @@ class App extends Component {
     render() {
         let btnTitle = this.props.btnTitle || 'SecondBut';
         let isName = this.props.isName;
-        let input = isName ? <input key='name' ref='name' placeholder='name'></input> : <input key='password' ref='password' placeholder='password'></input>;
+        let input = isName ? <input key='name' ref='name' type='text' placeholder='name'></input> : <input key='password' ref='password' type='password' placeholder='password'></input>;
         return (
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
@@ -69,10 +69,10 @@ let secondVNode = (<div commands={[{ name: 'cmd', value: { a: 123 } }]}>
     <div key={'4'}>444</div>
     <div key={'3'}>333</div>
     <div key={'2'}>222</div>
-    <img src="http://nodejs.cn/static/images/logo.svg"></img>
+    <img height="100" src="http://nodejs.cn/static/images/logo.svg"></img>
     <App>
     </App>
-    <div innerHTML="<div>innerHtml</div>"></div>
+    <div innerHTML="<div>I'm from innerHtml</div>"></div>
 </div >)
 
 setTimeout(() => {
