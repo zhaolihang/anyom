@@ -4,11 +4,12 @@ import { patchOp } from "./patch-operation";
 import { render } from "./create-element";
 import { IDiffMap } from "./diff";
 import { RealNodeProxy } from "./element";
+import { Component } from "./component";
 
 export const RenderOptions = { patch: patchRecursive, render };
 
-export function patch(rootNode: RealNodeProxy, patches: IDiffMap, renderOptions = RenderOptions): RealNodeProxy {
-    let resultNode = renderOptions.patch(rootNode, patches, renderOptions);
+export function patch(rootNode: RealNodeProxy, patches: IDiffMap, context?: Component): RealNodeProxy {
+    let resultNode = RenderOptions.patch(rootNode, patches, context);
 
     if (rootNode !== resultNode) {
         let parentNode = rootNode.parentNode;
@@ -20,7 +21,7 @@ export function patch(rootNode: RealNodeProxy, patches: IDiffMap, renderOptions 
     return resultNode;
 }
 
-function patchRecursive(rootNode: RealNodeProxy, patches: IDiffMap, renderOptions = RenderOptions) {
+function patchRecursive(rootNode: RealNodeProxy, patches: IDiffMap, context?: Component) {
     let indices = patchIndices(patches);
 
     if (indices.length === 0) {
@@ -31,13 +32,13 @@ function patchRecursive(rootNode: RealNodeProxy, patches: IDiffMap, renderOption
 
     for (let i = 0; i < indices.length; i++) {
         let nodeIndex = indices[i];
-        rootNode = applyPatch(rootNode, index[nodeIndex], patches[nodeIndex], renderOptions);
+        rootNode = applyPatch(rootNode, index[nodeIndex], patches[nodeIndex], context);
     }
 
     return rootNode;
 }
 
-function applyPatch(rootNode: RealNodeProxy, childNode: RealNodeProxy, patchList, renderOptions = RenderOptions) {
+function applyPatch(rootNode: RealNodeProxy, childNode: RealNodeProxy, patchList, context?: Component) {
     if (!childNode) {
         return rootNode;
     }
@@ -46,14 +47,14 @@ function applyPatch(rootNode: RealNodeProxy, childNode: RealNodeProxy, patchList
 
     if (isArray(patchList)) {
         for (let i = 0; i < patchList.length; i++) {
-            newNode = patchOp(patchList[i], childNode, renderOptions);
+            newNode = patchOp(patchList[i], childNode, context);
 
             if (childNode === rootNode) {
                 rootNode = newNode;
             }
         }
     } else {
-        newNode = patchOp(patchList, childNode, renderOptions);
+        newNode = patchOp(patchList, childNode, context);
 
         if (childNode === rootNode) {
             rootNode = newNode;

@@ -3,8 +3,9 @@ import { VPatch, VPatchType, VNode } from "./vnode";
 import { applyProperties } from "./apply-properties";
 import { RealNodeProxy } from "./element";
 import { RenderOptions } from "./patch";
+import { Component } from "./component";
 
-export function patchOp(vpatch: VPatch, node: RealNodeProxy, renderOptions = RenderOptions) {
+export function patchOp(vpatch: VPatch, node: RealNodeProxy, context?: Component) {
     let type = vpatch.type;
     let vNode = vpatch.vNode;
     let patch = vpatch.patch;
@@ -13,9 +14,9 @@ export function patchOp(vpatch: VPatch, node: RealNodeProxy, renderOptions = Ren
         case VPatchType.REMOVE:
             return removeNode(node, vNode);
         case VPatchType.INSERT:
-            return insertNode(node, patch, renderOptions);
+            return insertNode(node, patch, context);
         case VPatchType.REPLACE:
-            return vNodePatch(node, vNode, patch, renderOptions);
+            return vNodePatch(node, vNode, patch, context);
         case VPatchType.ORDER:
             reorderChildren(node, patch);
             return node;
@@ -37,8 +38,8 @@ function removeNode(node: RealNodeProxy, vNode) {
     return null;
 }
 
-function insertNode(parentNode: RealNodeProxy, vNode: VNode, renderOptions = RenderOptions) {
-    let newNode = renderOptions.render(vNode);
+function insertNode(parentNode: RealNodeProxy, vNode: VNode, context?: Component) {
+    let newNode = RenderOptions.render(vNode, context);
 
     if (parentNode) {
         parentNode.appendChild(newNode);
@@ -47,9 +48,9 @@ function insertNode(parentNode: RealNodeProxy, vNode: VNode, renderOptions = Ren
     return parentNode;
 }
 
-function vNodePatch(node: RealNodeProxy, leftVNode: VNode, vNode: VNode, renderOptions = RenderOptions) {
+function vNodePatch(node: RealNodeProxy, leftVNode: VNode, vNode: VNode, context?: Component) {
     let parentNode = node.parentNode;
-    let newNode = renderOptions.render(vNode);
+    let newNode = RenderOptions.render(vNode, context);
 
     if (parentNode && newNode !== node) {
         parentNode.replaceChild(newNode, node);

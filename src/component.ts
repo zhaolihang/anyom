@@ -20,6 +20,7 @@ export class Component {
     protected props: any;
     protected state: any = {};
     protected renderedVNode: VNode;
+    refs = {};
 
     constructor(props) {
         this.id = Component.increasingID++;
@@ -69,12 +70,12 @@ export class Component {
 
             if (this.renderedVNode && this.renderRealNode) {
                 let patches = diff(this.renderedVNode, newVNode);
-                let newRootRNode = patch(this.renderRealNode, patches);
+                let newRootRNode = patch(this.renderRealNode, patches, this);
                 this.renderedVNode = newVNode;
                 this.renderRealNode = newRootRNode;
             } else {
                 this.renderedVNode = newVNode;
-                this.renderRealNode = createElement(this.renderedVNode);
+                this.renderRealNode = createElement(this.renderedVNode, this);
             }
         } else {
             queueComponent(this);

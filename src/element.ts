@@ -18,7 +18,7 @@ export class RealNodeProxy {
     realNodeType: RealNodeType;
     element: any;
 
-    constructor(public vNode: VNode) {
+    constructor(public vNode: VNode, public context?: Component) {
         this.createElement()
     }
 
@@ -26,14 +26,15 @@ export class RealNodeProxy {
         let vNode = this.vNode;
         if (vNode.type === VNodeType.Component) {
             this.realNodeType = RealNodeType.COMPONENT;
-            this.element = this.createComponent(vNode);
+            this.element = this.createComponent();
         } else {
             this.realNodeType = RealNodeType.NATIVE;
-            this.element = this.createRealNode(vNode);
+            this.element = this.createRealNode();
         }
     }
 
-    private createRealNode(vNode: VNode) {
+    private createRealNode() {
+        let vNode = this.vNode;
         if (vNode.type === VNodeType.Text) {
             return <Text>(document.createTextNode(vNode.properties.value));
         } else if (vNode.type === VNodeType.Node) {
@@ -44,7 +45,8 @@ export class RealNodeProxy {
         }
     }
 
-    private createComponent(vNode: VNode): Component {
+    private createComponent(): Component {
+        let vNode = this.vNode;
         let Consr: typeof Component = vNode.tagName;
         let com: Component = new Consr(vNode.properties);
         if (!(com instanceof Component)) {
@@ -300,6 +302,6 @@ export class RealNodeProxy {
 
 }
 
-export function createRealNodeProxy(vnode: VNode): RealNodeProxy {
-    return new RealNodeProxy(vnode);
+export function createRealNodeProxy(vnode: VNode, context: Component): RealNodeProxy {
+    return new RealNodeProxy(vnode, context);
 }
