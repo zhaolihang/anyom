@@ -21,12 +21,12 @@ export function applyElementProps(node: RealNodeProxy, props: IPropType, previou
 }
 
 function setElementAttribute(node: RealNodeProxy, propName, propValue, previous) {
-    node.setElementAttribute(propName, propValue, previous);
+    node.setNativeNodeAttribute(propName, propValue, previous);
 }
 
 function removeElementAttribute(node: RealNodeProxy, propName, previous) {
     if (previous) {
-        node.removeElementAttribute(propName, previous);
+        node.removeNativeNodeAttribute(propName, previous);
     }
 }
 
@@ -39,11 +39,11 @@ function patchElementObject(node: RealNodeProxy, props, previous, propName, prop
         return;
     }
 
-    if (!isObject(node.getElementAttribute(propName))) {
+    if (!isObject(node.getNativeNodeAttribute(propName))) {
         setElementAttribute(node, propName, {}, undefined);
     }
 
-    node.setElementObjectAttribute(propName, propValue, previousValue);
+    node.setNativeNodeObjectAttribute(propName, propValue, previousValue);
 }
 
 export function applyRef(node: RealNodeProxy, newRef: string, previousRef?: string) {

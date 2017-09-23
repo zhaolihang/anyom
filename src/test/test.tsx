@@ -214,7 +214,7 @@ setCommand('dragmove', {
 const rootNode = document.getElementById('body');
 let divVNode = new VNode('div');
 const rootRealNodeProxy = new RealNodeProxy(divVNode);
-rootNode.appendChild(rootRealNodeProxy.getRealNode());
+rootNode.appendChild(rootRealNodeProxy.getNativeNode());
 
 
 class Button extends Component {

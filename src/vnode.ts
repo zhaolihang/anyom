@@ -26,12 +26,12 @@ export class VNode {
     namespace: string;
 
     constructor(public tagName: ITagType, public properties?: IPropType, public children?: VNode[], public key?: string) {
-        const tagNameType = typeof tagName;
+
         if (tagName === TextNodeTagName) {
             this.type = VNodeType.Text;
-        } else if (tagNameType === 'string') {
+        } else if (typeof tagName === 'string') {
             this.type = VNodeType.Node;
-        } else if (tagNameType === 'function') {
+        } else if (typeof tagName === 'function') {
             this.type = VNodeType.Component;
         }
 
