@@ -8,7 +8,6 @@ import { Component } from "../component";
 import { setCommand, getCommand } from "../commands";
 
 const log = console.log;
-const assert = console.assert;
 
 
 const draggableDataName = 'html_draggable_droppable_dataname';
@@ -58,24 +57,24 @@ setCommand('droppable', {
         let timeID;
         let ishight = false;
 
-        let hightLightEme = () => {
+        let hightLightElm = () => {
             if (startColor === undefined) {
                 startColor = node.style.backgroundColor
                 node.style.backgroundColor = "red";
             }
         }
-        let unHightLightEme = () => {
+        let unHightLightElm = () => {
             node.style.backgroundColor = startColor;
             startColor = undefined;
         }
         let hightLight = () => {
-            hightLightEme();
+            hightLightElm();
             if (timeID) {
                 clearTimeout(timeID);
             }
             timeID = setTimeout(() => {
                 timeID = 0;
-                unHightLightEme();
+                unHightLightElm();
             }, 100);
         }
         node.ondragover = function (ev) {
@@ -211,6 +210,4 @@ setTimeout(() => {
     log('newFirstNodeProxy === firstNodeProxy', newFirstNodeProxy === firstNodeProxy);
 }, 1000);
 
-(window as any).getRootNode = function () {
-    return rootRealNodeProxy;
-}
+(window as any).rootnode = rootRealNodeProxy;
