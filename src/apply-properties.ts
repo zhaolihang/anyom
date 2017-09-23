@@ -51,5 +51,26 @@ export function applyRef(node: RealNodeProxy, newRef: string, previousRef?: stri
 }
 
 export function applyCommands(node: RealNodeProxy, cmdPatch: ICommandsType, previousCmds?: ICommandsType) {
-    node.setCommands(cmdPatch, previousCmds);
+    for (let cmdName in cmdPatch) {
+        let cmdValue = cmdPatch[cmdName];
+        if (cmdValue === undefined) {
+            removeCommand(node, cmdName, previousCmds);
+        } else {
+            setCommand(node, cmdName, cmdValue, previousCmds);
+        }
+    }
+}
+
+function removeCommand(node: RealNodeProxy, cmdName: string, previousCmds?: ICommandsType) {
+    if (previousCmds && (cmdName in previousCmds)) {
+        node.removeCommand(cmdName, previousCmds[cmdName]);
+    }
+}
+
+function setCommand(node: RealNodeProxy, cmdName: string, cmdValue: any, previousCmds?: ICommandsType) {
+    if (previousCmds && (cmdName in previousCmds)) {
+        node.updateCommand(cmdName, cmdValue, previousCmds[cmdName])
+    } else {
+        node.addCommand(cmdName, cmdValue);
+    }
 }

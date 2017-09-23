@@ -1,5 +1,5 @@
 import { VNode } from "./vnode";
-import { applyProperties } from "./apply-properties";
+import { applyProperties, applyRef, applyCommands } from "./apply-properties";
 import { createRealNodeProxy, RealNodeProxy } from "./element";
 import { Component } from "./component";
 
@@ -12,6 +12,8 @@ export function createElement(vnode: VNode, context?: Component): RealNodeProxy 
     let node: RealNodeProxy = createRealNodeProxy(vnode, context);
     let props = vnode.properties;
     applyProperties(node, props, undefined);
+    vnode.ref && applyRef(node, vnode.ref, undefined);
+    vnode.commands && applyCommands(node, vnode.commands, undefined);
 
     let children = vnode.children;
 

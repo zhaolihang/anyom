@@ -5,7 +5,7 @@ let Commands = {
 export type ICommandObjType = {
     bind?: (node, newValue) => any,
     update?: (node, newValue, oldValue) => any,
-    unbind?: (node) => any,
+    unbind?: (node, oldValue) => any,
 };
 
 export function setCommand(name: string, cmdObj: ICommandObjType) {

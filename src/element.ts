@@ -25,8 +25,8 @@ export class RealNodeProxy {
 
     constructor(vNode: VNode, public context?: Component) {
         this.vNodeType = vNode.type;
-        this.ref = vNode.ref;
-        this.commands = vNode.commands;
+        // this.ref = vNode.ref;
+        // this.commands = vNode.commands;
         this.createElement(vNode)
     }
 
@@ -39,8 +39,8 @@ export class RealNodeProxy {
             this.element = this.createRealNode(vNode);
         }
 
-        this.setRef(this.ref);
-        this.setCommands(this.commands);
+        // this.setRef(this.ref);
+        // this.setCommands(this.commands);
     }
 
     private createRealNode(vNode: VNode) {
@@ -121,8 +121,10 @@ export class RealNodeProxy {
         }
 
         if (!recycle) {
+            // x.removeRef();
+            x.removeCommands();
             x.setRef(undefined, x.ref);
-            x.setCommands(undefined, x.commands);
+            // x.setCommands(undefined, x.commands);
             //
             if (x.realNodeType === RealNodeType.COMPONENT) {
                 let com: Component = x.element;
@@ -161,7 +163,9 @@ export class RealNodeProxy {
         }
 
         oldNode.setRef(undefined, oldNode.ref);
-        oldNode.setCommands(undefined, oldNode.commands);
+        // oldNode.setCommands(undefined, oldNode.commands);
+        // oldNode.removeRef();
+        oldNode.removeCommands();
         //
         if (newNode.realNodeType === RealNodeType.COMPONENT) {
             let com: Component = newNode.element;
@@ -362,68 +366,46 @@ export class RealNodeProxy {
         this.ref = newRef;
     }
 
-    setCommands(cmdPatch: ICommandsType, previousCmds?: ICommandsType) {
-        // console.log('setCommands', cmdPatch, previousCmds);
-        if (cmdPatch) {
-            if (previousCmds) {
-                for (let key in cmdPatch) {
-                    let cmd = getCommand(key);
-                    let value = cmdPatch[key];
-                    let oldValue = previousCmds[key];
-                    if (value) {
-                        if (oldValue) {
-                            if (cmd.update) {
-                                cmd.update(this.getRealNode(), value, oldValue);
-                            }
-                        } else {
-                            if (cmd.bind) {
-                                cmd.bind(this.getRealNode(), value);
-                            }
-                        }
-                    } else {
-                        if (oldValue) {
-                            if (cmd.unbind) {
-                                cmd.unbind(this.getRealNode());
-                            }
-                        }
-                    }
-                }
-            } else {
-                for (let key in cmdPatch) {// 新添加
-                    let cmd = getCommand(key);
-                    let value = cmdPatch[key];
-                    if (cmd.bind) {
-                        cmd.bind(this.getRealNode(), value);
-                    }
-                }
-            }
-
-        } else {
-            if (previousCmds) {
-                for (let key in previousCmds) {
-                    let cmd = getCommand(key);
-                    if (cmd.unbind) {
-                        cmd.unbind(this.getRealNode());
-                    }
+    removeCommands() {
+        if (this.commands) {
+            for (let cmdName in this.commands) {
+                let cmdValue = this.commands[cmdName];
+                const cmd = getCommand(cmdName);
+                if (cmd && cmd.bind) {
+                    cmd.unbind(this.getRealNode(), cmdValue);
                 }
             }
         }
+    }
 
+    addCommand(cmdName: string, cmdValue: any) {
+        this.commands = this.commands || {};
+        this.commands[cmdName] = cmdValue;
+        const cmd = getCommand(cmdName);
+        if (cmd && cmd.bind) {
+            cmd.bind(this.getRealNode(), cmdValue);
+        }
+    }
+
+    removeCommand(cmdName: string, previousCmdValue: any) {
+        const cmd = getCommand(cmdName);
+        if (cmd && cmd.unbind) {
+            cmd.unbind(this.getRealNode(), previousCmdValue);
+        }
         ///
-        if (cmdPatch) {
-            this.commands = this.commands || {};
-            for (let key in cmdPatch) {
-                let value = cmdPatch[key];
-                if (value === undefined) {
-                    delete this.commands[key];
-                } else {
-                    this.commands[key] = value
-                }
-            }
-            if (Object.keys(this.commands).length === 0) {
-                this.commands = undefined;
-            }
+        delete this.commands[cmdName];
+        if (Object.keys(this.commands).length === 0) {
+            this.commands = undefined;
         }
+    }
+
+    updateCommand(cmdName: string, cmdValue: any, previousCmdValue: any) {
+        const cmd = getCommand(cmdName);
+        if (cmd && cmd.update) {
+            cmd.update(this.getRealNode(), cmdValue, previousCmdValue);
+        }
+        ///
+        this.commands[cmdName] = cmdValue;
     }
 
     private getRealNodeEventName(propName: string) {

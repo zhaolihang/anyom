@@ -20,7 +20,7 @@ setCommand('testCmd_1', {
         log('testCmd_1 update', node, newValue, oldValue);
     },
 
-    unbind(node) {
+    unbind(node, oldValue) {
         log('testCmd_1 unbind', node);
     },
 
