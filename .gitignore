@@ -4,4 +4,4 @@ node_modules
 .rpt2_cache
 .vscode/chrome
 !rollup.config*
-!dist/gzip.js
+!utils/*
