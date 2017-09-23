@@ -10,34 +10,105 @@ import { setCommand, getCommand } from "../commands";
 const log = console.log;
 const assert = console.assert;
 
-setCommand('testCmd_1', {
 
+const draggableDataName = 'html_draggable_droppable_dataname';
+setCommand('draggable', {
     bind(node, newValue) {
-        log('testCmd_1 bind', node, newValue);
+        log('draggable bind', node, newValue);
+        node.draggable = true;
+        const data = newValue;
+        node[draggableDataName] = data;
+        const addDragCb = (el) => {
+            el.onselectstart = function () {
+                return false;
+            };
+            el.ondragstart = function (ev) {
+                const el = ev.target;
+                const h5dragedData = el[draggableDataName];
+                ev.dataTransfer.effectAllowed = "copy";
+                ev.dataTransfer.setData("h5dragedData", JSON.stringify(h5dragedData));
+                return true;
+            };
+            el.ondragend = function (ev) {
+                ev.dataTransfer.clearData("h5dragedData");
+                return false
+            };
+        };
+        addDragCb(node);
     },
 
     update(node, newValue, oldValue) {
-        log('testCmd_1 update', node, newValue, oldValue);
+        log('draggable update', node, newValue, oldValue);
+        let data = newValue;
+        node[draggableDataName] = data;
     },
 
     unbind(node, oldValue) {
-        log('testCmd_1 unbind', node);
+        log('draggable unbind', node);
     },
 
 });
 
-setCommand('testCmd_2', {
+setCommand('droppable', {
 
     bind(node, newValue) {
-        log('testCmd_2 bind', node, newValue);
+        log('droppable bind', node, newValue);
+        let cb = newValue;
+        let startColor = undefined;
+        let timeID;
+        let ishight = false;
+
+        let hightLightEme = () => {
+            if (startColor === undefined) {
+                startColor = node.style.backgroundColor
+                node.style.backgroundColor = "red";
+            }
+        }
+        let unHightLightEme = () => {
+            node.style.backgroundColor = startColor;
+            startColor = undefined;
+        }
+        let hightLight = () => {
+            hightLightEme();
+            if (timeID) {
+                clearTimeout(timeID);
+            }
+            timeID = setTimeout(() => {
+                timeID = 0;
+                unHightLightEme();
+            }, 100);
+        }
+        node.ondragover = function (ev) {
+            ev.preventDefault();
+            hightLight();
+            return true;
+        };
+
+        node.ondragenter = function (ev) {
+            return true;
+        };
+
+        node.ondrop = function (ev) {
+            ev.preventDefault();
+            let h5dragedData = ev.dataTransfer.getData("h5dragedData");
+            try {
+                h5dragedData = JSON.parse(h5dragedData);
+            } catch (error) {
+                h5dragedData = 'error: droped data isnot JSON!';
+            }
+            if (typeof cb === 'function') {
+                cb(h5dragedData);
+            }
+            return false;
+        };
     },
 
     update(node, newValue, oldValue) {
-        log('testCmd_2 update', node, newValue, oldValue);
+        log('droppable update', node, newValue, oldValue);
     },
 
     unbind(node) {
-        log('testCmd_2 unbind', node);
+        log('droppable unbind', node);
     },
 
 });
@@ -98,7 +169,7 @@ class App extends Component {
     }
 }
 
-let firstVNode = (<div commands={{ testCmd_1: { a: 123 }, testCmd_2: true }}>
+let firstVNode = (<div >
     {/* <Button title={'FirstButton'}></Button> */}
     <div key={'1'}>111</div>
     <div key={'2'}>222</div>
@@ -109,13 +180,17 @@ let firstVNode = (<div commands={{ testCmd_1: { a: 123 }, testCmd_2: true }}>
 let firstNodeProxy = render(firstVNode)
 rootRealNodeProxy.appendChild(firstNodeProxy);
 
-let secondVNode = (<div commands={{ testCmd_1: { a: 456 } }}>
+let secondVNode = (<div>
 
-    <div key={'10'}>101010</div>
+    <div key={'draggable'} commands={{ draggable: { a: 123 } }}>draggable</div>
     <div key={'4'}>444</div>
     <div key={'3'}>333</div>
-    <div key={'2'}>222</div>
-    <img height="100" src="http://nodejs.cn/static/images/logo.svg"></img>
+    <div key={'droppable'} commands={{
+        droppable: (data) => {
+            log('droppable', data);
+        },
+    }}>droppable</div>
+    <img height="100" src="http://nodejs.cn/static/images/logo.svg" ></img>
     <App>
     </App>
     <div innerHTML="<div>I'm from innerHtml</div>"></div>
