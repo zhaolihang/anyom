@@ -35,33 +35,14 @@ export class Component {
         return this.renderedRealNode;
     }
 
-    setAttribute(propName: string, propValue: any, previous?: any) {
-        overwrite(this.props, { [propName]: propValue });
-        this.forceUpdate(RenderMode.ASYNC);
-    }
-
-    setAttributeObject(propName: string, propValue: any, previous?: any) {
-
-        for (let k in propValue) {
-            let value = propValue[k];
-            if (value === undefined) {
-                delete this.props[propName][k];
-            } else {
-                this.props[propName][k] = value;
-            }
-        }
-        this.forceUpdate(RenderMode.ASYNC);
-
-    }
-
-    removeAttribute(propName: string, previous?: any) {
-        delete this.props[propName];
-        this.forceUpdate(RenderMode.ASYNC);
-    }
-
     setState(state) {
         let s = this.state;
         overwrite(s, state || {});
+        this.forceUpdate(RenderMode.ASYNC);
+    }
+
+    setProps(props) {
+        this.props = props || {};
         this.forceUpdate(RenderMode.ASYNC);
     }
 

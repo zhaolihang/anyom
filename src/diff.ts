@@ -1,4 +1,4 @@
-import { VNode, VPatch, VPatchType, isVNode, ITagType, IPropType } from "./vnode";
+import { VNode, VPatch, VPatchType, isVNode, ITagType, IPropType, VNodeType } from "./vnode";
 import { isObject, isArray, getPrototype, deepEqual } from "./utils";
 
 function diffProps(a: IPropType, b: IPropType) {
@@ -109,9 +109,16 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
     } else if (isVNode(b)) {
         if (isVNode(a)) {
             if (a.tagName === b.tagName && a.namespace === b.namespace && a.key === b.key) {
-                let propsPatch = diffProps(a.properties, b.properties);
-                if (propsPatch) {
-                    apply = appendPatch(apply, new VPatch(VPatchType.PROPS, a, propsPatch));
+
+                if (a.type === VNodeType.Component) {
+                    if (!deepEqual(a.properties, b.properties)) {
+                        apply = appendPatch(apply, new VPatch(VPatchType.COMPONENTPROPS, a, b.properties));
+                    }
+                } else {
+                    let propsPatch = diffProps(a.properties, b.properties);
+                    if (propsPatch) {
+                        apply = appendPatch(apply, new VPatch(VPatchType.ELEMENTPROPS, a, propsPatch));
+                    }
                 }
 
                 if (a.ref !== b.ref) {

@@ -1,6 +1,6 @@
-import { VNode } from "./vnode";
-import { applyProperties, applyRef, applyCommands } from "./apply-properties";
-import { createRealNodeProxy, RealNodeProxy } from "./element";
+import { VNode, VNodeType } from "./vnode";
+import { applyElementProps, applyRef, applyCommands } from "./apply-properties";
+import { createRealNodeProxy, RealNodeProxy, RealNodeType } from "./element";
 import { Component } from "./component";
 
 export function createElement(vnode: VNode, context?: Component): RealNodeProxy {
@@ -11,7 +11,9 @@ export function createElement(vnode: VNode, context?: Component): RealNodeProxy 
 
     let node: RealNodeProxy = createRealNodeProxy(vnode, context);
     let props = vnode.properties;
-    applyProperties(node, props, undefined);
+    if (node.realNodeType === RealNodeType.NATIVE) {
+        applyElementProps(node, props, undefined);
+    }
     vnode.ref && applyRef(node, vnode.ref, undefined);
     vnode.commands && applyCommands(node, vnode.commands, undefined);
 

@@ -25,8 +25,6 @@ export class RealNodeProxy {
 
     constructor(vNode: VNode, public context?: Component) {
         this.vNodeType = vNode.type;
-        // this.ref = vNode.ref;
-        // this.commands = vNode.commands;
         this.createElement(vNode)
     }
 
@@ -38,9 +36,6 @@ export class RealNodeProxy {
             this.realNodeType = RealNodeType.NATIVE;
             this.element = this.createRealNode(vNode);
         }
-
-        // this.setRef(this.ref);
-        // this.setCommands(this.commands);
     }
 
     private createRealNode(vNode: VNode) {
@@ -121,10 +116,8 @@ export class RealNodeProxy {
         }
 
         if (!recycle) {
-            // x.removeRef();
             x.removeCommands();
             x.setRef(undefined, x.ref);
-            // x.setCommands(undefined, x.commands);
             //
             if (x.realNodeType === RealNodeType.COMPONENT) {
                 let com: Component = x.element;
@@ -133,7 +126,6 @@ export class RealNodeProxy {
                 }
             }
         }
-
 
     }
 
@@ -163,8 +155,6 @@ export class RealNodeProxy {
         }
 
         oldNode.setRef(undefined, oldNode.ref);
-        // oldNode.setCommands(undefined, oldNode.commands);
-        // oldNode.removeRef();
         oldNode.removeCommands();
         //
         if (newNode.realNodeType === RealNodeType.COMPONENT) {
@@ -231,20 +221,17 @@ export class RealNodeProxy {
         this.getRealNode().replaceChild(newNode.getRealNode(), insertTo && insertTo.getRealNode());
     }
 
-
-    getAttribute(propName: string): any {
-        return this[propName];
+    getElementAttribute(propName: string): any {
+        let element: HTMLElement = this.element;
+        if (element.hasAttribute(propName)) {
+            return element.getAttribute(propName);
+        } else {
+            return element[propName];
+        }
     }
 
-    setAttribute(propName: string, propValue: any, previous?: any) {
-        ///
-        if (this.realNodeType === RealNodeType.NATIVE) {
-            this.realNodeSetAttribute(propName, propValue, previous);
-        } else if (this.realNodeType === RealNodeType.COMPONENT) {
-            this.componentSetAttribute(propName, propValue, previous);
-        }
-
-        this[propName] = propValue;
+    setElementAttribute(propName: string, propValue: any, previous?: any) {
+        this.realNodeSetAttribute(propName, propValue, previous);
     }
 
     private realNodeSetAttribute(propName: string, propValue: any, previous?: any) {
@@ -285,22 +272,12 @@ export class RealNodeProxy {
 
     }
 
-    private componentSetAttribute(propName: string, propValue: any, previous?: any) {
-        (this.element as Component).setAttribute(propName, propValue, previous);
+    setComponentProps(props, previous?: any) {
+        (this.element as Component).setProps(props);
     }
 
-    setObjectAttribute(propName: string, propValue: any, previous?: any) {
-        for (let k in propValue) {
-            let value = propValue[k];
-            this[propName][k] = value;
-        }
-
-        ///
-        if (this.realNodeType === RealNodeType.NATIVE) {
-            this.realNodeSetObjectAttribute(propName, propValue, previous);
-        } else if (this.realNodeType === RealNodeType.COMPONENT) {
-            this.componentSetObjectAttribute(propName, propValue, previous);
-        }
+    setElementObjectAttribute(propName: string, propValue: any, previous?: any) {
+        this.realNodeSetObjectAttribute(propName, propValue, previous);
     }
 
     private realNodeSetObjectAttribute(propName: string, propValue: any, previous?: any) {
@@ -314,19 +291,8 @@ export class RealNodeProxy {
 
     }
 
-    private componentSetObjectAttribute(propName: string, propValue: any, previous?: any) {
-        (this.element as Component).setAttributeObject(propName, propValue, previous);
-    }
-
-    removeAttribute(propName: string, previous?: any) {
-        if (this.realNodeType === RealNodeType.NATIVE) {
-            this.realNodeRemoveAttribute(propName, previous);
-        } else if (this.realNodeType === RealNodeType.COMPONENT) {
-            this.componentRemoveAttribute(propName, previous);
-        }
-
-        ///
-        delete this[propName];
+    removeElementAttribute(propName: string, previous?: any) {
+        this.realNodeRemoveAttribute(propName, previous);
     }
 
     private realNodeRemoveAttribute(propName: string, previous?: any) {
@@ -347,12 +313,7 @@ export class RealNodeProxy {
 
     }
 
-    private componentRemoveAttribute(propName: string, previous?: any) {
-        (this.element as Component).removeAttribute(propName, previous);
-    }
-
     setRef(newRef: string, previousRef?: string) {
-        // console.log('setRef', newRef, previousRef);
         if (this.context) {
             if (previousRef) {
                 if (this.context.refs[previousRef] === this.element) {

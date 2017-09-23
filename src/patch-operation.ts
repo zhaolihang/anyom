@@ -1,6 +1,6 @@
 
 import { VPatch, VPatchType, VNode } from "./vnode";
-import { applyProperties, applyRef, applyCommands } from "./apply-properties";
+import { applyElementProps, applyRef, applyCommands, applyComponentProps } from "./apply-properties";
 import { RealNodeProxy } from "./element";
 import { RenderOptions } from "./patch";
 import { Component } from "./component";
@@ -20,14 +20,17 @@ export function patchOp(vpatch: VPatch, node: RealNodeProxy, context?: Component
         case VPatchType.ORDER:
             reorderChildren(node, patch);
             return node;
-        case VPatchType.PROPS:
-            applyProperties(node, patch, vNode.properties);
+        case VPatchType.ELEMENTPROPS:
+            applyElementProps(node, patch, vNode.properties);
             return node;
         case VPatchType.REF:
             applyRef(node, patch, vNode.ref);
             return node;
         case VPatchType.COMMANDS:
             applyCommands(node, patch, vNode.commands);
+            return node;
+        case VPatchType.COMPONENTPROPS:
+            applyComponentProps(node, patch, vNode.properties);
             return node;
         default:
             return node;

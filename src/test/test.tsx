@@ -236,28 +236,38 @@ class Button extends Component {
 class App extends Component {
     created() {
         log('App created');
-        this.props.num = 0;
+        this.state = {
+            isName: true,
+            num: 0,
+            btnTitle: 'SecondBut',
+        };
     }
+
     mounted() {
         log('App mounted');
     }
+
     unmounted() {
         log('App unmounted');
     }
+
     updated() {
         log('App updated');
     }
 
     render() {
-        let btnTitle = this.props.btnTitle || 'SecondBut';
-        let isName = this.props.isName;
+        let isName = this.state.isName;
+        let btnTitle = this.state.btnTitle;
+        let num = this.state.num;
         let input = isName ? <input key='name' ref='name' type='text' placeholder='name'></input> : <input key='password' ref='password' type='password' placeholder='password'></input>;
         return (
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
-                <Button ref={'butRefName' + (this.props.num)} onclick={() => {
-                    this.setAttribute('isName', !!!isName);
-                    this.setAttribute('num', this.props.num + 1);
+                <Button ref={'butRefName' + num} onclick={() => {
+                    this.setState({
+                        isName: !isName,
+                        num: num + 1,
+                    });
                 }} title={btnTitle}>
                 </Button>
                 {input}
@@ -267,7 +277,6 @@ class App extends Component {
 }
 
 let firstVNode = (<div >
-    {/* <Button title={'FirstButton'}></Button> */}
     <div key={'1'}>111</div>
     <div key={'2'}>222</div>
     <div key={'3'}>333</div>

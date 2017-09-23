@@ -2,48 +2,48 @@ import { isObject, getPrototype } from "./utils";
 import { IPropType, ICommandsType } from "./vnode";
 import { RealNodeProxy } from "./element";
 
-export function applyProperties(node: RealNodeProxy, props: IPropType, previous?: IPropType) {
+export function applyElementProps(node: RealNodeProxy, props: IPropType, previous?: IPropType) {
 
     for (let propName in props) {
         let propValue = props[propName];
 
         if (propValue === undefined) {
-            removeAttribute(node, propName, previous);
+            removeElementAttribute(node, propName, previous);
         } else {
             if (isObject(propValue)) {
-                patchObject(node, props, previous, propName, propValue);
+                patchElementObject(node, props, previous, propName, propValue);
             } else {
-                setAttribute(node, propName, propValue, previous);
+                setElementAttribute(node, propName, propValue, previous);
             }
         }
     }
 
 }
 
-function setAttribute(node: RealNodeProxy, propName, propValue, previous) {
-    node.setAttribute(propName, propValue, previous);
+function setElementAttribute(node: RealNodeProxy, propName, propValue, previous) {
+    node.setElementAttribute(propName, propValue, previous);
 }
 
-function removeAttribute(node: RealNodeProxy, propName, previous) {
+function removeElementAttribute(node: RealNodeProxy, propName, previous) {
     if (previous) {
-        node.removeAttribute(propName, previous);
+        node.removeElementAttribute(propName, previous);
     }
 }
 
-function patchObject(node: RealNodeProxy, props, previous, propName, propValue) {
+function patchElementObject(node: RealNodeProxy, props, previous, propName, propValue) {
     let previousValue = previous ? previous[propName] : undefined;
 
     if (previousValue && isObject(previousValue)
         && getPrototype(previousValue) !== getPrototype(propValue)) {
-        setAttribute(node, propName, propValue, previousValue);
+        setElementAttribute(node, propName, propValue, previousValue);
         return;
     }
 
-    if (!isObject(node.getAttribute(propName))) {
-        setAttribute(node, propName, {}, undefined);
+    if (!isObject(node.getElementAttribute(propName))) {
+        setElementAttribute(node, propName, {}, undefined);
     }
 
-    node.setObjectAttribute(propName, propValue, previousValue);
+    node.setElementObjectAttribute(propName, propValue, previousValue);
 }
 
 export function applyRef(node: RealNodeProxy, newRef: string, previousRef?: string) {
@@ -73,4 +73,8 @@ function setCommand(node: RealNodeProxy, cmdName: string, cmdValue: any, previou
     } else {
         node.addCommand(cmdName, cmdValue);
     }
+}
+
+export function applyComponentProps(node: RealNodeProxy, props, previousProps?) {
+    node.setComponentProps(props, previousProps);
 }
