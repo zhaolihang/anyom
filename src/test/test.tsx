@@ -9,6 +9,16 @@ import { setCommand, getCommand } from "../commands";
 
 const log = console.log;
 
+{//init html
+    let body = document.getElementsByTagName("body")[0];
+    let temp = document.createElement("div");
+    temp.innerHTML = `<div id="fullscreenshadow_for_dragmovepanel" style="display:none;position:fixed;top:0;left:0;width:10000px;height:10000px;z-index:500;"></div>`;
+    let shadow = temp.removeChild(temp.childNodes[0])
+    body.insertBefore(shadow, body.childNodes[0]);
+    shadow.addEventListener("mousedown", function (event) { }, false);
+    shadow.addEventListener("mousemove", function (event) { }, false);
+    shadow.addEventListener("mouseend", function (event) { }, false);
+}
 
 const draggableDataName = 'html_draggable_droppable_dataname';
 setCommand('draggable', {
@@ -112,6 +122,75 @@ setCommand('droppable', {
 
 });
 
+setCommand('dragmove', {
+
+    bind(node, newValue) {
+        log('dragmove bind', node, newValue);
+        let dragEl = node;
+        dragEl.style.position = 'fixed';
+        let oActive, nMouseX, nMouseY, nStartX, nStartY,
+            bMouseUp = true;
+        dragEl.onmousedown = (oPssEvt1) => {
+            let bExit = true,
+                oMsEvent1 = oPssEvt1 || /* IE */ window.event;
+            for (let iNode = oMsEvent1.target || /* IE */ oMsEvent1.srcElement; iNode; iNode = iNode.parentNode) {
+                if (iNode === dragEl) {
+                    bExit = false;
+                    oActive = iNode;
+                    break;
+                }
+            }
+            if (bExit) {
+                return;
+            }
+            bMouseUp = false;
+            nStartX = nStartY = 0;
+            let moveEl = dragEl;
+            for (let iOffPar = moveEl; iOffPar; iOffPar = iOffPar.offsetParent) {
+                nStartX += iOffPar.offsetLeft;
+                nStartY += iOffPar.offsetTop;
+            }
+            nMouseX = oMsEvent1.clientX;
+            nMouseY = oMsEvent1.clientY;
+            oMsEvent1.stopPropagation();
+            moveEl.style.zIndex = 1001;
+            let shadow = document.getElementById('fullscreenshadow_for_dragmovepanel');
+            if (shadow) {
+                shadow.style.display = "block";
+            }
+            document.onmousemove = (oPssEvt2) => {
+                if (bMouseUp) {
+                    return;
+                }
+                let oMsEvent2 = oPssEvt2;
+                moveEl.style.left = String(nStartX + oMsEvent2.clientX - nMouseX) + "px";
+                moveEl.style.top = String(nStartY + oMsEvent2.clientY - nMouseY) + "px";
+                oMsEvent2.stopPropagation();
+            };
+            document.onmouseup = (e) => {
+                document.onmousemove = null;
+                document.onmouseup = null;
+                bMouseUp = true;
+                e.stopPropagation();
+                moveEl.style.zIndex = 1000;
+                let shadow = document.getElementById('fullscreenshadow_for_dragmovepanel');
+                if (shadow) {
+                    shadow.style.display = "none";
+                }
+            };
+            return false;
+        }
+    },
+
+    update(node, newValue, oldValue) {
+        log('dragmove update', node, newValue, oldValue);
+    },
+
+    unbind(node) {
+        log('dragmove unbind', node);
+    },
+
+});
 
 const rootNode = document.getElementById('body');
 let divVNode = new VNode('div');
@@ -192,7 +271,7 @@ let secondVNode = (<div>
     <img height="100" src="http://nodejs.cn/static/images/logo.svg" ></img>
     <App>
     </App>
-    <div innerHTML="<div>I'm from innerHtml</div>"></div>
+    <div commands={{ dragmove: true }} innerHTML="<div>I'm from innerHtml</div>"></div>
 </div >)
 
 setTimeout(() => {
