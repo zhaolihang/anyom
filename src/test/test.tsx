@@ -10,10 +10,10 @@ import { setCommand, getCommand } from "../commands";
 const log = console.log;
 
 {//init html
-    let body = document.getElementsByTagName("body")[0];
-    let temp = document.createElement("div");
+    const body = document.getElementsByTagName("body")[0];
+    const temp = document.createElement("div");
     temp.innerHTML = `<div id="fullscreenshadow_for_dragmovepanel" style="display:none;position:fixed;top:0;left:0;width:10000px;height:10000px;z-index:500;"></div>`;
-    let shadow = temp.removeChild(temp.childNodes[0])
+    const shadow = temp.removeChild(temp.childNodes[0])
     body.insertBefore(shadow, body.childNodes[0]);
     shadow.addEventListener("mousedown", function (event) { }, false);
     shadow.addEventListener("mousemove", function (event) { }, false);
@@ -27,7 +27,7 @@ setCommand('draggable', {
         node.draggable = true;
         const data = newValue;
         node[draggableDataName] = data;
-        const addDragCb = (el) => {
+        const addDragCb = (el: HTMLElement) => {
             el.onselectstart = function () {
                 return false;
             };
@@ -62,22 +62,24 @@ setCommand('droppable', {
 
     bind(node, newValue) {
         log('droppable bind', node, newValue);
-        let cb = newValue;
+        const cb = newValue;
         let startColor = undefined;
         let timeID;
         let ishight = false;
 
-        let hightLightElm = () => {
+        const hightLightElm = () => {
             if (startColor === undefined) {
                 startColor = node.style.backgroundColor
                 node.style.backgroundColor = "red";
             }
         }
-        let unHightLightElm = () => {
+
+        const unHightLightElm = () => {
             node.style.backgroundColor = startColor;
             startColor = undefined;
         }
-        let hightLight = () => {
+
+        const hightLight = () => {
             hightLightElm();
             if (timeID) {
                 clearTimeout(timeID);
@@ -87,6 +89,7 @@ setCommand('droppable', {
                 unHightLightElm();
             }, 100);
         }
+
         node.ondragover = function (ev) {
             ev.preventDefault();
             hightLight();
@@ -100,13 +103,14 @@ setCommand('droppable', {
         node.ondrop = function (ev) {
             ev.preventDefault();
             let h5dragedData = ev.dataTransfer.getData("h5dragedData");
+            let error;
             try {
                 h5dragedData = JSON.parse(h5dragedData);
-            } catch (error) {
-                h5dragedData = 'error: droped data isnot JSON!';
+            } catch (e) {
+                error = 'error: droped data isnot JSON!';
             }
             if (typeof cb === 'function') {
-                cb(h5dragedData);
+                cb(error, h5dragedData);
             }
             return false;
         };
@@ -126,60 +130,75 @@ setCommand('dragmove', {
 
     bind(node, newValue) {
         log('dragmove bind', node, newValue);
-        let dragEl = node;
+
+        let dragEl: HTMLElement = node;
         dragEl.style.position = 'fixed';
-        let oActive, nMouseX, nMouseY, nStartX, nStartY,
-            bMouseUp = true;
-        dragEl.onmousedown = (oPssEvt1) => {
-            let bExit = true,
-                oMsEvent1 = oPssEvt1 || /* IE */ window.event;
-            for (let iNode = oMsEvent1.target || /* IE */ oMsEvent1.srcElement; iNode; iNode = iNode.parentNode) {
-                if (iNode === dragEl) {
-                    bExit = false;
-                    oActive = iNode;
+
+        let nMouseX, nMouseY, nStartX, nStartY;
+        let bMouseUp = true;
+
+        dragEl.addEventListener('mousedown', (mousedownEv) => {
+            let shouldExit = true;
+            for (let target = (mousedownEv.target as HTMLElement); target; target = (target.parentNode as HTMLElement)) {
+                if (target === dragEl) {
+                    shouldExit = false;
                     break;
                 }
             }
-            if (bExit) {
+            if (shouldExit) {
                 return;
             }
-            bMouseUp = false;
-            nStartX = nStartY = 0;
-            let moveEl = dragEl;
-            for (let iOffPar = moveEl; iOffPar; iOffPar = iOffPar.offsetParent) {
-                nStartX += iOffPar.offsetLeft;
-                nStartY += iOffPar.offsetTop;
-            }
-            nMouseX = oMsEvent1.clientX;
-            nMouseY = oMsEvent1.clientY;
-            oMsEvent1.stopPropagation();
-            moveEl.style.zIndex = 1001;
+
             let shadow = document.getElementById('fullscreenshadow_for_dragmovepanel');
             if (shadow) {
                 shadow.style.display = "block";
             }
-            document.onmousemove = (oPssEvt2) => {
+
+            bMouseUp = false;
+            nStartX = nStartY = 0;
+            nMouseX = mousedownEv.clientX;
+            nMouseY = mousedownEv.clientY;
+
+            let moveEl = dragEl;
+            moveEl.style.zIndex = '1001';
+            for (let offParent = moveEl; offParent; offParent = (offParent.offsetParent as HTMLElement)) {
+                nStartX += offParent.offsetLeft;
+                nStartY += offParent.offsetTop;
+            }
+
+            const mousemoveHandler = (mousemoveEv: MouseEvent) => {
                 if (bMouseUp) {
                     return;
                 }
-                let oMsEvent2 = oPssEvt2;
-                moveEl.style.left = String(nStartX + oMsEvent2.clientX - nMouseX) + "px";
-                moveEl.style.top = String(nStartY + oMsEvent2.clientY - nMouseY) + "px";
-                oMsEvent2.stopPropagation();
+                moveEl.style.left = String(nStartX + mousemoveEv.clientX - nMouseX) + "px";
+                moveEl.style.top = String(nStartY + mousemoveEv.clientY - nMouseY) + "px";
+                mousemoveEv.stopPropagation();
+                mousemoveEv.preventDefault();
             };
-            document.onmouseup = (e) => {
-                document.onmousemove = null;
-                document.onmouseup = null;
+
+            const mouseupHandler = (mouseupEv: MouseEvent) => {
+
                 bMouseUp = true;
-                e.stopPropagation();
-                moveEl.style.zIndex = 1000;
+                moveEl.style.zIndex = '1000';
+
                 let shadow = document.getElementById('fullscreenshadow_for_dragmovepanel');
                 if (shadow) {
                     shadow.style.display = "none";
                 }
+
+                document.removeEventListener('mousemove', mousemoveHandler);
+                document.removeEventListener('mouseup', mouseupHandler);
+                mouseupEv.stopPropagation();
+                mouseupEv.preventDefault();
+
             };
-            return false;
-        }
+
+            document.addEventListener('mousemove', mousemoveHandler);
+            document.addEventListener('mouseup', mouseupHandler);
+            mousedownEv.stopPropagation();
+            mousedownEv.preventDefault();
+
+        });
     },
 
     update(node, newValue, oldValue) {
@@ -264,8 +283,12 @@ let secondVNode = (<div>
     <div key={'4'}>444</div>
     <div key={'3'}>333</div>
     <div key={'droppable'} commands={{
-        droppable: (data) => {
-            log('droppable', data);
+        droppable: (error, data) => {
+            if (!error) {
+                log('droppable', data);
+                return;
+            }
+            log(error);
         },
     }}>droppable</div>
     <img height="100" src="http://nodejs.cn/static/images/logo.svg" ></img>
