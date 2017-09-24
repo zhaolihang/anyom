@@ -26,10 +26,6 @@ export class RealNodeProxy {
 
     constructor(vNode: VNode, public context?: Component) {
         this.vNodeType = vNode.type;
-        this.createElement(vNode)
-    }
-
-    private createElement(vNode: VNode) {
         if (this.vNodeType === VNodeType.Component) {
             this.realNodeType = RealNodeType.COMPONENT;
             this.element = this.createComponent(vNode);
@@ -51,9 +47,7 @@ export class RealNodeProxy {
     private createComponent(vNode: VNode): Component {
         let Consr: typeof Component = vNode.tagName;
         let com: Component = new Consr(vNode.props);
-        if (typeof com[LifeCycleType.Created] === 'function') {
-            com[LifeCycleType.Created]();
-        }
+        com[LifeCycleType.Created] && com[LifeCycleType.Created]();
         return com;
     }
 
@@ -71,34 +65,24 @@ export class RealNodeProxy {
 
         ///
         if (this.realNodeType === RealNodeType.NATIVE) {
-            this.nativeNodeAppendChild(x);
+            (this.element as HTMLElement).appendChild(x.getNativeNode());
         } else if (this.realNodeType === RealNodeType.COMPONENT) {
-            this.componentAppendChild(x);
+            this.getNativeNode().appendChild(x.getNativeNode());
         }
 
         //
         if (x.realNodeType === RealNodeType.COMPONENT) {
             let com: Component = x.element;
-            if (typeof com[LifeCycleType.Mounted] === 'function') {
-                com[LifeCycleType.Mounted]();
-            }
+            com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
         }
-    }
-
-    private nativeNodeAppendChild(x: RealNodeProxy) {
-        (this.element as HTMLElement).appendChild(x.getNativeNode());
-    }
-
-    private componentAppendChild(x: RealNodeProxy) {
-        this.getNativeNode().appendChild(x.getNativeNode());
     }
 
     removeChild(x: RealNodeProxy, recycle = false) {
 
         if (this.realNodeType === RealNodeType.NATIVE) {
-            this.nativeNodeRemoveChild(x);
+            (this.element as HTMLElement).removeChild(x.getNativeNode());
         } else if (this.realNodeType === RealNodeType.COMPONENT) {
-            this.componentRemoveChild(x);
+            this.getNativeNode().removeChild(x.getNativeNode());
         }
 
         ///
@@ -112,32 +96,22 @@ export class RealNodeProxy {
             //
             if (x.realNodeType === RealNodeType.COMPONENT) {
                 let com: Component = x.element;
-                if (typeof com[LifeCycleType.UnMounted] === 'function') {
-                    com[LifeCycleType.UnMounted]();
-                }
+                com[LifeCycleType.UnMounted] && com[LifeCycleType.UnMounted]();
             }
         }
 
     }
 
-    private nativeNodeRemoveChild(x: RealNodeProxy) {
-        (this.element as HTMLElement).removeChild(x.getNativeNode());
-    }
-
-    private componentRemoveChild(x: RealNodeProxy) {
-        this.getNativeNode().removeChild(x.getNativeNode());
-    }
-
     replaceChild(newNode: RealNodeProxy, oldNode: RealNodeProxy) {
         if (this.realNodeType === RealNodeType.NATIVE) {
-            this.nativeNodeReplaceChild(newNode, oldNode);
+            (this.element as HTMLElement).replaceChild(newNode.getNativeNode(), oldNode.getNativeNode());
         } else if (this.realNodeType === RealNodeType.COMPONENT) {
-            this.componentReplaceChild(newNode, oldNode);
+            this.getNativeNode().replaceChild(newNode.getNativeNode(), oldNode.getNativeNode());
         }
 
         ///
         let index = this.childNodes.indexOf(oldNode);
-        oldNode.parentNode = null;
+        oldNode.parentNode = undefined;
         newNode.parentNode = this;
         this.childNodes.splice(index, 1, newNode);
 
@@ -146,25 +120,13 @@ export class RealNodeProxy {
         //
         if (newNode.realNodeType === RealNodeType.COMPONENT) {
             let com: Component = newNode.element;
-            if (typeof com[LifeCycleType.Mounted] === 'function') {
-                com[LifeCycleType.Mounted]();
-            }
+            com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
         }
 
         if (oldNode.realNodeType === RealNodeType.COMPONENT) {
             let com: Component = oldNode.element;
-            if (typeof com[LifeCycleType.UnMounted] === 'function') {
-                com[LifeCycleType.UnMounted]();
-            }
+            com[LifeCycleType.UnMounted] && com[LifeCycleType.UnMounted]();
         }
-    }
-
-    private nativeNodeReplaceChild(newNode: RealNodeProxy, oldNode: RealNodeProxy) {
-        (this.element as HTMLElement).replaceChild(newNode.getNativeNode(), oldNode.getNativeNode());
-    }
-
-    private componentReplaceChild(newNode: RealNodeProxy, oldNode: RealNodeProxy) {
-        this.getNativeNode().replaceChild(newNode.getNativeNode(), oldNode.getNativeNode());
     }
 
     insertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null, recycle = false) {
@@ -180,28 +142,18 @@ export class RealNodeProxy {
 
         ///
         if (this.realNodeType === RealNodeType.NATIVE) {
-            this.nativeNodeInsertBefore(newNode, insertTo);
+            (this.element as HTMLElement).insertBefore(newNode.getNativeNode(), insertTo && insertTo.getNativeNode());
         } else if (this.realNodeType === RealNodeType.COMPONENT) {
-            this.componentInsertBefore(newNode, insertTo);
+            this.getNativeNode().replaceChild(newNode.getNativeNode(), insertTo && insertTo.getNativeNode());
         }
 
         if (!recycle) {
             if (newNode.realNodeType === RealNodeType.COMPONENT) {
                 let com: Component = newNode.element;
-                if (typeof com[LifeCycleType.Mounted] === 'function') {
-                    com[LifeCycleType.Mounted]();
-                }
+                com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
             }
         }
 
-    }
-
-    private nativeNodeInsertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null) {
-        (this.element as HTMLElement).insertBefore(newNode.getNativeNode(), insertTo && insertTo.getNativeNode());
-    }
-
-    private componentInsertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null) {
-        this.getNativeNode().replaceChild(newNode.getNativeNode(), insertTo && insertTo.getNativeNode());
     }
 
     getNativeNodeAttribute(propName: string): any {
@@ -299,9 +251,11 @@ export class RealNodeProxy {
         }
     }
 
+    setCommands(newCommands: ICommandsType) {
+        this.commands = newCommands;
+    }
+
     addCommand(cmdName: string, cmdValue: any) {
-        this.commands = this.commands || {};
-        this.commands[cmdName] = cmdValue;
         const cmd = getCommand(cmdName);
         if (cmd && cmd.bind) {
             cmd.bind(this.getNativeNode(), cmdValue);
@@ -313,11 +267,6 @@ export class RealNodeProxy {
         if (cmd && cmd.unbind) {
             cmd.unbind(this.getNativeNode(), previousCmdValue);
         }
-        ///
-        delete this.commands[cmdName];
-        if (Object.keys(this.commands).length === 0) {
-            this.commands = undefined;
-        }
     }
 
     updateCommand(cmdName: string, cmdValue: any, previousCmdValue: any) {
@@ -325,13 +274,10 @@ export class RealNodeProxy {
         if (cmd && cmd.update) {
             cmd.update(this.getNativeNode(), cmdValue, previousCmdValue);
         }
-        ///
-        this.commands[cmdName] = cmdValue;
     }
 
     private getNativeNodeEventName(propName: string) {
         //propName eg: 'on-click-capture'
-        propName = propName.toLowerCase();
         if (startsWith(propName, 'on-')) {
             if (endsWith(propName, '-capture')) {
                 return { name: propName.substring(3, propName.length - 9), capture: true };

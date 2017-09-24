@@ -68,13 +68,14 @@ const nextTickHandler = () => {
 }
 
 export function nextTick(cb?: Function, ctx?: Object) {
+    if (!cb) {
+        return;
+    }
     callbacks.push(() => {
-        if (cb) {
-            try {
-                cb.call(ctx);
-            } catch (e) {
-                console.log(e);
-            }
+        try {
+            cb.call(ctx);
+        } catch (e) {
+            console.log(e);
         }
     });
     if (!pending) {

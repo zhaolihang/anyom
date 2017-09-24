@@ -11,26 +11,26 @@ export function patchOp(vpatch: VPatch, node: RealNodeProxy, context?: Component
     let patch = vpatch.patch;
 
     switch (type) {
-        case VPatchType.REMOVE:
-            return removeNode(node, vNode);
         case VPatchType.INSERT:
             return insertNode(node, patch, context);
-        case VPatchType.REPLACE:
-            return vNodePatch(node, vNode, patch, context);
+        case VPatchType.REMOVE:
+            return removeNode(node, vNode);
         case VPatchType.ORDER:
             reorderChildren(node, patch);
             return node;
         case VPatchType.ELEMENTPROPS:
             applyElementProps(node, patch, vNode.props);
             return node;
+        case VPatchType.COMPONENTPROPS:
+            applyComponentProps(node, patch, vNode.props);
+            return node;
+        case VPatchType.REPLACE:
+            return vNodePatch(node, vNode, patch, context);
         case VPatchType.REF:
             applyRef(node, patch, vNode.ref);
             return node;
         case VPatchType.COMMANDS:
-            applyCommands(node, patch, vNode.commands);
-            return node;
-        case VPatchType.COMPONENTPROPS:
-            applyComponentProps(node, patch, vNode.props);
+            applyCommands(node, patch.patch, vNode.commands, patch.newCommands);
             return node;
         default:
             return node;

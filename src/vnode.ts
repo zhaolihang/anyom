@@ -6,9 +6,9 @@ export const TextNodeTagName = {};
 const noProperties = {};
 const noChildren = [];
 
-const VNodeFlag = {};
+const vNodeFlag = {};
 export function isVNode(x) {
-    return x && (x.__type__ === VNodeFlag);
+    return x && (x.__type__ === vNodeFlag);
 }
 
 export enum VNodeType {
@@ -42,17 +42,13 @@ export class VNode {
 
         for (let i = 0; i < count; i++) {
             let child = children[i];
-            if (isVNode(child)) {
-                descendants += child.count || 0;
-            } else {
-                throw new Error('must be VNode');
-            }
+            descendants += child.count || 0;
         }
         this.count = count + descendants;
     }
 
 }
-(VNode.prototype as any).__type__ = VNodeFlag;
+(VNode.prototype as any).__type__ = vNodeFlag;
 
 //
 export enum VPatchType {

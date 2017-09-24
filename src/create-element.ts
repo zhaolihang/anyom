@@ -5,13 +5,13 @@ import { Component } from "./component";
 
 export function createElement(vnode: VNode, context?: Component): RealNodeProxy {
 
-    let node: RealNodeProxy = createRealNodeProxy(vnode, context);
+    let node: RealNodeProxy = new RealNodeProxy(vnode, context);
     let props = vnode.props;
     if (node.realNodeType === RealNodeType.NATIVE) {
         applyElementProps(node, props, undefined);
     }
     vnode.ref && applyRef(node, vnode.ref, undefined);
-    vnode.commands && applyCommands(node, vnode.commands, undefined);
+    vnode.commands && applyCommands(node, vnode.commands, undefined, vnode.commands);
 
     let children = vnode.children;
 

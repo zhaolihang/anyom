@@ -21,7 +21,6 @@ export function realNodeIndex(rootNode: RealNodeProxy, tree: VNode, indices: num
 function recurse(rootNode: RealNodeProxy, tree, indices, nodes: { [index: number]: RealNodeProxy }, rootIndex) {
     nodes = nodes || {};
 
-
     if (rootNode) {
         if (indexInRange(indices, rootIndex, rootIndex)) {
             nodes[rootIndex] = rootNode;

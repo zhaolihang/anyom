@@ -1,5 +1,4 @@
 import { realNodeIndex } from "./real-node-index";
-import { isArray } from "./utils";
 import { patchOp } from "./patch-operation";
 import { render } from "./create-element";
 import { IDiffMap } from "./diff";
@@ -44,7 +43,7 @@ function applyPatch(rootNode: RealNodeProxy, childNode: RealNodeProxy, patchList
 
     let newNode;
 
-    if (isArray(patchList)) {
+    if (Array.isArray(patchList)) {
         for (let i = 0; i < patchList.length; i++) {
             newNode = patchOp(patchList[i], childNode, context);
 

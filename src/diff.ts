@@ -1,5 +1,5 @@
 import { VNode, VPatch, VPatchType, isVNode, ITagType, IPropType, VNodeType } from "./vnode";
-import { isObject, isArray, getPrototype, deepEqual } from "./utils";
+import { isObject, getPrototype, deepEqual } from "./utils";
 
 function diffProps(a: IPropType, b: IPropType) {
 
@@ -46,6 +46,10 @@ function diffProps(a: IPropType, b: IPropType) {
 }
 
 function diffCommands(aCmds, bCmds) {
+    if (aCmds === bCmds) {
+        return;
+    }
+
     let diff;
     for (let aKey in aCmds) {
         if (!(aKey in bCmds)) {
@@ -128,7 +132,7 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
 
                 let cmdPatch = diffCommands(a.commands || noCommands, b.commands || noCommands);
                 if (cmdPatch) {
-                    apply = appendPatch(apply, new VPatch(VPatchType.COMMANDS, a, cmdPatch));
+                    apply = appendPatch(apply, new VPatch(VPatchType.COMMANDS, a, { patch: cmdPatch, newCommands: b.commands }));
                 }
 
                 apply = diffChildren(a, b, patch, apply, index);
@@ -376,7 +380,7 @@ function keyIndex(children: VNode[]) {
 function appendPatch(apply: VPatchResultType, patch: VPatch): VPatchResultType {
 
     if (apply) {
-        if (isArray(apply)) {
+        if (Array.isArray(apply)) {
             (<VPatch[]>apply).push(patch);
         } else {
             apply = (<VPatch[]>[apply, patch]);

@@ -1,5 +1,4 @@
 import { ITagType, IPropType, VNode, isVNode, TextNodeTagName, ICommandsType } from "./vnode";
-import { isArray, isObject } from "./utils";
 
 const stack: VNode[] = [];
 const EMPTY_CHILDREN = [];
@@ -17,9 +16,7 @@ export function h(tagName: ITagType, props?: IPropType, ...args: any[]): VNode {
     // commands 指令
     let commands: ICommandsType;
     if (props && props.commands != null) {
-        if (isObject(props.commands)) {
-            commands = props.commands;
-        }
+        commands = props.commands;
         delete props.commands;
     }
 
@@ -55,7 +52,7 @@ export function h(tagName: ITagType, props?: IPropType, ...args: any[]): VNode {
 
     while (stack.length) {
 
-        if ((child = stack.pop()) && isArray(child)) {
+        if ((child = stack.pop()) && Array.isArray(child)) {
             for (i = child.length; i--;) {
                 stack.push(child[i]);
             }
@@ -64,10 +61,6 @@ export function h(tagName: ITagType, props?: IPropType, ...args: any[]): VNode {
             let childType = typeof child;
             if (childType === 'string' || childType === 'number' || childType === 'boolean') {
                 child = new VNode(TextNodeTagName, { value: String(child) });
-            }
-
-            if (!isVNode(child)) {
-                throw new Error('不是合法的 VNode');
             }
 
             if (children === EMPTY_CHILDREN) {

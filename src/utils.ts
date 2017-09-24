@@ -3,10 +3,6 @@ export function isObject(x) {
     return typeof x === "object" && x !== null;
 };
 
-export function isArray(x) {
-    return Array.isArray(x);
-}
-
 export function getPrototype(value) {
     if (Object.getPrototypeOf) {
         return Object.getPrototypeOf(value);
