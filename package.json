@@ -33,6 +33,11 @@
     "rollup-watch": "^4.3.1",
     "typescript": "^2.4.2"
   },
-  "author": "",
+  "author": "625335512@qq.com",
+  "homepage": "https://github.com/zhaolihang/pure-virtual-xom",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zhaolihang/pure-virtual-xom.git"
+  },
   "license": "ISC"
 }
