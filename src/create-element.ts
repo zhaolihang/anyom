@@ -5,12 +5,8 @@ import { Component } from "./component";
 
 export function createElement(vnode: VNode, context?: Component): RealNodeProxy {
 
-    if (!vnode) {
-        throw new Error('虚拟节点不能为空');
-    }
-
     let node: RealNodeProxy = createRealNodeProxy(vnode, context);
-    let props = vnode.properties;
+    let props = vnode.props;
     if (node.realNodeType === RealNodeType.NATIVE) {
         applyElementProps(node, props, undefined);
     }

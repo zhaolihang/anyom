@@ -1,21 +1,21 @@
 export type ITagType = any;
 export type IPropType = { [x: string]: any };
 export type ICommandsType = { [commandName: string]: any }; // { commandName:commandArgs }
-
-let noProperties = {};
-let noChildren = [];
-
 export const TextNodeTagName = {};
 
+const noProperties = {};
+const noChildren = [];
+
+const VNodeFlag = {};
 export function isVNode(x) {
-    return x && (x.__type__ === '__VNode__');
+    return x && (x.__type__ === VNodeFlag);
 }
 
 export enum VNodeType {
     None = 0,
-    Component = 'Component',
-    Node = 'Node',
-    Text = 'Text',
+    Component,
+    Node,
+    Text,
 }
 
 export class VNode {
@@ -25,7 +25,7 @@ export class VNode {
     ref: string;
     namespace: string;
 
-    constructor(public tagName: ITagType, public properties?: IPropType, public children?: VNode[], public key?: string) {
+    constructor(public tagName: ITagType, public props: IPropType = noProperties, public children: VNode[] = noChildren, public key?: string) {
 
         if (tagName === TextNodeTagName) {
             this.type = VNodeType.Text;
@@ -35,9 +35,6 @@ export class VNode {
             this.type = VNodeType.Component;
         }
 
-        this.tagName = tagName;
-        this.properties = properties || noProperties;
-        this.children = children || noChildren;
         this.key = key != null ? String(key) : undefined;
 
         let count = (children && children.length) || 0;
@@ -55,29 +52,22 @@ export class VNode {
     }
 
 }
-(VNode.prototype as any).__type__ = '__VNode__';
+(VNode.prototype as any).__type__ = VNodeFlag;
 
 //
-
 export enum VPatchType {
-    NONE = 'NONE',
-    REPLACE = 'REPLACE',
-    ELEMENTPROPS = 'ELEMENTPROPS',
-    COMPONENTPROPS = 'COMPONENTPROPS',
-    ORDER = 'ORDER',
-    INSERT = 'INSERT',
-    REMOVE = 'REMOVE',
-    REF = 'REF',
-    COMMANDS = 'COMMANDS',
-}
-
-export function isPatch(x) {
-    return x && (x.__type__ === '__VPatch__');
+    NONE = 0,
+    REPLACE,
+    ELEMENTPROPS,
+    COMPONENTPROPS,
+    ORDER,
+    INSERT,
+    REMOVE,
+    REF,
+    COMMANDS,
 }
 
 export class VPatch {
     constructor(public type: VPatchType, public vNode: VNode, public patch?: any) {
     }
 }
-(VPatch.prototype as any).__type__ = '__VPatch__';
-

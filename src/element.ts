@@ -5,8 +5,9 @@ import { LifeCycleType } from "./lifecycle";
 import { getCommand } from "./commands";
 
 export enum RealNodeType {
-    NATIVE = 'NATIVE',
-    COMPONENT = 'COMPONENT',
+    None = 0,
+    NATIVE,
+    COMPONENT,
 }
 
 /**
@@ -14,10 +15,10 @@ export enum RealNodeType {
  */
 export class RealNodeProxy {
 
-    parentNode: RealNodeProxy = null;
+    parentNode: RealNodeProxy;
     childNodes: RealNodeProxy[] = [];
 
-    vNodeType: VNodeType = VNodeType.None;
+    vNodeType: VNodeType;
     realNodeType: RealNodeType;
     element: any;
     ref: string;
@@ -40,21 +41,16 @@ export class RealNodeProxy {
 
     private createNativeNode(vNode: VNode) {
         if (this.vNodeType === VNodeType.Text) {
-            return <Text>(document.createTextNode(vNode.properties.value));
+            return <Text>(document.createTextNode(vNode.props.value));
         } else if (this.vNodeType === VNodeType.Node) {
             let realNode = <HTMLElement>(document.createElement(vNode.tagName));
             return realNode;
-        } else {
-            throw new Error('类型错误');
         }
     }
 
     private createComponent(vNode: VNode): Component {
         let Consr: typeof Component = vNode.tagName;
-        let com: Component = new Consr(vNode.properties);
-        if (!(com instanceof Component)) {
-            throw new Error('tagName 不是 Component的子类构造函数');
-        }
+        let com: Component = new Consr(vNode.props);
         if (typeof com[LifeCycleType.Created] === 'function') {
             com[LifeCycleType.Created]();
         }
@@ -67,7 +63,6 @@ export class RealNodeProxy {
         } else if (this.realNodeType === RealNodeType.COMPONENT) {
             return (<Component>this.element).getRealNodeProxy().getNativeNode();
         }
-        throw new Error('未知类型');
     }
 
     appendChild(x: RealNodeProxy) {
@@ -108,12 +103,8 @@ export class RealNodeProxy {
 
         ///
         let index = this.childNodes.indexOf(x);
-        if (~index) {
-            x.parentNode = null;
-            this.childNodes.splice(index, 1);
-        } else {
-            throw Error('被移除的节点没找到,是否是算法错误');
-        }
+        x.parentNode = undefined;
+        this.childNodes.splice(index, 1);
 
         if (!recycle) {
             x.removeCommands();
@@ -146,13 +137,9 @@ export class RealNodeProxy {
 
         ///
         let index = this.childNodes.indexOf(oldNode);
-        if (~index) {
-            oldNode.parentNode = null;
-            newNode.parentNode = this;
-            this.childNodes.splice(index, 1, newNode);
-        } else {
-            throw new Error('被替换的节点没找到,是否是算法错误');
-        }
+        oldNode.parentNode = null;
+        newNode.parentNode = this;
+        this.childNodes.splice(index, 1, newNode);
 
         oldNode.setRef(undefined, oldNode.ref);
         oldNode.removeCommands();
@@ -184,12 +171,8 @@ export class RealNodeProxy {
 
         if (insertTo) {
             let index = this.childNodes.indexOf(insertTo);
-            if (~index) {
-                newNode.parentNode = this;
-                this.childNodes.splice(index, 0, newNode);
-            } else {
-                throw Error('要插入的位置节点没找到,是否是算法错误');
-            }
+            newNode.parentNode = this;
+            this.childNodes.splice(index, 0, newNode);
         } else {
             newNode.parentNode = this;
             this.childNodes.push(newNode);
@@ -238,9 +221,6 @@ export class RealNodeProxy {
             if (previous && previous[propName]) {
                 element.removeEventListener(event.name, previous[propName], event.capture);
             }
-            if (!(typeof propValue === 'function')) {
-                throw new Error('事件的值必须是函数');
-            }
             element.addEventListener(event.name, propValue, event.capture);
             return;
         }
@@ -261,8 +241,6 @@ export class RealNodeProxy {
             if ((element as any).nodeValue != propValue) {// element is Text
                 (element as any).nodeValue = propValue;
             }
-        } else {
-            throw new Error('类型错误');
         }
     }
 
@@ -356,7 +334,7 @@ export class RealNodeProxy {
         propName = propName.toLowerCase();
         if (startsWith(propName, 'on-')) {
             if (endsWith(propName, '-capture')) {
-                return { name: propName.substring(3, propName.length - 1 - 8), capture: true };
+                return { name: propName.substring(3, propName.length - 9), capture: true };
             } else {
                 return { name: propName.substring(3), capture: false };
             }

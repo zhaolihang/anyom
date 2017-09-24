@@ -29,13 +29,13 @@ function flushSchedulerQueue() {
         component.forceUpdate(RenderMode.SYNC);
 
         //check and stop circular updates.
-        if (has[id] != null) {
-            circular[id] = (circular[id] || 0) + 1;
-            if (circular[id] > MAX_UPDATE_COUNT) {
-                console.error('circulard update!');
-                break;
-            }
-        }
+        // if (has[id] != null) {
+        //     circular[id] = (circular[id] || 0) + 1;
+        //     if (circular[id] > MAX_UPDATE_COUNT) {
+        //         console.error('circulard update!');
+        //         break;
+        //     }
+        // }
     }
     resetSchedulerState();
 }
@@ -52,16 +52,7 @@ export function queueComponent(component: Component) {
         }
     }
 }
-
-type TimerFunType = (fun: (...any) => any, time: number) => any;
-let timerFun: TimerFunType = setTimeout;
-
-export const setTimerFun = (v: TimerFunType) => {
-    timerFun = v;
-};
-export const getTimerFun = () => {
-    return timerFun;
-};
+const defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
 
 // for nextTick()
 const callbacks = [];
@@ -88,6 +79,6 @@ export function nextTick(cb?: Function, ctx?: Object) {
     });
     if (!pending) {
         pending = true;
-        timerFun(nextTickHandler, 0);
+        defer(nextTickHandler);
     }
 };

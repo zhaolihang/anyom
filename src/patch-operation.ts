@@ -21,7 +21,7 @@ export function patchOp(vpatch: VPatch, node: RealNodeProxy, context?: Component
             reorderChildren(node, patch);
             return node;
         case VPatchType.ELEMENTPROPS:
-            applyElementProps(node, patch, vNode.properties);
+            applyElementProps(node, patch, vNode.props);
             return node;
         case VPatchType.REF:
             applyRef(node, patch, vNode.ref);
@@ -30,7 +30,7 @@ export function patchOp(vpatch: VPatch, node: RealNodeProxy, context?: Component
             applyCommands(node, patch, vNode.commands);
             return node;
         case VPatchType.COMPONENTPROPS:
-            applyComponentProps(node, patch, vNode.properties);
+            applyComponentProps(node, patch, vNode.props);
             return node;
         default:
             return node;

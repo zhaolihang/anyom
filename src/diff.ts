@@ -97,6 +97,7 @@ export function diff(a: VNode, b?: VNode) {
     return patch;
 };
 
+const noCommands = {};
 function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
     if (a === b) {
         return;
@@ -111,11 +112,11 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
             if (a.tagName === b.tagName && a.namespace === b.namespace && a.key === b.key) {
 
                 if (a.type === VNodeType.Component) {
-                    if (!deepEqual(a.properties, b.properties)) {
-                        apply = appendPatch(apply, new VPatch(VPatchType.COMPONENTPROPS, a, b.properties));
+                    if (!deepEqual(a.props, b.props)) {
+                        apply = appendPatch(apply, new VPatch(VPatchType.COMPONENTPROPS, a, b.props));
                     }
                 } else {
-                    let propsPatch = diffProps(a.properties, b.properties);
+                    let propsPatch = diffProps(a.props, b.props);
                     if (propsPatch) {
                         apply = appendPatch(apply, new VPatch(VPatchType.ELEMENTPROPS, a, propsPatch));
                     }
@@ -125,7 +126,7 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
                     apply = appendPatch(apply, new VPatch(VPatchType.REF, a, b.ref));
                 }
 
-                let cmdPatch = diffCommands(a.commands || {}, b.commands || {});
+                let cmdPatch = diffCommands(a.commands || noCommands, b.commands || noCommands);
                 if (cmdPatch) {
                     apply = appendPatch(apply, new VPatch(VPatchType.COMMANDS, a, cmdPatch));
                 }

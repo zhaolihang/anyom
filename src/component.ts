@@ -9,12 +9,13 @@ import { LifeCycleType } from "./lifecycle";
 
 
 export enum RenderMode {
-    SYNC = 1,
+    None = 0,
+    SYNC,
     ASYNC,
 }
 
 export class Component {
-    private static increasingID = 1;
+    private static globalId = 0;
 
     protected renderedRealNode: RealNodeProxy;
     protected renderedVNode: VNode;
@@ -25,9 +26,8 @@ export class Component {
     refs = {};
 
     constructor(props) {
-        this.id = Component.increasingID++;
+        this.id = ++Component.globalId;
         this.props = props || {};
-
     }
 
     getRealNodeProxy(): RealNodeProxy {
@@ -47,7 +47,6 @@ export class Component {
     }
 
     forceUpdate(renderMode: RenderMode) {
-        renderMode = renderMode || RenderMode.ASYNC;
         if (renderMode === RenderMode.SYNC) {
             let newVNode = this.render();
 
