@@ -8,7 +8,6 @@ export default {
     plugins: [
         resolve(),
         typescript(),
-        uglify(),
     ],
     dest: './dist/index.js',
     moduleName: 'PureVxom',
