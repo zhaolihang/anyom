@@ -15,3 +15,15 @@ export {
     setCommand,
     getCommand,
 }
+
+export default {
+    h,
+    createElement,
+    render,
+    diff,
+    patch,
+    Component,
+    setCommand,
+    getCommand,
+}
+
