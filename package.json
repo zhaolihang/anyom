@@ -4,15 +4,11 @@
   "description": "xom means 'x' object model 'x' means 'any' ",
   "main": "dist/index.js",
   "scripts": {
-    "cleansrc": "del-cli src/**/*.js src/**/*.js.map",
-    "clearall": "npm run cleansrcjs & npm run cleardist & npm run cleantest",
     "cleardist": "del-cli dist/**/*.js dist/**/*.js.map",
-    "cleansrcjs": "del-cli src/**/*.js src/**/*.js.map",
-    "prebuild": "npm run cleansrcjs & npm run cleardist",
     "build": "rollup -c",
     "cleantest": "del-cli disttest/**/*.js disttest/**/*.js.map ",
     "buildtest": "rollup -w -c rollup.config.test.js",
-    "gzip": "node utils/gzip.js"
+    "clearall": "npm run cleardist & npm run cleantest"
   },
   "devDependencies": {
     "@types/koa": "^2.0.39",

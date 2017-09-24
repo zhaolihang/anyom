@@ -1,7 +1,6 @@
 // rollup.config.js
 import typescript from 'rollup-plugin-typescript2';
 import resolve from 'rollup-plugin-node-resolve';
-import uglify from 'rollup-plugin-uglify';
 export default {
     entry: './src/index.ts',
     format: 'cjs',
@@ -10,6 +9,6 @@ export default {
         typescript(),
     ],
     dest: './dist/index.js',
-    moduleName: 'PureVxom',
+    moduleName: 'PureVirtualXom',
     sourceMap: true
 }
