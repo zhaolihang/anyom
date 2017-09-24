@@ -218,6 +218,22 @@ rootNode.appendChild(rootRealNodeProxy.getNativeNode());
 
 
 class Button extends Component {
+    created() {
+        log('Button created');
+    }
+
+    mounted() {
+        log('Button mounted');
+    }
+
+    unmounted() {
+        log('Button unmounted');
+    }
+
+    updated() {
+        log('Button updated');
+    }
+
     render() {
         let title = this.props.title;
         let onclick = this.props.onclick;
@@ -277,6 +293,7 @@ class App extends Component {
 }
 
 let firstVNode = (<div >
+    <Button></Button>
     <div key={'1'}>111</div>
     <div key={'2'}>222</div>
     <div key={'3'}>333</div>
