@@ -6,10 +6,9 @@ import { IDiffMap } from "./diff";
 import { RealNodeProxy } from "./element";
 import { Component } from "./component";
 
-export const RenderOptions = { patch: patchRecursive, render };
 
 export function patch(rootNode: RealNodeProxy, patches: IDiffMap, context?: Component): RealNodeProxy {
-    let resultNode = RenderOptions.patch(rootNode, patches, context);
+    let resultNode = patchRecursive(rootNode, patches, context);
 
     if (rootNode !== resultNode) {
         let parentNode = rootNode.parentNode;

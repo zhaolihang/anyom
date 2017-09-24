@@ -10,7 +10,11 @@
         "outDir": "dist",
         "jsx": "react",
         "jsxFactory": "h",
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "lib": [
+            "dom",
+            "es7"
+        ]
     },
     "include": [
         "src/**/*",

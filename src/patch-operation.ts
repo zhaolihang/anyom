@@ -2,8 +2,8 @@
 import { VPatch, VPatchType, VNode } from "./vnode";
 import { applyElementProps, applyRef, applyCommands, applyComponentProps } from "./apply-properties";
 import { RealNodeProxy } from "./element";
-import { RenderOptions } from "./patch";
 import { Component } from "./component";
+import { render } from "./create-element";
 
 export function patchOp(vpatch: VPatch, node: RealNodeProxy, context?: Component) {
     let type = vpatch.type;
@@ -48,7 +48,7 @@ function removeNode(node: RealNodeProxy, vNode) {
 }
 
 function insertNode(parentNode: RealNodeProxy, vNode: VNode, context?: Component) {
-    let newNode = RenderOptions.render(vNode, context);
+    let newNode = render(vNode, context);
 
     if (parentNode) {
         parentNode.appendChild(newNode);
@@ -59,7 +59,7 @@ function insertNode(parentNode: RealNodeProxy, vNode: VNode, context?: Component
 
 function vNodePatch(node: RealNodeProxy, leftVNode: VNode, vNode: VNode, context?: Component) {
     let parentNode = node.parentNode;
-    let newNode = RenderOptions.render(vNode, context);
+    let newNode = render(vNode, context);
 
     if (parentNode && newNode !== node) {
         parentNode.replaceChild(newNode, node);
