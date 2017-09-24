@@ -4,7 +4,7 @@ import resolve from 'rollup-plugin-node-resolve';
 import uglify from 'rollup-plugin-uglify';
 export default {
     entry: './src/index.ts',
-    format: 'umd',
+    format: 'cjs',
     plugins: [
         resolve(),
         typescript(),
