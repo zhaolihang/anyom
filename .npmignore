@@ -2,3 +2,4 @@ node_modules
 disttest
 .rpt2_cache
 .vscode
+*.js.map
