@@ -1,6 +1,6 @@
 {
   "name": "anyom",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "any object model , such dom ...",
   "main": "dist/index.js",
   "scripts": {

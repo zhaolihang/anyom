@@ -1,6 +1,6 @@
 
 import { VPatch, VPatchType, VNode } from "./vnode";
-import { applyElementProps, applyRef, applyCommands, applyComponentProps } from "./apply-properties";
+import { applyNativeNodeProps, applyRef, applyCommands, applyComponentProps } from "./apply-properties";
 import { NodeProxy } from "./element";
 import { Component } from "./component";
 import { render } from "./create-element";
@@ -19,7 +19,7 @@ export function patchOp(vpatch: VPatch, nodeProxy: NodeProxy, context?: Componen
             reorderChildren(nodeProxy, patch);
             return nodeProxy;
         case VPatchType.ELEMENTPROPS:
-            applyElementProps(nodeProxy, patch, vNode.props);
+            applyNativeNodeProps(nodeProxy, patch, vNode.props);
             return nodeProxy;
         case VPatchType.COMPONENTPROPS:
             applyComponentProps(nodeProxy, patch, vNode.props);

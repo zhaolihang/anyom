@@ -230,8 +230,12 @@ class Button extends Component {
         log('Button unmounted');
     }
 
-    updated() {
-        log('Button updated');
+    beforeUpdate() {
+        log('Button beforeUpdate');
+    }
+
+    afterUpdate() {
+        log('Button afterUpdate');
     }
 
     render() {
@@ -239,6 +243,7 @@ class Button extends Component {
         let onclick = this.props.onclick;
         return (
             <button on-click={(e) => {
+                this.setState({});
                 if (onclick) {
                     onclick(e);
                 }
@@ -267,8 +272,12 @@ class App extends Component {
         log('App unmounted');
     }
 
-    updated() {
-        log('App updated');
+    beforeUpdate() {
+        log('App beforeUpdate');
+    }
+
+    afterUpdate() {
+        log('App afterUpdate');
     }
 
     render() {

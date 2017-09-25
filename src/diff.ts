@@ -1,4 +1,4 @@
-import { VNode, VPatch, VPatchType, isVNode, ITagType, IPropType, VNodeType } from "./vnode";
+import { VNode, VPatch, VPatchType, ITagType, IPropType, VNodeType } from "./vnode";
 import { isObject, getPrototype, deepEqual } from "./utils";
 
 function diffProps(a: IPropType, b: IPropType) {
@@ -111,34 +111,30 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
 
     if (b == null) {
         apply = appendPatch(apply, new VPatch(VPatchType.REMOVE, a, b));
-    } else if (isVNode(b)) {
-        if (isVNode(a)) {
-            if (a.tagName === b.tagName && a.namespace === b.namespace && a.key === b.key) {
+    } else {
+        if (a.tagName === b.tagName && a.key === b.key) {
 
-                if (a.type === VNodeType.Component) {
-                    if (!deepEqual(a.props, b.props)) {
-                        apply = appendPatch(apply, new VPatch(VPatchType.COMPONENTPROPS, a, b.props));
-                    }
-                } else {
-                    let propsPatch = diffProps(a.props, b.props);
-                    if (propsPatch) {
-                        apply = appendPatch(apply, new VPatch(VPatchType.ELEMENTPROPS, a, propsPatch));
-                    }
+            if (a.type === VNodeType.Component) {
+                if (!deepEqual(a.props, b.props)) {
+                    apply = appendPatch(apply, new VPatch(VPatchType.COMPONENTPROPS, a, b.props));
                 }
-
-                if (a.ref !== b.ref) {
-                    apply = appendPatch(apply, new VPatch(VPatchType.REF, a, b.ref));
-                }
-
-                let cmdPatch = diffCommands(a.commands || noCommands, b.commands || noCommands);
-                if (cmdPatch) {
-                    apply = appendPatch(apply, new VPatch(VPatchType.COMMANDS, a, { patch: cmdPatch, newCommands: b.commands }));
-                }
-
-                apply = diffChildren(a, b, patch, apply, index);
             } else {
-                apply = appendPatch(apply, new VPatch(VPatchType.REPLACE, a, b));
+                let propsPatch = diffProps(a.props, b.props);
+                if (propsPatch) {
+                    apply = appendPatch(apply, new VPatch(VPatchType.ELEMENTPROPS, a, propsPatch));
+                }
             }
+
+            if (a.ref !== b.ref) {
+                apply = appendPatch(apply, new VPatch(VPatchType.REF, a, b.ref));
+            }
+
+            let cmdPatch = diffCommands(a.commands || noCommands, b.commands || noCommands);
+            if (cmdPatch) {
+                apply = appendPatch(apply, new VPatch(VPatchType.COMMANDS, a, { patch: cmdPatch, newCommands: b.commands }));
+            }
+
+            apply = diffChildren(a, b, patch, apply, index);
         } else {
             apply = appendPatch(apply, new VPatch(VPatchType.REPLACE, a, b));
         }
@@ -172,7 +168,7 @@ function diffChildren(a: VNode, b: VNode, patch: IDiffMap, apply: VPatchResultTy
             walk(leftNode, rightNode, patch, index);
         }
 
-        if (isVNode(leftNode) && leftNode.count) {
+        if (leftNode && leftNode.count) {
             index += leftNode.count;
         }
     }

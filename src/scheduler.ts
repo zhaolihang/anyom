@@ -27,7 +27,6 @@ function flushSchedulerQueue() {
         id = component.id;
         has[id] = null;
         component.forceUpdate(RenderMode.SYNC);
-
         //check and stop circular updates.
         // if (has[id] != null) {
         //     circular[id] = (circular[id] || 0) + 1;
@@ -42,9 +41,17 @@ function flushSchedulerQueue() {
 
 export function queueComponent(component: Component) {
     const id = component.id;
-    if (has[id] == null) {
+    if (!has[id]) {
         has[id] = true;
-        queue.push(component);
+        if (!flushing) {
+            queue.push(component);
+        } else {
+            let i = queue.length - 1;
+            while (i > index && queue[i].id > component.id) {
+                i--;
+            }
+            queue.splice(i + 1, 0, component);
+        }
         // queue the flush
         if (!waiting) {
             waiting = true;

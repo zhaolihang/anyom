@@ -2,64 +2,64 @@ import { isObject, getPrototype } from "./utils";
 import { IPropType, ICommandsType } from "./vnode";
 import { NodeProxy } from "./element";
 
-export function applyElementProps(node: NodeProxy, props: IPropType, previous?: IPropType) {
+export function applyNativeNodeProps(proxy: NodeProxy, props: IPropType, previous?: IPropType) {
 
     for (let propName in props) {
         let propValue = props[propName];
 
         if (propValue === undefined) {
             if (previous) {
-                node.removeNativeNodeAttribute(propName, previous);
+                proxy.removeNativeNodeAttribute(propName, previous);
             }
         } else {
             if (isObject(propValue)) {
-                patchElementObject(node, props, previous, propName, propValue);
+                patchNativeNodeObject(proxy, props, previous, propName, propValue);
             } else {
-                node.setNativeNodeAttribute(propName, propValue, previous);
+                proxy.setNativeNodeAttribute(propName, propValue, previous);
             }
         }
     }
 
 }
 
-function patchElementObject(node: NodeProxy, props, previous, propName, propValue) {
+function patchNativeNodeObject(proxy: NodeProxy, props, previous, propName, propValue) {
     let previousValue = previous ? previous[propName] : undefined;
 
     if (previousValue && isObject(previousValue)
         && getPrototype(previousValue) !== getPrototype(propValue)) {
-        node.setNativeNodeAttribute(propName, propValue, previousValue);
+        proxy.setNativeNodeAttribute(propName, propValue, previousValue);
         return;
     }
 
-    if (!isObject(node.getNativeNodeAttribute(propName))) {
-        node.setNativeNodeAttribute(propName, {}, undefined);
+    if (!isObject(proxy.getNativeNodeAttribute(propName))) {
+        proxy.setNativeNodeAttribute(propName, {}, undefined);
     }
 
-    node.setNativeNodeObjectAttribute(propName, propValue, previousValue);
+    proxy.setNativeNodeObjectAttribute(propName, propValue, previousValue);
 }
 
-export function applyRef(node: NodeProxy, newRef: string, previousRef?: string) {
-    node.setRef(newRef, previousRef);
+export function applyRef(proxy: NodeProxy, newRef: string, previousRef?: string) {
+    proxy.setRef(newRef, previousRef);
 }
 
-export function applyCommands(node: NodeProxy, cmdPatch: ICommandsType, previousCmds: ICommandsType, newCommands: ICommandsType) {
+export function applyCommands(proxy: NodeProxy, cmdPatch: ICommandsType, previousCmds: ICommandsType, newCommands: ICommandsType) {
     for (let cmdName in cmdPatch) {
         let cmdValue = cmdPatch[cmdName];
         if (cmdValue === undefined) {
             if (previousCmds && (cmdName in previousCmds)) {
-                node.removeCommand(cmdName, previousCmds[cmdName]);
+                proxy.removeCommand(cmdName, previousCmds[cmdName]);
             }
         } else {
             if (previousCmds && (cmdName in previousCmds)) {
-                node.updateCommand(cmdName, cmdValue, previousCmds[cmdName])
+                proxy.updateCommand(cmdName, cmdValue, previousCmds[cmdName])
             } else {
-                node.addCommand(cmdName, cmdValue);
+                proxy.addCommand(cmdName, cmdValue);
             }
         }
     }
-    node.setCommands(newCommands);
+    proxy.setCommands(newCommands);
 }
 
-export function applyComponentProps(node: NodeProxy, props, previousProps?) {
-    node.setComponentProps(props, previousProps);
+export function applyComponentProps(proxy: NodeProxy, props, previousProps?) {
+    proxy.setComponentProps(props, previousProps);
 }

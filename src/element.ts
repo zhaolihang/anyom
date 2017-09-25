@@ -79,6 +79,11 @@ export class NodeProxy {
 
     removeChild(x: NodeProxy, recycle = false) {
 
+        if (!recycle) {
+            x.removeCommands();
+            x.setRef(undefined, x.ref);
+        }
+
         if (this.proxyType === NodeProxyType.NATIVE) {
             (this.element as HTMLElement).removeChild(x.getNativeNode());
         } else if (this.proxyType === NodeProxyType.COMPONENT) {
@@ -91,8 +96,6 @@ export class NodeProxy {
         this.childNodes.splice(index, 1);
 
         if (!recycle) {
-            x.removeCommands();
-            x.setRef(undefined, x.ref);
             //
             if (x.proxyType === NodeProxyType.COMPONENT) {
                 let com: Component = x.element;
@@ -103,6 +106,10 @@ export class NodeProxy {
     }
 
     replaceChild(newNode: NodeProxy, oldNode: NodeProxy) {
+
+        oldNode.setRef(undefined, oldNode.ref);
+        oldNode.removeCommands();
+
         if (this.proxyType === NodeProxyType.NATIVE) {
             (this.element as HTMLElement).replaceChild(newNode.getNativeNode(), oldNode.getNativeNode());
         } else if (this.proxyType === NodeProxyType.COMPONENT) {
@@ -115,8 +122,6 @@ export class NodeProxy {
         newNode.parentNode = this;
         this.childNodes.splice(index, 1, newNode);
 
-        oldNode.setRef(undefined, oldNode.ref);
-        oldNode.removeCommands();
         //
         if (newNode.proxyType === NodeProxyType.COMPONENT) {
             let com: Component = newNode.element;

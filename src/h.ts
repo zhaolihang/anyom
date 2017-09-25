@@ -1,4 +1,4 @@
-import { ITagType, IPropType, VNode, isVNode, TextNodeTagName, ICommandsType } from "./vnode";
+import { ITagType, IPropType, VNode, TextNodeTagName, ICommandsType } from "./vnode";
 
 const stack: VNode[] = [];
 const EMPTY_CHILDREN = [];

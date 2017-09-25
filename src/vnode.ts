@@ -6,11 +6,6 @@ export const TextNodeTagName = {};
 const noProperties = {};
 const noChildren = [];
 
-const vNodeFlag = {};
-export function isVNode(x) {
-    return x && (x.__type__ === vNodeFlag);
-}
-
 export enum VNodeType {
     None = 0,
     Component,
@@ -48,7 +43,6 @@ export class VNode {
     }
 
 }
-(VNode.prototype as any).__type__ = vNodeFlag;
 
 //
 export enum VPatchType {

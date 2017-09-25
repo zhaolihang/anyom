@@ -17,7 +17,7 @@ export enum RenderMode {
 export class Component {
     private static globalId = 0;
 
-    protected renderedNativeNodeProxy: NodeProxy;
+    protected renderedNodeProxy: NodeProxy;
     protected renderedVNode: VNode;
 
     protected props: any;
@@ -31,8 +31,8 @@ export class Component {
     }
 
     getNodeProxy(): NodeProxy {
-        this.renderedNativeNodeProxy || this.forceUpdate(RenderMode.SYNC);
-        return this.renderedNativeNodeProxy;
+        this.renderedNodeProxy || this.forceUpdate(RenderMode.SYNC);
+        return this.renderedNodeProxy;
     }
 
     setState(state) {
@@ -48,19 +48,23 @@ export class Component {
 
     forceUpdate(renderMode: RenderMode) {
         if (renderMode === RenderMode.SYNC) {
-            let newVNode = this.render();
 
-            if (this.renderedVNode && this.renderedNativeNodeProxy) {
+            if (this.renderedVNode) {
+                if (typeof this[LifeCycleType.BeforeUpdate] === 'function') {
+                    this[LifeCycleType.BeforeUpdate]();
+                }
+                let newVNode = this.render();
                 let patches = diff(this.renderedVNode, newVNode);
-                let newRootRNode = patch(this.renderedNativeNodeProxy, patches, this);
+                let newRootRNode = patch(this.renderedNodeProxy, patches, this);
                 this.renderedVNode = newVNode;
-                this.renderedNativeNodeProxy = newRootRNode;
-                if (typeof this[LifeCycleType.Updated] === 'function') {
-                    this[LifeCycleType.Updated]();
+                this.renderedNodeProxy = newRootRNode;
+                if (typeof this[LifeCycleType.AfterUpdate] === 'function') {
+                    this[LifeCycleType.AfterUpdate]();
                 }
             } else {
+                let newVNode = this.render();
                 this.renderedVNode = newVNode;
-                this.renderedNativeNodeProxy = createElement(this.renderedVNode, this);
+                this.renderedNodeProxy = createElement(this.renderedVNode, this);
             }
         } else {
             queueComponent(this);
