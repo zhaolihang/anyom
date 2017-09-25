@@ -4,22 +4,22 @@ import { startsWith, endsWith } from "./utils";
 import { LifeCycleType } from "./lifecycle";
 import { getCommand } from "./commands";
 
-export enum RealNodeType {
+export enum NodeProxyType {
     None = 0,
     NATIVE,
     COMPONENT,
 }
 
 /**
- * RealNodeProxy is a Proxy
+ * NativeNodeProxy is a Proxy
  */
-export class RealNodeProxy {
+export class NodeProxy {
 
-    parentNode: RealNodeProxy;
-    childNodes: RealNodeProxy[] = [];
+    parentNode: NodeProxy;
+    childNodes: NodeProxy[] = [];
 
     vNodeType: VNodeType;
-    realNodeType: RealNodeType;
+    proxyType: NodeProxyType;
     element: any;
     ref: string;
     commands: ICommandsType;
@@ -27,10 +27,10 @@ export class RealNodeProxy {
     constructor(vNode: VNode, public context?: Component) {
         this.vNodeType = vNode.type;
         if (this.vNodeType === VNodeType.Component) {
-            this.realNodeType = RealNodeType.COMPONENT;
+            this.proxyType = NodeProxyType.COMPONENT;
             this.element = this.createComponent(vNode);
         } else {
-            this.realNodeType = RealNodeType.NATIVE;
+            this.proxyType = NodeProxyType.NATIVE;
             this.element = this.createNativeNode(vNode);
         }
     }
@@ -39,8 +39,8 @@ export class RealNodeProxy {
         if (this.vNodeType === VNodeType.Text) {
             return <Text>(document.createTextNode(vNode.props.value));
         } else if (this.vNodeType === VNodeType.Node) {
-            let realNode = <HTMLElement>(document.createElement(vNode.tagName));
-            return realNode;
+            let nativeNode = <HTMLElement>(document.createElement(vNode.tagName));
+            return nativeNode;
         }
     }
 
@@ -52,36 +52,36 @@ export class RealNodeProxy {
     }
 
     getNativeNode<T = HTMLElement>(): T {
-        if (this.realNodeType === RealNodeType.NATIVE) {
+        if (this.proxyType === NodeProxyType.NATIVE) {
             return (<T>this.element);
-        } else if (this.realNodeType === RealNodeType.COMPONENT) {
-            return (<Component>this.element).getRealNodeProxy().getNativeNode();
+        } else if (this.proxyType === NodeProxyType.COMPONENT) {
+            return (<Component>this.element).getNodeProxy().getNativeNode();
         }
     }
 
-    appendChild(x: RealNodeProxy) {
+    appendChild(x: NodeProxy) {
         x.parentNode = this;
         this.childNodes.push(x);
 
         ///
-        if (this.realNodeType === RealNodeType.NATIVE) {
+        if (this.proxyType === NodeProxyType.NATIVE) {
             (this.element as HTMLElement).appendChild(x.getNativeNode());
-        } else if (this.realNodeType === RealNodeType.COMPONENT) {
+        } else if (this.proxyType === NodeProxyType.COMPONENT) {
             this.getNativeNode().appendChild(x.getNativeNode());
         }
 
         //
-        if (x.realNodeType === RealNodeType.COMPONENT) {
+        if (x.proxyType === NodeProxyType.COMPONENT) {
             let com: Component = x.element;
             com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
         }
     }
 
-    removeChild(x: RealNodeProxy, recycle = false) {
+    removeChild(x: NodeProxy, recycle = false) {
 
-        if (this.realNodeType === RealNodeType.NATIVE) {
+        if (this.proxyType === NodeProxyType.NATIVE) {
             (this.element as HTMLElement).removeChild(x.getNativeNode());
-        } else if (this.realNodeType === RealNodeType.COMPONENT) {
+        } else if (this.proxyType === NodeProxyType.COMPONENT) {
             this.getNativeNode().removeChild(x.getNativeNode());
         }
 
@@ -94,7 +94,7 @@ export class RealNodeProxy {
             x.removeCommands();
             x.setRef(undefined, x.ref);
             //
-            if (x.realNodeType === RealNodeType.COMPONENT) {
+            if (x.proxyType === NodeProxyType.COMPONENT) {
                 let com: Component = x.element;
                 com[LifeCycleType.UnMounted] && com[LifeCycleType.UnMounted]();
             }
@@ -102,10 +102,10 @@ export class RealNodeProxy {
 
     }
 
-    replaceChild(newNode: RealNodeProxy, oldNode: RealNodeProxy) {
-        if (this.realNodeType === RealNodeType.NATIVE) {
+    replaceChild(newNode: NodeProxy, oldNode: NodeProxy) {
+        if (this.proxyType === NodeProxyType.NATIVE) {
             (this.element as HTMLElement).replaceChild(newNode.getNativeNode(), oldNode.getNativeNode());
-        } else if (this.realNodeType === RealNodeType.COMPONENT) {
+        } else if (this.proxyType === NodeProxyType.COMPONENT) {
             this.getNativeNode().replaceChild(newNode.getNativeNode(), oldNode.getNativeNode());
         }
 
@@ -118,18 +118,18 @@ export class RealNodeProxy {
         oldNode.setRef(undefined, oldNode.ref);
         oldNode.removeCommands();
         //
-        if (newNode.realNodeType === RealNodeType.COMPONENT) {
+        if (newNode.proxyType === NodeProxyType.COMPONENT) {
             let com: Component = newNode.element;
             com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
         }
 
-        if (oldNode.realNodeType === RealNodeType.COMPONENT) {
+        if (oldNode.proxyType === NodeProxyType.COMPONENT) {
             let com: Component = oldNode.element;
             com[LifeCycleType.UnMounted] && com[LifeCycleType.UnMounted]();
         }
     }
 
-    insertBefore(newNode: RealNodeProxy, insertTo: RealNodeProxy | null, recycle = false) {
+    insertBefore(newNode: NodeProxy, insertTo: NodeProxy | null, recycle = false) {
 
         if (insertTo) {
             let index = this.childNodes.indexOf(insertTo);
@@ -141,14 +141,14 @@ export class RealNodeProxy {
         }
 
         ///
-        if (this.realNodeType === RealNodeType.NATIVE) {
+        if (this.proxyType === NodeProxyType.NATIVE) {
             (this.element as HTMLElement).insertBefore(newNode.getNativeNode(), insertTo && insertTo.getNativeNode());
-        } else if (this.realNodeType === RealNodeType.COMPONENT) {
+        } else if (this.proxyType === NodeProxyType.COMPONENT) {
             this.getNativeNode().replaceChild(newNode.getNativeNode(), insertTo && insertTo.getNativeNode());
         }
 
         if (!recycle) {
-            if (newNode.realNodeType === RealNodeType.COMPONENT) {
+            if (newNode.proxyType === NodeProxyType.COMPONENT) {
                 let com: Component = newNode.element;
                 com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
             }
@@ -289,6 +289,6 @@ export class RealNodeProxy {
 
 }
 
-export function createRealNodeProxy(vnode: VNode, context: Component): RealNodeProxy {
-    return new RealNodeProxy(vnode, context);
+export function createNodeProxy(vnode: VNode, context: Component): NodeProxy {
+    return new NodeProxy(vnode, context);
 }

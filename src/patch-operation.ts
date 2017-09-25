@@ -1,79 +1,79 @@
 
 import { VPatch, VPatchType, VNode } from "./vnode";
 import { applyElementProps, applyRef, applyCommands, applyComponentProps } from "./apply-properties";
-import { RealNodeProxy } from "./element";
+import { NodeProxy } from "./element";
 import { Component } from "./component";
 import { render } from "./create-element";
 
-export function patchOp(vpatch: VPatch, node: RealNodeProxy, context?: Component) {
+export function patchOp(vpatch: VPatch, nodeProxy: NodeProxy, context?: Component) {
     let type = vpatch.type;
     let vNode = vpatch.vNode;
     let patch = vpatch.patch;
 
     switch (type) {
         case VPatchType.INSERT:
-            return insertNode(node, patch, context);
+            return insertNode(nodeProxy, patch, context);
         case VPatchType.REMOVE:
-            return removeNode(node, vNode);
+            return removeNode(nodeProxy, vNode);
         case VPatchType.ORDER:
-            reorderChildren(node, patch);
-            return node;
+            reorderChildren(nodeProxy, patch);
+            return nodeProxy;
         case VPatchType.ELEMENTPROPS:
-            applyElementProps(node, patch, vNode.props);
-            return node;
+            applyElementProps(nodeProxy, patch, vNode.props);
+            return nodeProxy;
         case VPatchType.COMPONENTPROPS:
-            applyComponentProps(node, patch, vNode.props);
-            return node;
+            applyComponentProps(nodeProxy, patch, vNode.props);
+            return nodeProxy;
         case VPatchType.REPLACE:
-            return vNodePatch(node, vNode, patch, context);
+            return vNodePatch(nodeProxy, vNode, patch, context);
         case VPatchType.REF:
-            applyRef(node, patch, vNode.ref);
-            return node;
+            applyRef(nodeProxy, patch, vNode.ref);
+            return nodeProxy;
         case VPatchType.COMMANDS:
-            applyCommands(node, patch.patch, vNode.commands, patch.newCommands);
-            return node;
+            applyCommands(nodeProxy, patch.patch, vNode.commands, patch.newCommands);
+            return nodeProxy;
         default:
-            return node;
+            return nodeProxy;
     }
 }
 
-function removeNode(node: RealNodeProxy, vNode) {
-    let parentNode = node.parentNode;
+function removeNode(nodeProxy: NodeProxy, vNode) {
+    let parentNode = nodeProxy.parentNode;
 
     if (parentNode) {
-        parentNode.removeChild(node);
+        parentNode.removeChild(nodeProxy);
     }
 
     return null;
 }
 
-function insertNode(parentNode: RealNodeProxy, vNode: VNode, context?: Component) {
+function insertNode(parentNodeProxy: NodeProxy, vNode: VNode, context?: Component) {
     let newNode = render(vNode, context);
 
-    if (parentNode) {
-        parentNode.appendChild(newNode);
+    if (parentNodeProxy) {
+        parentNodeProxy.appendChild(newNode);
     }
 
-    return parentNode;
+    return parentNodeProxy;
 }
 
-function vNodePatch(node: RealNodeProxy, leftVNode: VNode, vNode: VNode, context?: Component) {
-    let parentNode = node.parentNode;
+function vNodePatch(nodeProxy: NodeProxy, leftVNode: VNode, vNode: VNode, context?: Component) {
+    let parentNode = nodeProxy.parentNode;
     let newNode = render(vNode, context);
 
-    if (parentNode && newNode !== node) {
-        parentNode.replaceChild(newNode, node);
+    if (parentNode && newNode !== nodeProxy) {
+        parentNode.replaceChild(newNode, nodeProxy);
     }
 
     return newNode;
 }
 
 
-function reorderChildren(parentNode: RealNodeProxy, moves) {
+function reorderChildren(parentNodeProxy: NodeProxy, moves) {
 
-    let childNodes = parentNode.childNodes;
-    let keyMap: { [key: string]: RealNodeProxy } = {};
-    let node: RealNodeProxy;
+    let childNodes = parentNodeProxy.childNodes;
+    let keyMap: { [key: string]: NodeProxy } = {};
+    let node: NodeProxy;
     let remove: { from: number, key?: string };
     let insert: { to: number, key: string };
 
@@ -92,13 +92,13 @@ function reorderChildren(parentNode: RealNodeProxy, moves) {
             keyMap[remove.key] = node;
             insertKeyMap[remove.key] && (reorderKeyMap[remove.key] = true);
         }
-        parentNode.removeChild(node, reorderKeyMap[remove.key]);
+        parentNodeProxy.removeChild(node, reorderKeyMap[remove.key]);
     }
     let length = childNodes.length;
     for (let j = 0; j < moves.inserts.length; j++) {
         insert = moves.inserts[j];
         node = keyMap[insert.key];
-        parentNode.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to], reorderKeyMap[insert.key]);
+        parentNodeProxy.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to], reorderKeyMap[insert.key]);
     }
 
 }

@@ -1,65 +1,65 @@
-import { realNodeIndex } from "./real-node-index";
+import { nodeProxyIndex } from "./node-proxy-index";
 import { patchOp } from "./patch-operation";
 import { render } from "./create-element";
 import { IDiffMap } from "./diff";
-import { RealNodeProxy } from "./element";
+import { NodeProxy } from "./element";
 import { Component } from "./component";
 
 
-export function patch(rootNode: RealNodeProxy, patches: IDiffMap, context?: Component): RealNodeProxy {
-    let resultNode = patchRecursive(rootNode, patches, context);
+export function patch(nodeProxy: NodeProxy, patches: IDiffMap, context?: Component): NodeProxy {
+    let resultNode = patchRecursive(nodeProxy, patches, context);
 
-    if (rootNode !== resultNode) {
-        let parentNode = rootNode.parentNode;
+    if (nodeProxy !== resultNode) {
+        let parentNode = nodeProxy.parentNode;
         if (parentNode) {
-            parentNode.replaceChild(resultNode, rootNode);
+            parentNode.replaceChild(resultNode, nodeProxy);
         }
     }
 
     return resultNode;
 }
 
-function patchRecursive(rootNode: RealNodeProxy, patches: IDiffMap, context?: Component) {
+function patchRecursive(nodeProxy: NodeProxy, patches: IDiffMap, context?: Component) {
     let indices = patchIndices(patches);
 
     if (indices.length === 0) {
-        return rootNode;
+        return nodeProxy;
     }
 
-    let index = realNodeIndex(rootNode, patches.a, indices);
+    let index = nodeProxyIndex(nodeProxy, patches.a, indices);
 
     for (let i = 0; i < indices.length; i++) {
         let nodeIndex = indices[i];
-        rootNode = applyPatch(rootNode, index[nodeIndex], patches[nodeIndex], context);
+        nodeProxy = applyPatch(nodeProxy, index[nodeIndex], patches[nodeIndex], context);
     }
 
-    return rootNode;
+    return nodeProxy;
 }
 
-function applyPatch(rootNode: RealNodeProxy, childNode: RealNodeProxy, patchList, context?: Component) {
-    if (!childNode) {
-        return rootNode;
+function applyPatch(rootNodeProxy: NodeProxy, childNodeProxy: NodeProxy, patchList, context?: Component) {
+    if (!childNodeProxy) {
+        return rootNodeProxy;
     }
 
-    let newNode;
+    let newNodeProxy;
 
     if (Array.isArray(patchList)) {
         for (let i = 0; i < patchList.length; i++) {
-            newNode = patchOp(patchList[i], childNode, context);
+            newNodeProxy = patchOp(patchList[i], childNodeProxy, context);
 
-            if (childNode === rootNode) {
-                rootNode = newNode;
+            if (childNodeProxy === rootNodeProxy) {
+                rootNodeProxy = newNodeProxy;
             }
         }
     } else {
-        newNode = patchOp(patchList, childNode, context);
+        newNodeProxy = patchOp(patchList, childNodeProxy, context);
 
-        if (childNode === rootNode) {
-            rootNode = newNode;
+        if (childNodeProxy === rootNodeProxy) {
+            rootNodeProxy = newNodeProxy;
         }
     }
 
-    return rootNode;
+    return rootNodeProxy;
 }
 
 function patchIndices(patches) {

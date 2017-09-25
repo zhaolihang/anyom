@@ -1,4 +1,3 @@
-    xom means 'x' object model 'x' means 'any' 
-
+    any object model , such dom ...
     
 [Benchmark](https://github.com/zhaolihang/js-framework-benchmark/blob/master/webdriver-ts/table.html)

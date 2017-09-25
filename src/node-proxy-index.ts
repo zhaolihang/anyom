@@ -1,36 +1,36 @@
-// Maps a virtual xom tree onto a real xom tree in an efficient manner.
+// Maps a virtual xom tree onto a xom proxy tree in an efficient manner.
 // We don't want to read all of the xom nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
 // We only recurse into a xom node if we know that it contains a child of
 // interest.
 
 import { VNode } from "./vnode";
-import { RealNodeProxy } from "./element";
+import { NodeProxy } from "./element";
 
 let noChild = {};
 
-export function realNodeIndex(rootNode: RealNodeProxy, tree: VNode, indices: number[], nodes = undefined) {
+export function nodeProxyIndex(nodeProxy: NodeProxy, tree: VNode, indices: number[], nodes = undefined) {
     if (!indices || indices.length === 0) {
         return {};
     } else {
         indices.sort(ascending);
-        return recurse(rootNode, tree, indices, nodes, 0);
+        return recurse(nodeProxy, tree, indices, nodes, 0);
     }
 }
 
-function recurse(rootNode: RealNodeProxy, tree, indices, nodes: { [index: number]: RealNodeProxy }, rootIndex) {
+function recurse(nodeProxy: NodeProxy, tree, indices, nodes: { [index: number]: NodeProxy }, rootIndex) {
     nodes = nodes || {};
 
-    if (rootNode) {
+    if (nodeProxy) {
         if (indexInRange(indices, rootIndex, rootIndex)) {
-            nodes[rootIndex] = rootNode;
+            nodes[rootIndex] = nodeProxy;
         }
 
         let vChildren = tree.children;
 
         if (vChildren) {
 
-            let childNodes = rootNode.childNodes;
+            let childNodes = nodeProxy.childNodes;
 
             for (let i = 0; i < tree.children.length; i++) {
                 rootIndex += 1;

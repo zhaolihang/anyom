@@ -3,7 +3,7 @@ import { VNode } from "./vnode";
 import { diff } from "./diff";
 import { patch } from "./patch";
 import { createElement } from "./create-element";
-import { RealNodeProxy } from "./element";
+import { NodeProxy } from "./element";
 import { queueComponent } from "./scheduler";
 import { LifeCycleType } from "./lifecycle";
 
@@ -17,7 +17,7 @@ export enum RenderMode {
 export class Component {
     private static globalId = 0;
 
-    protected renderedRealNode: RealNodeProxy;
+    protected renderedNativeNodeProxy: NodeProxy;
     protected renderedVNode: VNode;
 
     protected props: any;
@@ -30,9 +30,9 @@ export class Component {
         this.props = props || {};
     }
 
-    getRealNodeProxy(): RealNodeProxy {
-        this.renderedRealNode || this.forceUpdate(RenderMode.SYNC);
-        return this.renderedRealNode;
+    getNodeProxy(): NodeProxy {
+        this.renderedNativeNodeProxy || this.forceUpdate(RenderMode.SYNC);
+        return this.renderedNativeNodeProxy;
     }
 
     setState(state) {
@@ -50,17 +50,17 @@ export class Component {
         if (renderMode === RenderMode.SYNC) {
             let newVNode = this.render();
 
-            if (this.renderedVNode && this.renderedRealNode) {
+            if (this.renderedVNode && this.renderedNativeNodeProxy) {
                 let patches = diff(this.renderedVNode, newVNode);
-                let newRootRNode = patch(this.renderedRealNode, patches, this);
+                let newRootRNode = patch(this.renderedNativeNodeProxy, patches, this);
                 this.renderedVNode = newVNode;
-                this.renderedRealNode = newRootRNode;
+                this.renderedNativeNodeProxy = newRootRNode;
                 if (typeof this[LifeCycleType.Updated] === 'function') {
                     this[LifeCycleType.Updated]();
                 }
             } else {
                 this.renderedVNode = newVNode;
-                this.renderedRealNode = createElement(this.renderedVNode, this);
+                this.renderedNativeNodeProxy = createElement(this.renderedVNode, this);
             }
         } else {
             queueComponent(this);

@@ -1,8 +1,8 @@
 import { isObject, getPrototype } from "./utils";
 import { IPropType, ICommandsType } from "./vnode";
-import { RealNodeProxy } from "./element";
+import { NodeProxy } from "./element";
 
-export function applyElementProps(node: RealNodeProxy, props: IPropType, previous?: IPropType) {
+export function applyElementProps(node: NodeProxy, props: IPropType, previous?: IPropType) {
 
     for (let propName in props) {
         let propValue = props[propName];
@@ -22,7 +22,7 @@ export function applyElementProps(node: RealNodeProxy, props: IPropType, previou
 
 }
 
-function patchElementObject(node: RealNodeProxy, props, previous, propName, propValue) {
+function patchElementObject(node: NodeProxy, props, previous, propName, propValue) {
     let previousValue = previous ? previous[propName] : undefined;
 
     if (previousValue && isObject(previousValue)
@@ -38,11 +38,11 @@ function patchElementObject(node: RealNodeProxy, props, previous, propName, prop
     node.setNativeNodeObjectAttribute(propName, propValue, previousValue);
 }
 
-export function applyRef(node: RealNodeProxy, newRef: string, previousRef?: string) {
+export function applyRef(node: NodeProxy, newRef: string, previousRef?: string) {
     node.setRef(newRef, previousRef);
 }
 
-export function applyCommands(node: RealNodeProxy, cmdPatch: ICommandsType, previousCmds: ICommandsType, newCommands: ICommandsType) {
+export function applyCommands(node: NodeProxy, cmdPatch: ICommandsType, previousCmds: ICommandsType, newCommands: ICommandsType) {
     for (let cmdName in cmdPatch) {
         let cmdValue = cmdPatch[cmdName];
         if (cmdValue === undefined) {
@@ -60,6 +60,6 @@ export function applyCommands(node: RealNodeProxy, cmdPatch: ICommandsType, prev
     node.setCommands(newCommands);
 }
 
-export function applyComponentProps(node: RealNodeProxy, props, previousProps?) {
+export function applyComponentProps(node: NodeProxy, props, previousProps?) {
     node.setComponentProps(props, previousProps);
 }

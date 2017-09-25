@@ -9,6 +9,6 @@ export default {
         typescript(),
     ],
     dest: './dist/index.js',
-    moduleName: 'PureVirtualXom',
+    moduleName: 'Anyom',
     sourceMap: true
 }
