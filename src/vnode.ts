@@ -9,13 +9,13 @@ const noChildren = [];
 export enum VNodeType {
     None = 0,
     Component,
-    Node,
-    Text,
+    NativeNode,
+    NativeText,
 }
 
 export class VNode {
     count = 0;
-    type = VNodeType.None;
+    type: VNodeType;
     commands: ICommandsType;
     ref: string;
     namespace: string;
@@ -23,9 +23,9 @@ export class VNode {
     constructor(public tagName: ITagType, public props: IPropType = noProperties, public children: VNode[] = noChildren, public key?: string) {
 
         if (tagName === TextNodeTagName) {
-            this.type = VNodeType.Text;
+            this.type = VNodeType.NativeText;
         } else if (typeof tagName === 'string') {
-            this.type = VNodeType.Node;
+            this.type = VNodeType.NativeNode;
         } else if (typeof tagName === 'function') {
             this.type = VNodeType.Component;
         }
@@ -37,7 +37,7 @@ export class VNode {
 
         for (let i = 0; i < count; i++) {
             let child = children[i];
-            descendants += child.count || 0;
+            descendants += child.count;
         }
         this.count = count + descendants;
     }

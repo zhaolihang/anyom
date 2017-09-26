@@ -1,25 +1,24 @@
 import { VNode, VNodeType } from "./vnode";
-import { applyNativeNodeProps, applyRef, applyCommands } from "./apply-properties";
-import { createNodeProxy, NodeProxy, NodeProxyType } from "./element";
+import { createNodeProxy, NodeProxy, NodeProxyType } from "./node-proxy";
 import { Component } from "./component";
+import { applyNativeNodeProps, applyRef, applyCommands } from "./patch";
 
 export function createElement(vnode: VNode, context?: Component): NodeProxy {
 
     let nodeProxy: NodeProxy = new NodeProxy(vnode, context);
-    let props = vnode.props;
     if (nodeProxy.proxyType === NodeProxyType.NATIVE) {
-        applyNativeNodeProps(nodeProxy, props, undefined);
+        applyNativeNodeProps(nodeProxy, vnode.props, undefined);
     }
-    vnode.ref && applyRef(nodeProxy, vnode.ref, undefined);
-    vnode.commands && applyCommands(nodeProxy, vnode.commands, undefined, vnode.commands);
+    if (vnode.ref) {
+        applyRef(nodeProxy, vnode.ref, undefined);
+    }
+    if (vnode.commands) {
+        applyCommands(nodeProxy, vnode.commands, undefined, vnode.commands);
+    }
 
     let children = vnode.children;
-
     for (let i = 0; i < children.length; i++) {
-        let childNode = createElement(children[i], context);
-        if (childNode) {
-            nodeProxy.appendChild(childNode);
-        }
+        nodeProxy.appendChild(createElement(children[i], context));
     }
 
     return nodeProxy;

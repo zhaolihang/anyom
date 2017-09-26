@@ -1,7 +1,6 @@
 import { ITagType, VNode, VNodeType, ICommandsType } from "./vnode";
-import { Component } from "./component";
+import { Component, LifeCycleType } from "./component";
 import { startsWith, endsWith } from "./utils";
-import { LifeCycleType } from "./lifecycle";
 import { getCommand } from "./commands";
 
 export enum NodeProxyType {
@@ -36,9 +35,9 @@ export class NodeProxy {
     }
 
     private createNativeNode(vNode: VNode) {
-        if (this.vNodeType === VNodeType.Text) {
+        if (this.vNodeType === VNodeType.NativeText) {
             return <Text>(document.createTextNode(vNode.props.value));
-        } else if (this.vNodeType === VNodeType.Node) {
+        } else if (this.vNodeType === VNodeType.NativeNode) {
             let nativeNode = <HTMLElement>(document.createElement(vNode.tagName));
             return nativeNode;
         }
@@ -182,7 +181,7 @@ export class NodeProxy {
             return;
         }
 
-        if (this.vNodeType === VNodeType.Node) {
+        if (this.vNodeType === VNodeType.NativeNode) {
             // ref: https://javascript.info/dom-attributes-and-properties
             if (element.hasAttribute(propName)) {
                 element.setAttribute(propName, propValue);
@@ -194,7 +193,7 @@ export class NodeProxy {
                 }
             }
 
-        } else if (this.vNodeType === VNodeType.Text) {
+        } else if (this.vNodeType === VNodeType.NativeText) {
             if ((element as any).nodeValue != propValue) {// element is Text
                 (element as any).nodeValue = propValue;
             }

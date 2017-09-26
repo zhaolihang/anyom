@@ -3,7 +3,7 @@ import { diff } from "../diff";
 import { patch } from "../patch";
 import { render } from "../create-element";
 import { VPatch, VPatchType, VNode } from "../vnode";
-import { NodeProxy } from "../element";
+import { NodeProxy } from "../node-proxy";
 import { Component } from "../component";
 import { setCommand, getCommand } from "../commands";
 
@@ -212,9 +212,8 @@ setCommand('dragmove', {
 });
 
 const rootNode = document.getElementById('body');
-let divVNode = new VNode('div');
-const rootNativeNodeProxy = new NodeProxy(divVNode);
-rootNode.appendChild(rootNativeNodeProxy.getNativeNode());
+const rootNodeProxy = render(new VNode('div'))
+rootNode.appendChild(rootNodeProxy.getNativeNode());
 
 
 class Button extends Component {
@@ -310,7 +309,7 @@ let firstVNode = (<div >
 </div>)
 
 let firstNodeProxy = render(firstVNode)
-rootNativeNodeProxy.appendChild(firstNodeProxy);
+rootNodeProxy.appendChild(firstNodeProxy);
 
 let secondVNode = (<div>
 
@@ -347,4 +346,4 @@ setTimeout(() => {
     log('newFirstNodeProxy === firstNodeProxy', newFirstNodeProxy === firstNodeProxy);
 }, 1000);
 
-(window as any).rootnode = rootNativeNodeProxy;
+(window as any).rootnode = rootNodeProxy;

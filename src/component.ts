@@ -3,10 +3,16 @@ import { VNode } from "./vnode";
 import { diff } from "./diff";
 import { patch } from "./patch";
 import { createElement } from "./create-element";
-import { NodeProxy } from "./element";
 import { queueComponent } from "./scheduler";
-import { LifeCycleType } from "./lifecycle";
+import { NodeProxy } from "./node-proxy";
 
+export enum LifeCycleType {
+    Created = 'created',
+    Mounted = 'mounted',
+    UnMounted = 'unmounted',
+    BeforeUpdate = 'beforeUpdate',
+    AfterUpdate = 'afterUpdate',
+}
 
 export enum RenderMode {
     None = 0,
@@ -14,8 +20,8 @@ export enum RenderMode {
     ASYNC,
 }
 
+let GID = 0;
 export class Component {
-    private static globalId = 0;
 
     protected renderedNodeProxy: NodeProxy;
     protected renderedVNode: VNode;
@@ -26,7 +32,7 @@ export class Component {
     refs = {};
 
     constructor(props) {
-        this.id = ++Component.globalId;
+        this.id = ++GID;
         this.props = props || {};
     }
 
@@ -36,8 +42,8 @@ export class Component {
     }
 
     setState(state) {
-        let s = this.state;
-        overwrite(s, state || {});
+        //@TODO 考虑双向绑定
+        this.state = state;
         this.forceUpdate(RenderMode.ASYNC);
     }
 
@@ -53,19 +59,21 @@ export class Component {
                 if (typeof this[LifeCycleType.BeforeUpdate] === 'function') {
                     this[LifeCycleType.BeforeUpdate]();
                 }
+
                 let newVNode = this.render();
                 let patches = diff(this.renderedVNode, newVNode);
                 let newRootRNode = patch(this.renderedNodeProxy, patches, this);
                 this.renderedVNode = newVNode;
                 this.renderedNodeProxy = newRootRNode;
+
                 if (typeof this[LifeCycleType.AfterUpdate] === 'function') {
                     this[LifeCycleType.AfterUpdate]();
                 }
             } else {
-                let newVNode = this.render();
-                this.renderedVNode = newVNode;
+                this.renderedVNode = this.render();
                 this.renderedNodeProxy = createElement(this.renderedVNode, this);
             }
+
         } else {
             queueComponent(this);
         }
