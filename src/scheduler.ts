@@ -1,5 +1,5 @@
 
-import { Component, RenderMode } from "./component";
+import { Component, RenderMode, LifeCycleType } from "./component";
 
 const MAX_UPDATE_COUNT = 100;
 
@@ -10,7 +10,7 @@ let circular: { [key: number]: number } = {};
 
 let waiting = false;
 let flushing = false;
-let index = 0;// flushingSchedulerQueueIndex
+let index = 0;// flushingIndex
 
 function resetSchedulerState() {
     index = queue.length = activatedChildren.length = 0;
@@ -27,7 +27,7 @@ function flushSchedulerQueue() {
         id = component.id;
         has[id] = null;
         component.forceUpdate(RenderMode.SYNC);
-        //check and stop circular updates.
+        // // check and stop circular updates.
         // if (has[id] != null) {
         //     circular[id] = (circular[id] || 0) + 1;
         //     if (circular[id] > MAX_UPDATE_COUNT) {
@@ -36,8 +36,14 @@ function flushSchedulerQueue() {
         //     }
         // }
     }
+
+    for (index = 0; index < queue.length; index++) {
+        component = queue[index];
+        component[LifeCycleType.AfterUpdate] && component[LifeCycleType.AfterUpdate]();
+    }
     resetSchedulerState();
 }
+
 
 export function queueComponent(component: Component) {
     const id = component.id;
@@ -59,8 +65,6 @@ export function queueComponent(component: Component) {
         }
     }
 }
-const defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
-
 // for nextTick()
 const callbacks = [];
 let pending = false;
@@ -74,6 +78,7 @@ const nextTickHandler = () => {
     }
 }
 
+const defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
 export function nextTick(cb?: Function, ctx?: Object) {
     if (!cb) {
         return;

@@ -110,12 +110,18 @@ function diffCommands(aCmds, bCmds) {
 type VPatchResultType = VPatch | VPatch[];
 
 export interface IDiffMap {
-    a: VNode;
+    vNode: VNode;
     [index: number]: VPatchResultType;
 }
 
 export function diff(a: VNode, b?: VNode) {
-    let patch: IDiffMap = { a: a };
+    let patch: IDiffMap = {} as any;
+    Object.defineProperty(patch, 'vNode', {
+        value: a,
+        writable: true,
+        configurable: true,
+        enumerable: false
+    });
     walk(a, b, patch, 0);
     return patch;
 };

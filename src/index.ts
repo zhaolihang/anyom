@@ -4,6 +4,7 @@ import { createElement, render } from "./create-element";
 import { diff } from "./diff";
 import { patch } from "./patch";
 import { setCommand, getCommand } from "./commands";
+import { nextTick } from "./scheduler";
 
 export {
     h,
@@ -14,6 +15,7 @@ export {
     Component,
     setCommand,
     getCommand,
+    nextTick,
 }
 
 export default {
@@ -25,5 +27,6 @@ export default {
     Component,
     setCommand,
     getCommand,
+    nextTick,
 }
 

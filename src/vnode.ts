@@ -16,12 +16,15 @@ export enum VNodeType {
 export class VNode {
     count = 0;
     type: VNodeType;
-    commands: ICommandsType;
+
     ref: string;
+    key: string;
+    commands: ICommandsType;
     namespace: string;
 
-    constructor(public tagName: ITagName, public props: IPropType = noProperties, public children: VNode[] = noChildren, public key?: string) {
+    constructor(public tagName: ITagName, public props: IPropType = noProperties, public children: VNode[] = noChildren, key?: string) {
 
+        // type
         if (tagName === TextNodeTagName) {
             this.type = VNodeType.NativeText;
         } else if (typeof tagName === 'string') {
@@ -30,16 +33,18 @@ export class VNode {
             this.type = VNodeType.Component;
         }
 
+        //key
         this.key = key != null ? String(key) : undefined;
 
         let count = (children && children.length) || 0;
         let descendants = 0;
-
         for (let i = 0; i < count; i++) {
             let child = children[i];
             descendants += child.count;
         }
+        //count
         this.count = count + descendants;
+
     }
 
 }
@@ -51,6 +56,13 @@ const EMPTY_CHILDREN = [];
 
 export function h(tagName: ITagName, props?: IPropType, ...args: any[]): VNode {
     props == null ? undefined : props;
+
+    // key
+    let key;
+    if (props && props.key != null) {
+        key = props.key;
+        delete props.key;
+    }
 
     // ref
     let ref;
@@ -74,12 +86,6 @@ export function h(tagName: ITagName, props?: IPropType, ...args: any[]): VNode {
     }
 
     ////////////////////////////////////////////////////
-    // key
-    let key;
-    if (props && props.key != null) {
-        key = props.key;
-        delete props.key;
-    }
 
     // children
     let children: VNode[] = EMPTY_CHILDREN;
@@ -119,8 +125,8 @@ export function h(tagName: ITagName, props?: IPropType, ...args: any[]): VNode {
     }
 
     let vnode = new VNode(tagName, props, children, key);
-    vnode.namespace = namespace;
     vnode.ref = ref;
+    vnode.namespace = namespace;
     vnode.commands = commands;
 
     return vnode;

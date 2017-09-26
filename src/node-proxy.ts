@@ -119,7 +119,7 @@ export class NodeProxy {
         let index = this.childNodes.indexOf(oldNode);
         oldNode.parentNode = undefined;
         newNode.parentNode = this;
-        this.childNodes.splice(index, 1, newNode);
+        this.childNodes[index] = newNode;
 
         //
         if (newNode.proxyType === NodeProxyType.COMPONENT) {

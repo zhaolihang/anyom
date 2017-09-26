@@ -1,13 +1,13 @@
-import { render } from "./create-element";
+import { isObject, getPrototype, ascending, indexInRange } from "./utils";
+import { VNode, IPropType, ICommandsType } from "./vnode";
 import { IDiffMap, VPatch, VPatchType } from "./diff";
-import { NodeProxy } from "./node-proxy";
 import { Component } from "./component";
-import { VNode } from "./vnode";
-import { isObject, getPrototype } from "./utils";
-import { IPropType, ICommandsType } from "./vnode";
+import { NodeProxy } from "./node-proxy";
+import { render } from "./create-element";
+
 
 export function patch(nodeProxy: NodeProxy, patches: IDiffMap, context?: Component): NodeProxy {
-    let resultNode = patchRecursive(nodeProxy, patches, context);
+    let resultNode = patchEach(nodeProxy, patches, context);
 
     if (nodeProxy !== resultNode) {
         let parentNode = nodeProxy.parentNode;
@@ -19,18 +19,18 @@ export function patch(nodeProxy: NodeProxy, patches: IDiffMap, context?: Compone
     return resultNode;
 }
 
-function patchRecursive(nodeProxy: NodeProxy, patches: IDiffMap, context?: Component) {
+function patchEach(nodeProxy: NodeProxy, patches: IDiffMap, context?: Component) {
     let indices = patchIndices(patches);
 
     if (indices.length === 0) {
         return nodeProxy;
     }
 
-    let index = nodeProxyIndex(nodeProxy, patches.a, indices);
+    let nodeProxyMap = nodeProxyIndex(nodeProxy, patches.vNode, indices);
 
     for (let i = 0; i < indices.length; i++) {
         let nodeIndex = indices[i];
-        nodeProxy = applyPatch(nodeProxy, index[nodeIndex], patches[nodeIndex], context);
+        nodeProxy = applyPatch(nodeProxy, nodeProxyMap[nodeIndex], patches[nodeIndex], context);
     }
 
     return nodeProxy;
@@ -66,9 +66,7 @@ function patchIndices(patches: IDiffMap) {
     let indices: number[] = [];
 
     for (let key in patches) {
-        if (key !== "a") {
-            indices.push(Number(key));
-        }
+        indices.push(Number(key));
     }
     return indices;
 }
@@ -87,11 +85,11 @@ export function nodeProxyIndex(nodeProxy: NodeProxy, tree: VNode, indices: numbe
         return {};
     } else {
         indices.sort(ascending);
-        return recurse(nodeProxy, tree, indices, void 0, 0);
+        return recurse(nodeProxy, tree, indices, undefined, 0);
     }
 }
 
-function recurse(nodeProxy: NodeProxy, tree, indices, nodes: { [index: number]: NodeProxy }, rootIndex: number) {
+function recurse(nodeProxy: NodeProxy, tree, indices: number[], nodes: { [index: number]: NodeProxy }, rootIndex: number) {
     nodes = nodes || {};
 
     if (nodeProxy) {
@@ -122,39 +120,6 @@ function recurse(nodeProxy: NodeProxy, tree, indices, nodes: { [index: number]: 
     }
 
     return nodes;
-}
-
-// Binary search for an index in the interval [left, right]
-function indexInRange(indices, left, right) {
-    if (indices.length === 0) {
-        return false;
-    }
-
-    let minIndex = 0;
-    let maxIndex = indices.length - 1;
-    let currentIndex;
-    let currentItem;
-
-    while (minIndex <= maxIndex) {
-        currentIndex = ((maxIndex + minIndex) / 2) >> 0;
-        currentItem = indices[currentIndex];
-
-        if (minIndex === maxIndex) {
-            return currentItem >= left && currentItem <= right;
-        } else if (currentItem < left) {
-            minIndex = currentIndex + 1;
-        } else if (currentItem > right) {
-            maxIndex = currentIndex - 1;
-        } else {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-function ascending(a, b) {
-    return a > b ? 1 : -1;
 }
 
 
