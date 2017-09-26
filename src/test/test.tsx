@@ -241,7 +241,6 @@ class Button extends Component {
         let onclick = this.props.onclick;
         return (
             <button on-click={(e) => {
-                this.setState({});
                 if (onclick) {
                     onclick(e);
                 }
