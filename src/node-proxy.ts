@@ -10,7 +10,7 @@ export enum NodeProxyType {
 }
 
 /**
- * NativeNodeProxy is a Proxy
+ * NodeProxy is a NativeElement Proxy
  */
 export class NodeProxy {
 

@@ -1,7 +1,17 @@
 {
   "name": "anyom",
-  "version": "0.0.2",
-  "description": "any object model , such dom ...",
+  "version": "0.0.3",
+  "description": "any object model , such dom ... ,can adapt native App like ReactNative weex",
+  "keywords": [
+    "anyom",
+    "vue",
+    "react",
+    "preact",
+    "inferno",
+    "react like",
+    "reactnative",
+    "weex"
+  ],
   "main": "dist/index.js",
   "scripts": {
     "cleardist": "del-cli dist/**/*.js dist/**/*.js.map",
