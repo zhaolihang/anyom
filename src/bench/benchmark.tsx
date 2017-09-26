@@ -43,6 +43,7 @@ export class Main extends Component {
 
     afterUpdate() {
         console.log('Main afterUpdate');
+        this.printDuration();
     }
 
     printDuration() {

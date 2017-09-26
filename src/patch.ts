@@ -20,7 +20,10 @@ export function patch(nodeProxy: NodeProxy, patches: IDiffMap, context?: Compone
 }
 
 function patchEach(nodeProxy: NodeProxy, patches: IDiffMap, context?: Component) {
-    let indices = patchIndices(patches);
+    let indices: number[] = [];
+    for (let key in patches) {
+        indices.push(Number(key));
+    }
 
     if (indices.length === 0) {
         return nodeProxy;
@@ -45,14 +48,14 @@ function applyPatch(rootNodeProxy: NodeProxy, childNodeProxy: NodeProxy, patchLi
 
     if (Array.isArray(patchList)) {
         for (let i = 0; i < patchList.length; i++) {
-            newNodeProxy = patchOp(patchList[i], childNodeProxy, context);
+            newNodeProxy = patchOp(childNodeProxy, patchList[i], context);
 
             if (childNodeProxy === rootNodeProxy) {
                 rootNodeProxy = newNodeProxy;
             }
         }
     } else {
-        newNodeProxy = patchOp(patchList, childNodeProxy, context);
+        newNodeProxy = patchOp(childNodeProxy, patchList, context);
 
         if (childNodeProxy === rootNodeProxy) {
             rootNodeProxy = newNodeProxy;
@@ -60,15 +63,6 @@ function applyPatch(rootNodeProxy: NodeProxy, childNodeProxy: NodeProxy, patchLi
     }
 
     return rootNodeProxy;
-}
-
-function patchIndices(patches: IDiffMap) {
-    let indices: number[] = [];
-
-    for (let key in patches) {
-        indices.push(Number(key));
-    }
-    return indices;
 }
 
 
@@ -125,7 +119,7 @@ function recurse(nodeProxy: NodeProxy, tree, indices: number[], nodes: { [index:
 
 
 ////////////
-export function patchOp(vpatch: VPatch, nodeProxy: NodeProxy, context?: Component) {
+function patchOp(nodeProxy: NodeProxy, vpatch: VPatch, context?: Component) {
     let type = vpatch.type;
     let vNode = vpatch.vNode;
     let patch = vpatch.patch;
@@ -134,20 +128,21 @@ export function patchOp(vpatch: VPatch, nodeProxy: NodeProxy, context?: Componen
         case VPatchType.INSERT:
             return insertNode(nodeProxy, patch, context);
         case VPatchType.REMOVE:
-            return removeNode(nodeProxy, vNode);
+            nodeProxy.parentNode && nodeProxy.parentNode.removeChild(nodeProxy);
+            return null;
         case VPatchType.ORDER:
             reorderChildren(nodeProxy, patch);
             return nodeProxy;
-        case VPatchType.ELEMENTPROPS:
-            applyNativeNodeProps(nodeProxy, patch, vNode.props);
+        case VPatchType.NATIVEPROPS:
+            applyNativeProps(nodeProxy, patch, vNode.props);
             return nodeProxy;
         case VPatchType.COMPONENTPROPS:
-            applyComponentProps(nodeProxy, patch, vNode.props);
+            nodeProxy.setComponentProps(patch, vNode.props);
             return nodeProxy;
         case VPatchType.REPLACE:
-            return vNodePatch(nodeProxy, vNode, patch, context);
+            return replaceNode(nodeProxy, vNode, patch, context);
         case VPatchType.REF:
-            applyRef(nodeProxy, patch, vNode.ref);
+            nodeProxy.setRef(patch, vNode.ref);
             return nodeProxy;
         case VPatchType.COMMANDS:
             applyCommands(nodeProxy, patch.patch, vNode.commands, patch.newCommands);
@@ -155,16 +150,6 @@ export function patchOp(vpatch: VPatch, nodeProxy: NodeProxy, context?: Componen
         default:
             return nodeProxy;
     }
-}
-
-function removeNode(nodeProxy: NodeProxy, vNode) {
-    let parentNode = nodeProxy.parentNode;
-
-    if (parentNode) {
-        parentNode.removeChild(nodeProxy);
-    }
-
-    return null;
 }
 
 function insertNode(parentNodeProxy: NodeProxy, vNode: VNode, context?: Component) {
@@ -177,7 +162,7 @@ function insertNode(parentNodeProxy: NodeProxy, vNode: VNode, context?: Componen
     return parentNodeProxy;
 }
 
-function vNodePatch(nodeProxy: NodeProxy, leftVNode: VNode, vNode: VNode, context?: Component) {
+function replaceNode(nodeProxy: NodeProxy, leftVNode: VNode, vNode: VNode, context?: Component) {
     let parentNode = nodeProxy.parentNode;
     let newNode = render(vNode, context);
 
@@ -197,16 +182,20 @@ function reorderChildren(parentNodeProxy: NodeProxy, moves) {
     let remove: { from: number, key?: string };
     let insert: { to: number, key: string };
 
+    let inserts = moves.inserts;
+    let insertsLen = inserts.length
+    let removes = moves.removes;
+    let removesLen = removes.length;
+
     let reorderKeyMap: { [key: string]: true } = {};
     let insertKeyMap: { [key: string]: true } = {};
-    for (let j = 0; j < moves.inserts.length; j++) {
-        let insert = moves.inserts[j];
-        insertKeyMap[insert.key] = true;
+    for (let j = 0; j < insertsLen; j++) {
+        insertKeyMap[inserts[j].key] = true;
     }
 
     //
-    for (let i = 0; i < moves.removes.length; i++) {
-        remove = moves.removes[i];
+    for (let i = 0; i < removesLen; i++) {
+        remove = removes[i];
         node = childNodes[remove.from];
         if (remove.key) {
             keyMap[remove.key] = node;
@@ -214,9 +203,10 @@ function reorderChildren(parentNodeProxy: NodeProxy, moves) {
         }
         parentNodeProxy.removeChild(node, reorderKeyMap[remove.key]);
     }
+
     let length = childNodes.length;
-    for (let j = 0; j < moves.inserts.length; j++) {
-        insert = moves.inserts[j];
+    for (let j = 0; j < insertsLen; j++) {
+        insert = inserts[j];
         node = keyMap[insert.key];
         parentNodeProxy.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to], reorderKeyMap[insert.key]);
     }
@@ -225,20 +215,20 @@ function reorderChildren(parentNodeProxy: NodeProxy, moves) {
 
 //
 
-export function applyNativeNodeProps(proxy: NodeProxy, props: IPropType, previous?: IPropType) {
+export function applyNativeProps(proxy: NodeProxy, props: IPropType, previous?: IPropType) {
 
     for (let propName in props) {
         let propValue = props[propName];
 
         if (propValue === undefined) {
             if (previous) {
-                proxy.removeNativeNodeAttribute(propName, previous);
+                proxy.removeAttrOfNative(propName, previous);
             }
         } else {
             if (isObject(propValue)) {
                 patchNativeNodeObject(proxy, props, previous, propName, propValue);
             } else {
-                proxy.setNativeNodeAttribute(propName, propValue, previous);
+                proxy.setAttrOfNative(propName, propValue, previous);
             }
         }
     }
@@ -251,20 +241,15 @@ function patchNativeNodeObject(proxy: NodeProxy, props, previous, propName, prop
 
     if (previousValue && isObject(previousValue)
         && getPrototype(previousValue) !== getPrototype(propValue)) {
-        proxy.setNativeNodeAttribute(propName, propValue, previousValue);
+        proxy.setAttrOfNative(propName, propValue, previousValue);
         return;
     }
 
-    if (!isObject(proxy.getNativeNodeAttribute(propName))) {
-        proxy.setNativeNodeAttribute(propName, {}, undefined);
+    if (!isObject(proxy.getAttrOfNative(propName))) {
+        proxy.setAttrOfNative(propName, {}, undefined);
     }
 
-    proxy.setNativeNodeObjectAttribute(propName, propValue, previousValue);
-}
-
-
-export function applyRef(proxy: NodeProxy, newRef: string, previousRef?: string) {
-    proxy.setRef(newRef, previousRef);
+    proxy.setObjAttrOfNative(propName, propValue, previousValue);
 }
 
 
@@ -284,9 +269,4 @@ export function applyCommands(proxy: NodeProxy, cmdPatch: ICommandsType, previou
         }
     }
     proxy.setCommands(newCommands);
-}
-
-
-export function applyComponentProps(proxy: NodeProxy, props, previousProps?) {
-    proxy.setComponentProps(props, previousProps);
 }

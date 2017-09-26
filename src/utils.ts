@@ -13,9 +13,6 @@ export function getPrototype(value) {
     }
 }
 
-/** Copy own-properties from `src` onto `target`.
- *	@returns target
- */
 export function overwrite(target, src) {
     for (let i in src) {
         target[i] = src[i];
@@ -30,8 +27,7 @@ export function startsWith(str: string, searchStr: string, position = 0) {
 export function endsWith(str: string, searchStr: string, position = 0) {
     if (!(position < str.length)) {
         position = str.length;
-    }
-    else {
+    } else {
         position |= 0; // round position
     }
     return str.substr(position - searchStr.length, searchStr.length) === searchStr;
@@ -112,4 +108,15 @@ export function indexInRange(indices, left, right) {
     }
 
     return false;
+}
+
+export function getEventNameOfNative(propName: string) {
+    //propName eg: 'on-click-capture'
+    if (startsWith(propName, 'on-')) {
+        if (endsWith(propName, '-capture')) {
+            return { name: propName.substring(3, propName.length - 9), capture: true };
+        } else {
+            return { name: propName.substring(3), capture: false };
+        }
+    }
 }

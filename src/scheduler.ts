@@ -1,19 +1,14 @@
-
 import { Component, RenderMode, LifeCycleType } from "./component";
 
-const MAX_UPDATE_COUNT = 100;
-
 const queue: Array<Component> = [];
-const activatedChildren: Array<Component> = [];
 let has: { [key: number]: true } = {};
-let circular: { [key: number]: number } = {};
 
 let waiting = false;
 let flushing = false;
 let index = 0;// flushingIndex
 
 function resetSchedulerState() {
-    index = queue.length = activatedChildren.length = 0;
+    index = queue.length = 0;
     has = {};
     waiting = flushing = false;
 }
@@ -22,19 +17,13 @@ function flushSchedulerQueue() {
     flushing = true;
     let component: Component, id;
     queue.sort((a, b) => a.id - b.id);
+
     for (index = 0; index < queue.length; index++) {
         component = queue[index];
         id = component.id;
         has[id] = null;
+        component[LifeCycleType.BeforeUpdate] && component[LifeCycleType.BeforeUpdate]();
         component.forceUpdate(RenderMode.SYNC);
-        // // check and stop circular updates.
-        // if (has[id] != null) {
-        //     circular[id] = (circular[id] || 0) + 1;
-        //     if (circular[id] > MAX_UPDATE_COUNT) {
-        //         console.error('circulard update!');
-        //         break;
-        //     }
-        // }
     }
 
     for (index = 0; index < queue.length; index++) {
@@ -66,7 +55,7 @@ export function queueComponent(component: Component) {
     }
 }
 // for nextTick()
-const callbacks = [];
+let callbacks = [];
 let pending = false;
 
 const nextTickHandler = () => {
@@ -79,6 +68,7 @@ const nextTickHandler = () => {
 }
 
 const defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
+
 export function nextTick(cb?: Function, ctx?: Object) {
     if (!cb) {
         return;
@@ -87,7 +77,7 @@ export function nextTick(cb?: Function, ctx?: Object) {
         try {
             cb.call(ctx);
         } catch (e) {
-            console.log(e);
+            console.error(e);
         }
     });
     if (!pending) {

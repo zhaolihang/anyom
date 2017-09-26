@@ -5,7 +5,7 @@ import { isObject, getPrototype, deepEqual } from "./utils";
 export enum VPatchType {
     NONE = 0,
     REPLACE,
-    ELEMENTPROPS,
+    NATIVEPROPS,
     COMPONENTPROPS,
     ORDER,
     INSERT,
@@ -146,7 +146,7 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
             } else {
                 let propsPatch = diffProps(a.props, b.props);
                 if (propsPatch) {
-                    apply = appendPatch(apply, new VPatch(VPatchType.ELEMENTPROPS, a, propsPatch));
+                    apply = appendPatch(apply, new VPatch(VPatchType.NATIVEPROPS, a, propsPatch));
                 }
             }
 

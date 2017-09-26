@@ -286,10 +286,10 @@ class App extends Component {
             <div class={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
                 <Button ref={'butRefName' + num} onclick={() => {
-                    this.setState({
+                    this.setState(Object.assign({}, this.state, {
                         isName: !isName,
                         num: num + 1,
-                    });
+                    }));
                 }} title={btnTitle}>
                 </Button>
                 {input}

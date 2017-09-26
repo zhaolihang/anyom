@@ -1,9 +1,10 @@
 import { ITagName, VNode, VNodeType, ICommandsType } from "./vnode";
 import { Component, LifeCycleType } from "./component";
-import { startsWith, endsWith } from "./utils";
+import { startsWith, endsWith, getEventNameOfNative } from "./utils";
 import { getCommand } from "./commands";
+import { applyNativeProps, applyCommands } from "./patch";
 
-export enum NodeProxyType {
+export enum ProxyType {
     None = 0,
     NATIVE,
     COMPONENT,
@@ -18,7 +19,7 @@ export class NodeProxy {
     childNodes: NodeProxy[] = [];
 
     vNodeType: VNodeType;
-    proxyType: NodeProxyType;
+    proxyType: ProxyType;
     element: any;
     ref: string;
     commands: ICommandsType;
@@ -26,15 +27,27 @@ export class NodeProxy {
     constructor(vNode: VNode, public context?: Component) {
         this.vNodeType = vNode.type;
         if (this.vNodeType === VNodeType.Component) {
-            this.proxyType = NodeProxyType.COMPONENT;
+            this.proxyType = ProxyType.COMPONENT;
             this.element = this.createComponent(vNode);
         } else {
-            this.proxyType = NodeProxyType.NATIVE;
-            this.element = this.createNativeNode(vNode);
+            this.proxyType = ProxyType.NATIVE;
+            this.element = this.createNative(vNode);
         }
+
+        // init
+        if (this.proxyType === ProxyType.NATIVE) {
+            applyNativeProps(this, vNode.props, undefined);
+        }
+        if (vNode.ref) {
+            this.setRef(vNode.ref, undefined)
+        }
+        if (vNode.commands) {
+            applyCommands(this, vNode.commands, undefined, vNode.commands);
+        }
+
     }
 
-    private createNativeNode(vNode: VNode) {
+    private createNative(vNode: VNode) {
         if (this.vNodeType === VNodeType.NativeText) {
             return <Text>(document.createTextNode(vNode.props.value));
         } else if (this.vNodeType === VNodeType.NativeNode) {
@@ -51,9 +64,9 @@ export class NodeProxy {
     }
 
     getNativeNode<T = HTMLElement>(): T {
-        if (this.proxyType === NodeProxyType.NATIVE) {
+        if (this.proxyType === ProxyType.NATIVE) {
             return (<T>this.element);
-        } else if (this.proxyType === NodeProxyType.COMPONENT) {
+        } else if (this.proxyType === ProxyType.COMPONENT) {
             return (<Component>this.element).getNodeProxy().getNativeNode();
         }
     }
@@ -63,14 +76,14 @@ export class NodeProxy {
         this.childNodes.push(x);
 
         ///
-        if (this.proxyType === NodeProxyType.NATIVE) {
+        if (this.proxyType === ProxyType.NATIVE) {
             (this.element as HTMLElement).appendChild(x.getNativeNode());
-        } else if (this.proxyType === NodeProxyType.COMPONENT) {
+        } else if (this.proxyType === ProxyType.COMPONENT) {
             this.getNativeNode().appendChild(x.getNativeNode());
         }
 
         //
-        if (x.proxyType === NodeProxyType.COMPONENT) {
+        if (x.proxyType === ProxyType.COMPONENT) {
             let com: Component = x.element;
             com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
         }
@@ -83,9 +96,9 @@ export class NodeProxy {
             x.setRef(undefined, x.ref);
         }
 
-        if (this.proxyType === NodeProxyType.NATIVE) {
+        if (this.proxyType === ProxyType.NATIVE) {
             (this.element as HTMLElement).removeChild(x.getNativeNode());
-        } else if (this.proxyType === NodeProxyType.COMPONENT) {
+        } else if (this.proxyType === ProxyType.COMPONENT) {
             this.getNativeNode().removeChild(x.getNativeNode());
         }
 
@@ -95,8 +108,7 @@ export class NodeProxy {
         this.childNodes.splice(index, 1);
 
         if (!recycle) {
-            //
-            if (x.proxyType === NodeProxyType.COMPONENT) {
+            if (x.proxyType === ProxyType.COMPONENT) {
                 let com: Component = x.element;
                 com[LifeCycleType.UnMounted] && com[LifeCycleType.UnMounted]();
             }
@@ -109,9 +121,9 @@ export class NodeProxy {
         oldNode.setRef(undefined, oldNode.ref);
         oldNode.removeCommands();
 
-        if (this.proxyType === NodeProxyType.NATIVE) {
+        if (this.proxyType === ProxyType.NATIVE) {
             (this.element as HTMLElement).replaceChild(newNode.getNativeNode(), oldNode.getNativeNode());
-        } else if (this.proxyType === NodeProxyType.COMPONENT) {
+        } else if (this.proxyType === ProxyType.COMPONENT) {
             this.getNativeNode().replaceChild(newNode.getNativeNode(), oldNode.getNativeNode());
         }
 
@@ -122,12 +134,12 @@ export class NodeProxy {
         this.childNodes[index] = newNode;
 
         //
-        if (newNode.proxyType === NodeProxyType.COMPONENT) {
+        if (newNode.proxyType === ProxyType.COMPONENT) {
             let com: Component = newNode.element;
             com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
         }
 
-        if (oldNode.proxyType === NodeProxyType.COMPONENT) {
+        if (oldNode.proxyType === ProxyType.COMPONENT) {
             let com: Component = oldNode.element;
             com[LifeCycleType.UnMounted] && com[LifeCycleType.UnMounted]();
         }
@@ -145,14 +157,14 @@ export class NodeProxy {
         }
 
         ///
-        if (this.proxyType === NodeProxyType.NATIVE) {
+        if (this.proxyType === ProxyType.NATIVE) {
             (this.element as HTMLElement).insertBefore(newNode.getNativeNode(), insertTo && insertTo.getNativeNode());
-        } else if (this.proxyType === NodeProxyType.COMPONENT) {
+        } else if (this.proxyType === ProxyType.COMPONENT) {
             this.getNativeNode().replaceChild(newNode.getNativeNode(), insertTo && insertTo.getNativeNode());
         }
 
         if (!recycle) {
-            if (newNode.proxyType === NodeProxyType.COMPONENT) {
+            if (newNode.proxyType === ProxyType.COMPONENT) {
                 let com: Component = newNode.element;
                 com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
             }
@@ -160,7 +172,7 @@ export class NodeProxy {
 
     }
 
-    getNativeNodeAttribute(propName: string): any {
+    getAttrOfNative(propName: string): any {
         let element: HTMLElement = this.element;
         if (element.hasAttribute(propName)) {
             return element.getAttribute(propName);
@@ -169,10 +181,10 @@ export class NodeProxy {
         }
     }
 
-    setNativeNodeAttribute(propName: string, propValue: any, previous?: any) {
+    setAttrOfNative(propName: string, propValue: any, previous?: any) {
         let element: HTMLElement = this.element;
 
-        let event = this.getNativeNodeEventName(propName);
+        let event = getEventNameOfNative(propName);
         if (event) {
             if (previous && previous[propName]) {
                 element.removeEventListener(event.name, previous[propName], event.capture);
@@ -204,7 +216,7 @@ export class NodeProxy {
         (this.element as Component).setProps(props);
     }
 
-    setNativeNodeObjectAttribute(propName: string, propValue: any, previous?: any) {
+    setObjAttrOfNative(propName: string, propValue: any, previous?: any) {
         let element = (this.element as HTMLElement);
         for (let k in propValue) {
             let value = propValue[k];
@@ -212,10 +224,10 @@ export class NodeProxy {
         }
     }
 
-    removeNativeNodeAttribute(propName: string, previous?: any) {
+    removeAttrOfNative(propName: string, previous?: any) {
         let element: HTMLElement = this.element;
 
-        let event = this.getNativeNodeEventName(propName);
+        let event = getEventNameOfNative(propName);
         if (event) {
             if (previous && previous[propName]) {
                 element.removeEventListener(event.name, previous[propName], event.capture);
@@ -229,6 +241,7 @@ export class NodeProxy {
         }
     }
 
+    // ref
     setRef(newRef: string, previousRef?: string) {
         if (this.context) {
             if (previousRef) {
@@ -243,7 +256,12 @@ export class NodeProxy {
         this.ref = newRef;
     }
 
-    removeCommands() {
+    // commands
+    setCommands(newCommands: ICommandsType) {
+        this.commands = newCommands;
+    }
+
+    private removeCommands() {
         if (this.commands) {
             for (let cmdName in this.commands) {
                 let cmdValue = this.commands[cmdName];
@@ -253,10 +271,6 @@ export class NodeProxy {
                 }
             }
         }
-    }
-
-    setCommands(newCommands: ICommandsType) {
-        this.commands = newCommands;
     }
 
     addCommand(cmdName: string, cmdValue: any) {
@@ -277,17 +291,6 @@ export class NodeProxy {
         const cmd = getCommand(cmdName);
         if (cmd && cmd.update) {
             cmd.update(this.getNativeNode(), cmdValue, previousCmdValue);
-        }
-    }
-
-    private getNativeNodeEventName(propName: string) {
-        //propName eg: 'on-click-capture'
-        if (startsWith(propName, 'on-')) {
-            if (endsWith(propName, '-capture')) {
-                return { name: propName.substring(3, propName.length - 9), capture: true };
-            } else {
-                return { name: propName.substring(3), capture: false };
-            }
         }
     }
 

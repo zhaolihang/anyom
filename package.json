@@ -1,6 +1,6 @@
 {
   "name": "anyom",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "any object model , such dom ... ,can adapt native App like ReactNative weex",
   "keywords": [
     "anyom",

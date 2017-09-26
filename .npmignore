@@ -1,5 +1,6 @@
 node_modules
 disttest
+distbench
 .rpt2_cache
 .vscode
 *.js.map

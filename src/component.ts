@@ -56,14 +56,11 @@ export class Component {
         if (renderMode === RenderMode.SYNC) {
 
             if (this.renderedVNode) {
-                this[LifeCycleType.BeforeUpdate] && this[LifeCycleType.BeforeUpdate]();
-
                 let newVNode = this.render();
                 let patches = diff(this.renderedVNode, newVNode);
                 let newRootRNode = patch(this.renderedNodeProxy, patches, this);
                 this.renderedVNode = newVNode;
                 this.renderedNodeProxy = newRootRNode;
-
             } else {
                 this.renderedVNode = this.render();
                 this.renderedNodeProxy = createElement(this.renderedVNode, this);
