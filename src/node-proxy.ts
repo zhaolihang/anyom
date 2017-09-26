@@ -1,4 +1,4 @@
-import { ITagType, VNode, VNodeType, ICommandsType } from "./vnode";
+import { ITagName, VNode, VNodeType, ICommandsType } from "./vnode";
 import { Component, LifeCycleType } from "./component";
 import { startsWith, endsWith } from "./utils";
 import { getCommand } from "./commands";

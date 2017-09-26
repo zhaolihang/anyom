@@ -1,4 +1,4 @@
-import { h } from "./h";
+import { h } from "./vnode";
 import { Component } from "./component";
 import { createElement, render } from "./create-element";
 import { diff } from "./diff";

@@ -1,4 +1,4 @@
-export type ITagType = any;
+export type ITagName = any;
 export type IPropType = { [x: string]: any };
 export type ICommandsType = { [commandName: string]: any }; // { commandName:commandArgs }
 export const TextNodeTagName = {};
@@ -20,7 +20,7 @@ export class VNode {
     ref: string;
     namespace: string;
 
-    constructor(public tagName: ITagType, public props: IPropType = noProperties, public children: VNode[] = noChildren, public key?: string) {
+    constructor(public tagName: ITagName, public props: IPropType = noProperties, public children: VNode[] = noChildren, public key?: string) {
 
         if (tagName === TextNodeTagName) {
             this.type = VNodeType.NativeText;
@@ -45,19 +45,84 @@ export class VNode {
 }
 
 //
-export enum VPatchType {
-    NONE = 0,
-    REPLACE,
-    ELEMENTPROPS,
-    COMPONENTPROPS,
-    ORDER,
-    INSERT,
-    REMOVE,
-    REF,
-    COMMANDS,
+
+const stack: VNode[] = [];
+const EMPTY_CHILDREN = [];
+
+export function h(tagName: ITagName, props?: IPropType, ...args: any[]): VNode {
+    props == null ? undefined : props;
+
+    // ref
+    let ref;
+    if (props && props.ref != null) {
+        ref = props.ref;
+        delete props.ref;
+    }
+
+    // commands 指令
+    let commands: ICommandsType;
+    if (props && props.commands != null) {
+        commands = props.commands;
+        delete props.commands;
+    }
+
+    // namespace 
+    let namespace: string;
+    if (props && props.namespace != null) {
+        namespace = props.namespace;
+        delete props.namespace;
+    }
+
+    ////////////////////////////////////////////////////
+    // key
+    let key;
+    if (props && props.key != null) {
+        key = props.key;
+        delete props.key;
+    }
+
+    // children
+    let children: VNode[] = EMPTY_CHILDREN;
+    let child: any;
+    let i;
+    for (i = args.length; i-- > 0;) {
+        stack.push(args[i]);
+    }
+
+    if (props && props.children != null) {
+        if (!stack.length) {
+            stack.push(props.children);
+        }
+        delete props.children;
+    }
+
+    while (stack.length) {
+
+        if ((child = stack.pop()) && Array.isArray(child)) {
+            for (i = child.length; i--;) {
+                stack.push(child[i]);
+            }
+        } else {
+
+            let childType = typeof child;
+            if (childType === 'string' || childType === 'number' || childType === 'boolean') {
+                child = new VNode(TextNodeTagName, { value: String(child) });
+            }
+
+            if (children === EMPTY_CHILDREN) {
+                children = [child];
+            } else {
+                children.push(child);
+            }
+
+        }
+    }
+
+    let vnode = new VNode(tagName, props, children, key);
+    vnode.namespace = namespace;
+    vnode.ref = ref;
+    vnode.commands = commands;
+
+    return vnode;
 }
 
-export class VPatch {
-    constructor(public type: VPatchType, public vNode: VNode, public patch?: any) {
-    }
-}

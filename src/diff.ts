@@ -1,5 +1,24 @@
-import { VNode, VPatch, VPatchType, ITagType, IPropType, VNodeType } from "./vnode";
+import { VNode, ITagName, IPropType, VNodeType } from "./vnode";
 import { isObject, getPrototype, deepEqual } from "./utils";
+
+//
+export enum VPatchType {
+    NONE = 0,
+    REPLACE,
+    ELEMENTPROPS,
+    COMPONENTPROPS,
+    ORDER,
+    INSERT,
+    REMOVE,
+    REF,
+    COMMANDS,
+}
+
+export class VPatch {
+    constructor(public type: VPatchType, public vNode: VNode, public patch?: any) {
+    }
+}
+
 
 function diffProps(a: IPropType, b: IPropType) {
 

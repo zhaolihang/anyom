@@ -1,11 +1,10 @@
 import { render } from "./create-element";
-import { IDiffMap } from "./diff";
+import { IDiffMap, VPatch, VPatchType } from "./diff";
 import { NodeProxy } from "./node-proxy";
 import { Component } from "./component";
-import { VPatch, VPatchType, VNode } from "./vnode";
+import { VNode } from "./vnode";
 import { isObject, getPrototype } from "./utils";
 import { IPropType, ICommandsType } from "./vnode";
-
 
 export function patch(nodeProxy: NodeProxy, patches: IDiffMap, context?: Component): NodeProxy {
     let resultNode = patchRecursive(nodeProxy, patches, context);
