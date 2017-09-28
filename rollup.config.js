@@ -5,7 +5,7 @@ import babel from 'rollup-plugin-babel';
 import uglify from 'rollup-plugin-uglify';
 export default {
     entry: './babelworkplace/index.js',
-    format: 'umd',
+    format: 'cjs',
     plugins: [
         resolve(),
         commonjs(),
@@ -17,4 +17,5 @@ export default {
     dest: './dist/index.js',
     moduleName: 'Anyom',
     sourceMap: true,
+    exports: 'named',
 }
