@@ -19,4 +19,5 @@ export default {
     dest: './distbench/index.js',
     moduleName: 'Anyombench',
     sourceMap: true,
+    context:'window',
 }

@@ -17,4 +17,5 @@ export default {
     dest: './disttest/index.js',
     moduleName: 'Anyomtest',
     sourceMap: true,
+    context:'window',
 }
