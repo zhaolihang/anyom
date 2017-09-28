@@ -1,7 +1,7 @@
 {
   "name": "anyom",
-  "version": "0.0.4",
-  "description": "any object model , such dom ... ,can adapt native App like ReactNative weex",
+  "version": "0.0.5",
+  "description": "gzip 5kb!  Any object model , such dom ... ,can adapt native App like ReactNative weex",
   "keywords": [
     "anyom",
     "vue",
