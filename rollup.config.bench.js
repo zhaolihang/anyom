@@ -1,18 +1,22 @@
 // rollup.config.js
-import typescript from 'rollup-plugin-typescript2';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import babel from 'rollup-plugin-babel';
 import uglify from 'rollup-plugin-uglify';
 export default {
-    entry: './src/bench/benchmark.tsx',
+    entry: './babelworkplace/bench/index.jsx',
     format: 'umd',
     plugins: [
-        resolve(),
+        resolve({
+            extensions:['.js','.jsx']
+        }),
         commonjs(),
-        typescript(),
+        babel({
+            exclude: 'node_modules/**'
+        }),
         uglify(),
     ],
     dest: './distbench/index.js',
-    moduleName: 'benchmark',
-    sourceMap: true
+    moduleName: 'Anyombench',
+    sourceMap: true,
 }

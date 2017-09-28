@@ -1,16 +1,20 @@
 // rollup.config.js
-import typescript from 'rollup-plugin-typescript2';
 import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+import babel from 'rollup-plugin-babel';
 import uglify from 'rollup-plugin-uglify';
 export default {
-    entry: './src/index.ts',
-    format: 'cjs',
+    entry: './babelworkplace/index.js',
+    format: 'umd',
     plugins: [
         resolve(),
-        typescript(),
+        commonjs(),
+        babel({
+            exclude: 'node_modules/**'
+        }),
         // uglify(),
     ],
     dest: './dist/index.js',
     moduleName: 'Anyom',
-    sourceMap: true
+    sourceMap: true,
 }

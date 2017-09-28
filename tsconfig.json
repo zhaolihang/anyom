@@ -1,14 +1,14 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "module": "umd",
+        "module": "es6",
         "target": "es5",
         "sourceMap": true,
         "allowJs": true,
         "listFiles": true,
         "strictNullChecks": false,
-        "outDir": "dist",
-        "jsx": "react",
+        "outDir": "babelworkplace",
+        "jsx": "preserve",
         "jsxFactory": "h",
         "moduleResolution": "node",
         "lib": [

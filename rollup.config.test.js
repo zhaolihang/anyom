@@ -1,17 +1,20 @@
 // rollup.config.js
-import typescript from 'rollup-plugin-typescript2';
 import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+import babel from 'rollup-plugin-babel';
 export default {
-    entry: './src/test/test.tsx',
+    entry: './babelworkplace/test/index.jsx',
     format: 'umd',
     plugins: [
-        resolve(),
-        typescript(),
+        resolve({
+            extensions:['.js','.jsx']
+        }),
+        commonjs(),
+        babel({
+            exclude: 'node_modules/**'
+        }),
     ],
-    dest: './disttest/test.js',
-    moduleName: 'test',
+    dest: './disttest/index.js',
+    moduleName: 'Anyomtest',
     sourceMap: true,
-    watch: {
-        exclude: 'node_modules/**'
-    }
 }

@@ -64,7 +64,7 @@ export class NodeProxy {
         return com;
     }
 
-    getNativeNode<T = HTMLElement>(): T {
+    getNativeNode<T = any>(): T {
         if (this.proxyType === ProxyType.NATIVE) {
             return (<T>this.element);
         } else if (this.proxyType === ProxyType.COMPONENT) {
@@ -119,7 +119,7 @@ export class NodeProxy {
         for (let i = 0; i < len; i++) {
             childNodes[i].removedHook();
         }
-        
+
         if (this.proxyType === ProxyType.COMPONENT) {
             let com: Component = this.element;
             com.getNodeProxy().removedHook()

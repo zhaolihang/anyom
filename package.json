@@ -15,19 +15,23 @@
   "main": "dist/index.js",
   "scripts": {
     "cleardist": "del-cli dist/**/*.js dist/**/*.js.map",
-    "build": "rollup -c",
     "cleantest": "del-cli disttest/**/*.js disttest/**/*.js.map ",
-    "buildtest": "rollup -w -c rollup.config.test.js",
     "clearall": "npm run cleardist & npm run cleantest",
-    "buildbench": "rollup -w -c rollup.config.benchmark.js"
+    "dev": "tsc -w",
+    "build": "rollup -c",
+    "build:bench": "rollup -c rollup.config.bench.js",
+    "build:test": "rollup -w -c rollup.config.test.js"
   },
   "devDependencies": {
     "@types/node": "^8.0.24",
+    "babel-core": "^6.26.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
     "del-cli": "^1.1.0",
     "rollup": "^0.43.0",
+    "rollup-plugin-babel": "^3.0.2",
     "rollup-plugin-commonjs": "^8.2.1",
     "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-typescript2": "^0.4.6",
+    "rollup-plugin-typescript": "^0.8.1",
     "rollup-plugin-uglify": "^2.0.1",
     "rollup-watch": "^4.3.1",
     "typescript": "^2.4.2"
@@ -38,5 +42,6 @@
     "type": "git",
     "url": "git+https://github.com/zhaolihang/anyom.git"
   },
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {}
 }

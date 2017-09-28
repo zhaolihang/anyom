@@ -55,9 +55,9 @@ export class VNode {
 const stack: VNode[] = [];
 const EMPTY_CHILDREN = [];
 
-export function h(tag: ITagName, props?: IPropType, ...args: any[]): VNode {
+export function h(tag: ITagName, props?: IPropType): VNode {
     props == null ? undefined : props;
-
+    
     // key
     let key;
     if (props && props.key != null) {
@@ -87,13 +87,9 @@ export function h(tag: ITagName, props?: IPropType, ...args: any[]): VNode {
     }
 
     ////////////////////////////////////////////////////
-
-    // children
-    let children: VNode[] = EMPTY_CHILDREN;
-    let child: any;
     let i;
-    for (i = args.length; i-- > 0;) {
-        stack.push(args[i]);
+    for (i = arguments.length; i-- > 2;) {
+        stack.push(arguments[i]);
     }
 
     if (props && props.children != null) {
@@ -102,6 +98,10 @@ export function h(tag: ITagName, props?: IPropType, ...args: any[]): VNode {
         }
         delete props.children;
     }
+
+    // children
+    let children: VNode[] = EMPTY_CHILDREN;
+    let child: any;
 
     while (stack.length) {
 

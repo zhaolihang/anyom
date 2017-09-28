@@ -295,21 +295,22 @@ class App extends Component {
     }
 
     render() {
+        let testspread = { a: 0, c: 0 };
         let isName = this.state.isName;
         let btnTitle = this.state.btnTitle;
         let num = this.state.num;
         let input = isName ? <input key='name' ref={(elm) => { this.refs.name = elm; }} type='text' placeholder='name'></input> : <input key='password' ref={(elm) => { this.refs.password = elm; }} type='password' placeholder='password'></input>;
         return (
-            <div className={'app'}>
+            <div v-bind={{ a: 0 }} {...testspread} className={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
-                {/* <Button ref={(elm) => { this.refs.button = elm; }} onclick={() => {
-                    log('test ref', this.refs.name);
+                <Button ref={(elm) => { this.refs.button = elm; }} onclick={() => {
+                    log('test ref name =', this.refs.name);
                     this.setState(Object.assign({}, this.state, {
                         isName: !isName,
                         num: num + 1,
                     }));
                 }} title={btnTitle}>
-                </Button> */}
+                </Button>
                 {input}
             </div>
         );

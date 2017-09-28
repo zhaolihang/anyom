@@ -6,12 +6,12 @@ import { createElement } from "./create-element";
 import { queueComponent } from "./scheduler";
 import { NodeProxy } from "./node-proxy";
 
-export enum LifeCycleType {
-    Created = 'created',
-    Mounted = 'mounted',
-    UnMounted = 'unmounted',
-    BeforeUpdate = 'beforeUpdate',
-    AfterUpdate = 'afterUpdate',
+export const LifeCycleType = {
+    Created: 'created',
+    Mounted: 'mounted',
+    UnMounted: 'unmounted',
+    BeforeUpdate: 'beforeUpdate',
+    AfterUpdate: 'afterUpdate',
 }
 
 export enum RenderMode {
