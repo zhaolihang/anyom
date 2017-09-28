@@ -23,13 +23,13 @@ export enum RenderMode {
 let GID = 0;
 export class Component {
 
-    protected renderedNodeProxy: NodeProxy;
     protected renderedVNode: VNode;
+    protected renderedNodeProxy: NodeProxy;
 
+    id: number;
     protected props: any;
     protected state: any = {};
-    id: number;
-    refs = {};
+    protected refs: any = {};
 
     constructor(props) {
         this.id = ++GID;
@@ -58,12 +58,12 @@ export class Component {
             if (this.renderedVNode) {
                 let newVNode = this.render();
                 let patches = diff(this.renderedVNode, newVNode);
-                let newRootRNode = patch(this.renderedNodeProxy, patches, this);
+                let newRootRNode = patch(this.renderedNodeProxy, patches);
                 this.renderedVNode = newVNode;
                 this.renderedNodeProxy = newRootRNode;
             } else {
                 this.renderedVNode = this.render();
-                this.renderedNodeProxy = createElement(this.renderedVNode, this);
+                this.renderedNodeProxy = createElement(this.renderedVNode);
             }
 
         } else {

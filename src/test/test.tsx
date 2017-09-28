@@ -22,7 +22,7 @@ const log = console.log;
 const draggableDataName = 'html_draggable_droppable_dataname';
 setCommand('draggable', {
     bind(node, newValue) {
-        log('draggable bind', node, newValue);
+        log('draggable bind');
         node.draggable = true;
         const data = newValue;
         node[draggableDataName] = data;
@@ -46,13 +46,13 @@ setCommand('draggable', {
     },
 
     update(node, newValue, oldValue) {
-        log('draggable update', node, newValue, oldValue);
+        log('draggable update');
         let data = newValue;
         node[draggableDataName] = data;
     },
 
     unbind(node, oldValue) {
-        log('draggable unbind', node);
+        log('draggable unbind');
     },
 
 });
@@ -60,7 +60,7 @@ setCommand('draggable', {
 setCommand('droppable', {
 
     bind(node, newValue) {
-        log('droppable bind', node, newValue);
+        log('droppable bind');
         const cb = newValue;
         let startColor = undefined;
         let timeID;
@@ -116,11 +116,11 @@ setCommand('droppable', {
     },
 
     update(node, newValue, oldValue) {
-        log('droppable update', node, newValue, oldValue);
+        log('droppable update');
     },
 
     unbind(node) {
-        log('droppable unbind', node);
+        log('droppable unbind');
     },
 
 });
@@ -128,7 +128,7 @@ setCommand('droppable', {
 setCommand('dragmove', {
 
     bind(node, newValue) {
-        log('dragmove bind', node, newValue);
+        log('dragmove bind');
 
         let dragEl: HTMLElement = node;
         dragEl.style.position = 'fixed';
@@ -201,11 +201,11 @@ setCommand('dragmove', {
     },
 
     update(node, newValue, oldValue) {
-        log('dragmove update', node, newValue, oldValue);
+        log('dragmove update');
     },
 
     unbind(node) {
-        log('dragmove unbind', node);
+        log('dragmove unbind');
     },
 
 });
@@ -214,7 +214,22 @@ const rootNode = document.getElementById('body');
 const rootNodeProxy = render(new VNode('div'))
 rootNode.appendChild(rootNodeProxy.getNativeNode());
 
+class Tag extends Component {
+    mounted() {
+        log('Tag mounted');
+    }
 
+    unmounted() {
+        log('Tag unmounted');
+    }
+
+    render() {
+        return (
+            <div>small tag</div>
+        );
+    }
+
+}
 class Button extends Component {
     created() {
         log('Button created');
@@ -240,11 +255,13 @@ class Button extends Component {
         let title = this.props.title;
         let onclick = this.props.onclick;
         return (
-            <button on-click={(e) => {
+            <button className={'button'} on-click={(e) => {
                 if (onclick) {
                     onclick(e);
                 }
-            }} class={'button'} >{title || '按钮'}
+            }} >
+                {title || '按钮'}
+                <Tag></Tag>
             </button>
         );
     }
@@ -281,17 +298,18 @@ class App extends Component {
         let isName = this.state.isName;
         let btnTitle = this.state.btnTitle;
         let num = this.state.num;
-        let input = isName ? <input key='name' ref='name' type='text' placeholder='name'></input> : <input key='password' ref='password' type='password' placeholder='password'></input>;
+        let input = isName ? <input key='name' ref={(elm) => { this.refs.name = elm; }} type='text' placeholder='name'></input> : <input key='password' ref={(elm) => { this.refs.password = elm; }} type='password' placeholder='password'></input>;
         return (
-            <div class={'app'}>
+            <div className={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
-                <Button ref={'butRefName' + num} onclick={() => {
+                {/* <Button ref={(elm) => { this.refs.button = elm; }} onclick={() => {
+                    log('test ref', this.refs.name);
                     this.setState(Object.assign({}, this.state, {
                         isName: !isName,
                         num: num + 1,
                     }));
                 }} title={btnTitle}>
-                </Button>
+                </Button> */}
                 {input}
             </div>
         );
@@ -311,10 +329,10 @@ rootNodeProxy.appendChild(firstNodeProxy);
 
 let secondVNode = (<div>
 
-    <div key={'draggable'} commands={{ draggable: { a: 123 } }}>draggable</div>
+    <div key={'draggable'} cmds={{ draggable: { a: 123 } }}>draggable</div>
     <div key={'4'}>444</div>
     <div key={'3'}>333</div>
-    <div key={'droppable'} commands={{
+    <div key={'droppable'} cmds={{
         droppable: (error, data) => {
             if (!error) {
                 log('droppable', data);
@@ -326,7 +344,7 @@ let secondVNode = (<div>
     <img height="100" src="http://nodejs.cn/static/images/logo.svg" ></img>
     <App>
     </App>
-    <div commands={{ dragmove: true }} innerHTML="<div>I'm from innerHtml</div>"></div>
+    <div cmds={{ dragmove: true }} innerHTML="<div>I'm from innerHtml</div>"></div>
 </div >)
 
 setTimeout(() => {

@@ -1,4 +1,4 @@
-import { ITagName, VNode, VNodeType, ICommandsType } from "./vnode";
+import { ITagName, VNode, VNodeType, ICmdsType, IRefType } from "./vnode";
 import { Component, LifeCycleType } from "./component";
 import { startsWith, endsWith, getEventNameOfNative } from "./utils";
 import { getCommand } from "./commands";
@@ -21,10 +21,10 @@ export class NodeProxy {
     vNodeType: VNodeType;
     proxyType: ProxyType;
     element: any;
-    ref: string;
-    commands: ICommandsType;
+    ref: IRefType;
+    cmds: ICmdsType;
 
-    constructor(vNode: VNode, public context?: Component) {
+    constructor(vNode: VNode) {
         this.vNodeType = vNode.type;
         if (this.vNodeType === VNodeType.Component) {
             this.proxyType = ProxyType.COMPONENT;
@@ -38,11 +38,12 @@ export class NodeProxy {
         if (this.proxyType === ProxyType.NATIVE) {
             applyNativeProps(this, vNode.props, undefined);
         }
-        if (vNode.ref) {
-            this.setRef(vNode.ref, undefined)
+        if (vNode.cmds) {
+            applyCommands(this, vNode.cmds, undefined, vNode.cmds);
         }
-        if (vNode.commands) {
-            applyCommands(this, vNode.commands, undefined, vNode.commands);
+        if (vNode.ref) {
+            this.setRef(vNode.ref);
+            this.ref(this.element);// 创建的时候传入 element  销毁的时候传入 null
         }
 
     }
@@ -51,13 +52,13 @@ export class NodeProxy {
         if (this.vNodeType === VNodeType.NativeText) {
             return <Text>(document.createTextNode(vNode.props.value));
         } else if (this.vNodeType === VNodeType.NativeNode) {
-            let nativeNode = <HTMLElement>(document.createElement(vNode.tagName));
+            let nativeNode = <HTMLElement>(document.createElement(vNode.tag));
             return nativeNode;
         }
     }
 
     private createComponent(vNode: VNode): Component {
-        let Consr: typeof Component = vNode.tagName;
+        let Consr: typeof Component = vNode.tag;
         let com: Component = new Consr(vNode.props);
         com[LifeCycleType.Created] && com[LifeCycleType.Created]();
         return com;
@@ -82,19 +83,17 @@ export class NodeProxy {
             this.getNativeNode().appendChild(x.getNativeNode());
         }
 
-        //
-        if (x.proxyType === ProxyType.COMPONENT) {
-            let com: Component = x.element;
+        x.addedHook();
+    }
+
+    private addedHook() {
+        if (this.proxyType === ProxyType.COMPONENT) {
+            let com: Component = this.element;
             com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
         }
     }
 
     removeChild(x: NodeProxy, recycle = false) {
-
-        if (!recycle) {
-            x.removeCommands();
-            x.setRef(undefined, x.ref);
-        }
 
         if (this.proxyType === ProxyType.NATIVE) {
             (this.element as HTMLElement).removeChild(x.getNativeNode());
@@ -102,24 +101,35 @@ export class NodeProxy {
             this.getNativeNode().removeChild(x.getNativeNode());
         }
 
+        if (!recycle) {
+            x.removedHook();
+        }
+
         ///
         let index = this.childNodes.indexOf(x);
         x.parentNode = undefined;
         this.childNodes.splice(index, 1);
 
-        if (!recycle) {
-            if (x.proxyType === ProxyType.COMPONENT) {
-                let com: Component = x.element;
-                com[LifeCycleType.UnMounted] && com[LifeCycleType.UnMounted]();
-            }
-        }
+    }
 
+    private removedHook() {
+        // 有问题: com 下面的子component的生命周期没有调用 应该先遍历子节点
+        let childNodes = this.childNodes;
+        let len = childNodes.length;
+        for (let i = 0; i < len; i++) {
+            childNodes[i].removedHook();
+        }
+        
+        if (this.proxyType === ProxyType.COMPONENT) {
+            let com: Component = this.element;
+            com.getNodeProxy().removedHook()
+            com[LifeCycleType.UnMounted] && com[LifeCycleType.UnMounted]();
+        }
+        this.removeCmds();
+        this.ref && this.ref(null);
     }
 
     replaceChild(newNode: NodeProxy, oldNode: NodeProxy) {
-
-        oldNode.setRef(undefined, oldNode.ref);
-        oldNode.removeCommands();
 
         if (this.proxyType === ProxyType.NATIVE) {
             (this.element as HTMLElement).replaceChild(newNode.getNativeNode(), oldNode.getNativeNode());
@@ -128,21 +138,12 @@ export class NodeProxy {
         }
 
         ///
+        oldNode.removedHook();
         let index = this.childNodes.indexOf(oldNode);
         oldNode.parentNode = undefined;
         newNode.parentNode = this;
         this.childNodes[index] = newNode;
-
-        //
-        if (newNode.proxyType === ProxyType.COMPONENT) {
-            let com: Component = newNode.element;
-            com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
-        }
-
-        if (oldNode.proxyType === ProxyType.COMPONENT) {
-            let com: Component = oldNode.element;
-            com[LifeCycleType.UnMounted] && com[LifeCycleType.UnMounted]();
-        }
+        newNode.addedHook();
     }
 
     insertBefore(newNode: NodeProxy, insertTo: NodeProxy | null, recycle = false) {
@@ -164,10 +165,7 @@ export class NodeProxy {
         }
 
         if (!recycle) {
-            if (newNode.proxyType === ProxyType.COMPONENT) {
-                let com: Component = newNode.element;
-                com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
-            }
+            newNode.addedHook();
         }
 
     }
@@ -242,29 +240,19 @@ export class NodeProxy {
     }
 
     // ref
-    setRef(newRef: string, previousRef?: string) {
-        if (this.context) {
-            if (previousRef) {
-                if (this.context.refs[previousRef] === this.element) {
-                    delete this.context.refs[previousRef];
-                }
-            }
-            if (newRef) {
-                this.context.refs[newRef] = this.element;
-            }
-        }
+    setRef(newRef: IRefType) {
         this.ref = newRef;
     }
 
     // commands
-    setCommands(newCommands: ICommandsType) {
-        this.commands = newCommands;
+    setCmds(newCmds: ICmdsType) {
+        this.cmds = newCmds;
     }
 
-    private removeCommands() {
-        if (this.commands) {
-            for (let cmdName in this.commands) {
-                let cmdValue = this.commands[cmdName];
+    private removeCmds() {
+        if (this.cmds) {
+            for (let cmdName in this.cmds) {
+                let cmdValue = this.cmds[cmdName];
                 const cmd = getCommand(cmdName);
                 if (cmd && cmd.bind) {
                     cmd.unbind(this.getNativeNode(), cmdValue);
@@ -273,21 +261,21 @@ export class NodeProxy {
         }
     }
 
-    addCommand(cmdName: string, cmdValue: any) {
+    addCmd(cmdName: string, cmdValue: any) {
         const cmd = getCommand(cmdName);
         if (cmd && cmd.bind) {
             cmd.bind(this.getNativeNode(), cmdValue);
         }
     }
 
-    removeCommand(cmdName: string, previousCmdValue: any) {
+    removeCmd(cmdName: string, previousCmdValue: any) {
         const cmd = getCommand(cmdName);
         if (cmd && cmd.unbind) {
             cmd.unbind(this.getNativeNode(), previousCmdValue);
         }
     }
 
-    updateCommand(cmdName: string, cmdValue: any, previousCmdValue: any) {
+    updateCmd(cmdName: string, cmdValue: any, previousCmdValue: any) {
         const cmd = getCommand(cmdName);
         if (cmd && cmd.update) {
             cmd.update(this.getNativeNode(), cmdValue, previousCmdValue);
@@ -296,6 +284,6 @@ export class NodeProxy {
 
 }
 
-export function createNodeProxy(vnode: VNode, context: Component): NodeProxy {
-    return new NodeProxy(vnode, context);
+export function createNodeProxy(vnode: VNode): NodeProxy {
+    return new NodeProxy(vnode);
 }

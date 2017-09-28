@@ -1,7 +1,8 @@
 export type ITagName = any;
 export type IPropType = { [x: string]: any };
-export type ICommandsType = { [commandName: string]: any }; // { commandName:commandArgs }
-export const TextNodeTagName = {};
+export type ICmdsType = { [commandName: string]: any }; // { commandName:commandArgs }
+export type IRefType = (elm: any) => any;
+export const TextNodeTag = {};
 
 const noProperties = {};
 const noChildren = [];
@@ -17,19 +18,19 @@ export class VNode {
     count = 0;
     type: VNodeType;
 
-    ref: string;
+    ref: IRefType;
     key: string;
-    commands: ICommandsType;
-    namespace: string;
+    cmds: ICmdsType;
+    ns: string;
 
-    constructor(public tagName: ITagName, public props: IPropType = noProperties, public children: VNode[] = noChildren, key?: string) {
+    constructor(public tag: ITagName, public props: IPropType = noProperties, public children: VNode[] = noChildren, key?: string) {
 
         // type
-        if (tagName === TextNodeTagName) {
+        if (tag === TextNodeTag) {
             this.type = VNodeType.NativeText;
-        } else if (typeof tagName === 'string') {
+        } else if (typeof tag === 'string') {
             this.type = VNodeType.NativeNode;
-        } else if (typeof tagName === 'function') {
+        } else if (typeof tag === 'function') {
             this.type = VNodeType.Component;
         }
 
@@ -54,7 +55,7 @@ export class VNode {
 const stack: VNode[] = [];
 const EMPTY_CHILDREN = [];
 
-export function h(tagName: ITagName, props?: IPropType, ...args: any[]): VNode {
+export function h(tag: ITagName, props?: IPropType, ...args: any[]): VNode {
     props == null ? undefined : props;
 
     // key
@@ -71,18 +72,18 @@ export function h(tagName: ITagName, props?: IPropType, ...args: any[]): VNode {
         delete props.ref;
     }
 
-    // commands 指令
-    let commands: ICommandsType;
-    if (props && props.commands != null) {
-        commands = props.commands;
-        delete props.commands;
+    // cmd 指令
+    let cmds: ICmdsType;
+    if (props && props.cmds != null) {
+        cmds = props.cmds;
+        delete props.cmds;
     }
 
     // namespace 
-    let namespace: string;
-    if (props && props.namespace != null) {
-        namespace = props.namespace;
-        delete props.namespace;
+    let ns: string;
+    if (props && props.ns != null) {
+        ns = props.ns;
+        delete props.ns;
     }
 
     ////////////////////////////////////////////////////
@@ -112,7 +113,7 @@ export function h(tagName: ITagName, props?: IPropType, ...args: any[]): VNode {
 
             let childType = typeof child;
             if (childType === 'string' || childType === 'number' || childType === 'boolean') {
-                child = new VNode(TextNodeTagName, { value: String(child) });
+                child = new VNode(TextNodeTag, { value: String(child) });
             }
 
             if (children === EMPTY_CHILDREN) {
@@ -124,10 +125,10 @@ export function h(tagName: ITagName, props?: IPropType, ...args: any[]): VNode {
         }
     }
 
-    let vnode = new VNode(tagName, props, children, key);
+    let vnode = new VNode(tag, props, children, key);
     vnode.ref = ref;
-    vnode.namespace = namespace;
-    vnode.commands = commands;
+    vnode.ns = ns;
+    vnode.cmds = cmds;
 
     return vnode;
 }

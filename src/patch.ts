@@ -1,13 +1,13 @@
 import { isObject, getPrototype, ascending, indexInRange } from "./utils";
-import { VNode, IPropType, ICommandsType } from "./vnode";
+import { VNode, IPropType, ICmdsType } from "./vnode";
 import { IDiffMap, VPatch, VPatchType } from "./diff";
 import { Component } from "./component";
 import { NodeProxy } from "./node-proxy";
 import { render } from "./create-element";
 
 
-export function patch(nodeProxy: NodeProxy, patches: IDiffMap, context?: Component): NodeProxy {
-    let resultNode = patchEach(nodeProxy, patches, context);
+export function patch(nodeProxy: NodeProxy, patches: IDiffMap): NodeProxy {
+    let resultNode = patchEach(nodeProxy, patches);
 
     if (nodeProxy !== resultNode) {
         let parentNode = nodeProxy.parentNode;
@@ -19,7 +19,7 @@ export function patch(nodeProxy: NodeProxy, patches: IDiffMap, context?: Compone
     return resultNode;
 }
 
-function patchEach(nodeProxy: NodeProxy, patches: IDiffMap, context?: Component) {
+function patchEach(nodeProxy: NodeProxy, patches: IDiffMap) {
     let indices: number[] = [];
     for (let key in patches) {
         indices.push(Number(key));
@@ -33,13 +33,13 @@ function patchEach(nodeProxy: NodeProxy, patches: IDiffMap, context?: Component)
 
     for (let i = 0; i < indices.length; i++) {
         let nodeIndex = indices[i];
-        nodeProxy = applyPatch(nodeProxy, nodeProxyMap[nodeIndex], patches[nodeIndex], context);
+        nodeProxy = applyPatch(nodeProxy, nodeProxyMap[nodeIndex], patches[nodeIndex]);
     }
 
     return nodeProxy;
 }
 
-function applyPatch(rootNodeProxy: NodeProxy, childNodeProxy: NodeProxy, patchList, context?: Component) {
+function applyPatch(rootNodeProxy: NodeProxy, childNodeProxy: NodeProxy, patchList) {
     if (!childNodeProxy) {
         return rootNodeProxy;
     }
@@ -48,14 +48,14 @@ function applyPatch(rootNodeProxy: NodeProxy, childNodeProxy: NodeProxy, patchLi
 
     if (Array.isArray(patchList)) {
         for (let i = 0; i < patchList.length; i++) {
-            newNodeProxy = patchOp(childNodeProxy, patchList[i], context);
+            newNodeProxy = patchOp(childNodeProxy, patchList[i]);
 
             if (childNodeProxy === rootNodeProxy) {
                 rootNodeProxy = newNodeProxy;
             }
         }
     } else {
-        newNodeProxy = patchOp(childNodeProxy, patchList, context);
+        newNodeProxy = patchOp(childNodeProxy, patchList);
 
         if (childNodeProxy === rootNodeProxy) {
             rootNodeProxy = newNodeProxy;
@@ -119,14 +119,14 @@ function recurse(nodeProxy: NodeProxy, tree, indices: number[], nodes: { [index:
 
 
 ////////////
-function patchOp(nodeProxy: NodeProxy, vpatch: VPatch, context?: Component) {
+function patchOp(nodeProxy: NodeProxy, vpatch: VPatch) {
     let type = vpatch.type;
     let vNode = vpatch.vNode;
     let patch = vpatch.patch;
 
     switch (type) {
         case VPatchType.INSERT:
-            return insertNode(nodeProxy, patch, context);
+            return insertNode(nodeProxy, patch);
         case VPatchType.REMOVE:
             nodeProxy.parentNode && nodeProxy.parentNode.removeChild(nodeProxy);
             return null;
@@ -140,20 +140,20 @@ function patchOp(nodeProxy: NodeProxy, vpatch: VPatch, context?: Component) {
             nodeProxy.setComponentProps(patch, vNode.props);
             return nodeProxy;
         case VPatchType.REPLACE:
-            return replaceNode(nodeProxy, vNode, patch, context);
+            return replaceNode(nodeProxy, vNode, patch);
         case VPatchType.REF:
-            nodeProxy.setRef(patch, vNode.ref);
+            nodeProxy.setRef(patch);
             return nodeProxy;
         case VPatchType.COMMANDS:
-            applyCommands(nodeProxy, patch.patch, vNode.commands, patch.newCommands);
+            applyCommands(nodeProxy, patch.patch, vNode.cmds, patch.newCommands);
             return nodeProxy;
         default:
             return nodeProxy;
     }
 }
 
-function insertNode(parentNodeProxy: NodeProxy, vNode: VNode, context?: Component) {
-    let newNode = render(vNode, context);
+function insertNode(parentNodeProxy: NodeProxy, vNode: VNode) {
+    let newNode = render(vNode);
 
     if (parentNodeProxy) {
         parentNodeProxy.appendChild(newNode);
@@ -162,9 +162,9 @@ function insertNode(parentNodeProxy: NodeProxy, vNode: VNode, context?: Componen
     return parentNodeProxy;
 }
 
-function replaceNode(nodeProxy: NodeProxy, leftVNode: VNode, vNode: VNode, context?: Component) {
+function replaceNode(nodeProxy: NodeProxy, leftVNode: VNode, vNode: VNode) {
     let parentNode = nodeProxy.parentNode;
-    let newNode = render(vNode, context);
+    let newNode = render(vNode);
 
     if (parentNode && newNode !== nodeProxy) {
         parentNode.replaceChild(newNode, nodeProxy);
@@ -253,20 +253,20 @@ function patchNativeNodeObject(proxy: NodeProxy, props, previous, propName, prop
 }
 
 
-export function applyCommands(proxy: NodeProxy, cmdPatch: ICommandsType, previousCmds: ICommandsType, newCommands: ICommandsType) {
+export function applyCommands(proxy: NodeProxy, cmdPatch: ICmdsType, previousCmds: ICmdsType, newCommands: ICmdsType) {
     for (let cmdName in cmdPatch) {
         let cmdValue = cmdPatch[cmdName];
         if (cmdValue === undefined) {
             if (previousCmds && (cmdName in previousCmds)) {
-                proxy.removeCommand(cmdName, previousCmds[cmdName]);
+                proxy.removeCmd(cmdName, previousCmds[cmdName]);
             }
         } else {
             if (previousCmds && (cmdName in previousCmds)) {
-                proxy.updateCommand(cmdName, cmdValue, previousCmds[cmdName])
+                proxy.updateCmd(cmdName, cmdValue, previousCmds[cmdName])
             } else {
-                proxy.addCommand(cmdName, cmdValue);
+                proxy.addCmd(cmdName, cmdValue);
             }
         }
     }
-    proxy.setCommands(newCommands);
+    proxy.setCmds(newCommands);
 }
