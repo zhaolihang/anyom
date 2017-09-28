@@ -1,7 +1,12 @@
-*.js.map
-*.js
+.vscode
 node_modules
 .rpt2_cache
-.vscode/chrome
+disttest
+distbench
+babelworkplace
 !rollup.config*
 !utils/*
+*.js.map
+*.js
+*.js.map
+*.jsx.map

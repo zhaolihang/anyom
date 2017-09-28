@@ -1,6 +1,8 @@
+.vscode
+.rpt2_cache
 node_modules
 disttest
 distbench
-.rpt2_cache
-.vscode
+babelworkplace
 *.js.map
+*.jsx.map
