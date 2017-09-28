@@ -3,7 +3,8 @@
         [
             "transform-react-jsx",
             {
-                "pragma": "h" // default pragma is React.createElement
+                "pragma": "h", // default pragma is React.createElement
+                "useBuiltIns": true
             }
         ]
     ]
