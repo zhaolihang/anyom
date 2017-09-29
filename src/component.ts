@@ -5,6 +5,7 @@ import { patch } from "./patch";
 import { createElement } from "./create-element";
 import { queueComponent } from "./scheduler";
 import { NodeProxy } from "./node-proxy";
+import { EventEmitter } from "./EventEmitter";
 
 export const LifeCycleType = {
     Created: 'created',
@@ -21,7 +22,7 @@ export enum RenderMode {
 }
 
 let GID = 0;
-export class Component {
+export class Component extends EventEmitter {
 
     protected renderedVNode: VNode;
     protected renderedNodeProxy: NodeProxy;
@@ -32,6 +33,7 @@ export class Component {
     protected refs: any = {};
 
     constructor(props) {
+        super()
         this.id = ++GID;
         this.props = props || {};
     }
