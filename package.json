@@ -17,7 +17,6 @@
     "cleardist": "del-cli dist/**/*.js dist/**/*.js.map",
     "cleantest": "del-cli disttest/**/*.js disttest/**/*.js.map ",
     "clearall": "npm run cleardist & npm run cleantest",
-    "dev": "tsc -w",
     "build": "rollup -c",
     "build:bench": "rollup -c rollup.config.bench.js",
     "build:test": "rollup -w -c rollup.config.test.js"

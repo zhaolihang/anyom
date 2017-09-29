@@ -7,7 +7,7 @@
         "allowJs": true,
         "listFiles": true,
         "strictNullChecks": false,
-        "outDir": "babelworkplace",
+        "outDir": "tscdist",
         "jsx": "preserve",
         "jsxFactory": "h",
         "moduleResolution": "node",
