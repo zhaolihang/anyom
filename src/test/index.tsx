@@ -214,6 +214,18 @@ const rootNode = document.getElementById('body');
 const rootNodeProxy = render(new VNode('div'))
 rootNode.appendChild(rootNodeProxy.getNativeNode());
 
+const Flag = function (props) {
+    log(this === undefined)
+    log('ComponentStateless this=', this === undefined);
+    return <div>{props.flag ? true : false} </div>
+}
+
+// let scope = this;
+// const Flag = (props) => {
+//     log('ComponentStateless this=',this === scope);
+//     return <div>{props.flag ? true : false} </div>
+// }
+
 class Tag extends Component {
     mounted() {
         log('Tag mounted');
@@ -225,7 +237,7 @@ class Tag extends Component {
 
     render() {
         let be = 0;
-        return be ? (<div>small tag</div>) : null;
+        return be ? (<div>small tag</div>) : (<Flag></Flag>);
     }
 
 }
@@ -261,7 +273,6 @@ class Button extends Component {
             }} >
                 {title || '按钮'}
                 {null}
-                <Tag></Tag>
             </button>
         );
     }
@@ -310,6 +321,7 @@ class App extends Component {
                         num: num + 1,
                     }));
                 }} title={btnTitle}>
+                    <Flag flag={isName}></Flag>
                 </Button>
                 {input}
             </div>
