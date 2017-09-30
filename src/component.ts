@@ -83,3 +83,14 @@ export class Component extends EventEmitter {
         throw new Error('请重写本方法');
     };
 }
+
+export class ComponentStateless extends Component {
+
+    constructor(props, renderFn) {
+        super(props)
+        this.render = () => {
+            return renderFn(this.props);
+        };
+    }
+
+}

@@ -1,6 +1,6 @@
 import { ITagName, VNode, VNodeType, ICmdsType, IRefType } from "./vnode";
-import { Component, LifeCycleType } from "./component";
-import { startsWith, endsWith, getEventNameOfNative } from "./utils";
+import { Component, LifeCycleType, ComponentStateless } from "./component";
+import { startsWith, endsWith, getEventNameOfNative, getPrototype } from "./utils";
 import { getCommand } from "./commands";
 import { applyNativeProps, applyCommands } from "./patch";
 
@@ -59,8 +59,14 @@ export class NodeProxy {
     }
 
     private createComponent(vNode: VNode): Component {
-        let Consr: typeof Component = vNode.tag;
-        let com: Component = new Consr(vNode.props);
+        let Ctor = vNode.tag;
+        let CtorProto = getPrototype(Ctor);
+        let com: Component;
+        if (Ctor.prototype && Ctor.prototype.render) {
+            com = new Ctor(vNode.props);
+        } else {
+            com = new ComponentStateless(vNode.props, Ctor);
+        }
         com[LifeCycleType.Created] && com[LifeCycleType.Created]();
         return com;
     }
