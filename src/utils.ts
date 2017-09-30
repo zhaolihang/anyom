@@ -1,3 +1,5 @@
+export function noop(...x: any[]): any;
+export function noop() { };
 
 export function isObject(x) {
     return typeof x === "object" && x !== null;
@@ -120,3 +122,24 @@ export function getEventNameOfNative(propName: string) {
         }
     }
 }
+
+const sharedPropertyDefinition = {
+    enumerable: true,
+    configurable: true,
+    get: noop,
+    set: noop,
+}
+export function proxy(target: any, source: any, key: string) {
+    if (target[key]) {
+        console.warn('proxy prop [' + key + '] already exists')
+        return;
+    }
+    sharedPropertyDefinition.get = function proxyGetter() {
+        return source[key];
+    }
+    sharedPropertyDefinition.set = function proxySetter(val) {
+        source[key] = val;
+    }
+    Object.defineProperty(target, key, sharedPropertyDefinition)
+}
+

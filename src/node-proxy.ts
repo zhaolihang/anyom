@@ -129,7 +129,8 @@ export class NodeProxy {
 
         if (this.proxyType === ProxyType.COMPONENT) {
             let com: Component = this.element;
-            com.getNodeProxy().removedHook()
+            com.getNodeProxy().removedHook();
+            com[LifeCycleType.Destory]();// 去除依赖
             com[LifeCycleType.UnMounted] && com[LifeCycleType.UnMounted]();
         }
         this.removeCmds();

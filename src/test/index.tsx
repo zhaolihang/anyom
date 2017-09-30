@@ -215,14 +215,13 @@ const rootNodeProxy = render(new VNode('div'))
 rootNode.appendChild(rootNodeProxy.getNativeNode());
 
 const Flag = function (props) {
-    log(this === undefined)
-    log('ComponentStateless this=', this === undefined);
+    // log('ComponentStateless this === undefined', this === undefined);
     return <div>{props.flag ? true : false} </div>
 }
 
 // let scope = this;
 // const Flag = (props) => {
-//     log('ComponentStateless this=',this === scope);
+//     // log('ComponentStateless this=',this === scope);
 //     return <div>{props.flag ? true : false} </div>
 // }
 
@@ -263,8 +262,8 @@ class Button extends Component {
     }
 
     render() {
-        let title = this.props.title;
-        let onclick = this.props.onclick;
+        let title = this.$props.title;
+        let onclick = this.$props.onclick;
         return (
             <button className={'button'} on-click={(e) => {
                 if (onclick) {
@@ -278,15 +277,62 @@ class Button extends Component {
     }
 }
 
+class Input extends Component {
+
+    created() {
+        log('Button created');
+    }
+
+    mounted() {
+        log('Button mounted');
+    }
+
+    unmounted() {
+        log('Button unmounted');
+    }
+
+    beforeUpdate() {
+        log('Button beforeUpdate');
+    }
+
+    afterUpdate() {
+        log('Button afterUpdate');
+    }
+
+    render() {
+        return (
+            <input ref={(elm) => {
+                this.$refs.input = elm;
+            }} {...this.$props} on-change={(e) => {
+                this.emit('input', e.target.value);
+                log(e.target.value);
+            }} />
+        );
+    }
+}
+
 
 class App extends Component {
+
+    num: number;
+    isName: boolean;
+    btnTitle: string;
+    testArr: string[];
+    testObj: any;
+    testString: string;
+    initialState() {
+        return {
+            num: 0,
+            isName: true,
+            btnTitle: 'SecondBut',
+            testArr: ['test1', 'test2'],
+            testObj: { test1: 1, test2: 2 },
+            testString: 'string',
+        };
+    }
+
     created() {
         log('App created');
-        this.state = {
-            isName: true,
-            num: 0,
-            btnTitle: 'SecondBut',
-        };
     }
 
     mounted() {
@@ -306,20 +352,35 @@ class App extends Component {
     }
 
     render() {
+        // compile injected : let $$thiz = this;
+
         let testspread = { a: 0, c: 0 };
-        let isName = this.state.isName;
-        let btnTitle = this.state.btnTitle;
-        let num = this.state.num;
-        let input = isName ? <input key='name' ref={(elm) => { this.refs.name = elm; }} type='text' placeholder='name'></input> : <input key='password' ref={(elm) => { this.refs.password = elm; }} type='password' placeholder='password'></input>;
+        let isName = this.isName;
+        let btnTitle = this.btnTitle;
+        let num = this.num;
+        let input = isName ? <Input key='name' ref={(elm) => { this.$refs.name = elm; }} type='text' placeholder='name' /> : <Input key='password' ref={(elm) => { this.$refs.password = elm; }} type='password' placeholder='password' />;
+
+        let testArr = this.testArr;
+        let modelArr = testArr.map((v, i, arr) => {
+            return <Input a-model={arr[i]} />;
+            // compiled:  <Input value={arr[i]} on-input={(v)=>{ arr[i]=v; }} />
+        });
+
+        let testObj = this.testObj;
+        let modelObj = Object.keys(testObj).map((key) => {
+            return <Input a-model={testObj[key]} />
+        });
+
+        // <Input a-model='testString' ref="testStringInput" />; 
+        // compiled:  <Input value={$$thiz['testString']} on-input={(v)=>{ $$thiz['testString]=v; }} ref={(v)=>{ $$thiz.$refs['testStringInput']=v; }} />
+
         return (
-            <div v-bind={{ a: 0 }} {...testspread} className={'app'}>
+            <div a={{ a: 0 }} {...testspread} className={'app'}>
                 <span style={{ display: 'block' }}>Hello world!</span>
-                <Button ref={(elm) => { this.refs.button = elm; }} onclick={() => {
-                    log('test ref name =', this.refs.name);
-                    this.setState(Object.assign({}, this.state, {
-                        isName: !isName,
-                        num: num + 1,
-                    }));
+                <Button ref={(elm) => { this.$refs.button = elm; }} onclick={() => {
+                    log('test ref name =', this.$refs.name);
+                    this.isName = !isName;
+                    this.num = num + 1;
                 }} title={btnTitle}>
                     <Flag flag={isName}></Flag>
                 </Button>

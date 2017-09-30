@@ -1,10 +1,10 @@
 type AnyFn = (...args: any[]) => any;
 
 export class EventEmitter {
-    protected _listeners = {};
+    protected $$listeners = {};
 
     on(evt: string, fn: AnyFn, ctx?: any) {
-        (this._listeners[evt] || (this._listeners[evt] = [])).push({
+        (this.$$listeners[evt] || (this.$$listeners[evt] = [])).push({
             fn: fn,
             ctx: ctx || this
         });
@@ -14,12 +14,12 @@ export class EventEmitter {
     off(evt?: string, fn?: AnyFn): this;
     off(evt, fn) {
         if (evt === undefined)
-            this._listeners = {};
+            this.$$listeners = {};
         else {
             if (fn === undefined)
-                this._listeners[evt] = [];
+                this.$$listeners[evt] = [];
             else {
-                var listeners = this._listeners[evt];
+                var listeners = this.$$listeners[evt];
                 for (var i = 0; i < listeners.length;)
                     if (listeners[i].fn === fn)
                         listeners.splice(i, 1);
@@ -32,7 +32,7 @@ export class EventEmitter {
 
     emit(evt: string, ...args: any[]): this;
     emit(evt) {
-        var listeners = this._listeners[evt];
+        var listeners = this.$$listeners[evt];
         if (listeners) {
             var args = [],
                 i = 1;

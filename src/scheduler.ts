@@ -16,11 +16,11 @@ function resetSchedulerState() {
 function flushSchedulerQueue() {
     flushing = true;
     let component: Component, id;
-    queue.sort((a, b) => a.id - b.id);
+    queue.sort((a, b) => a.$$id - b.$$id);
 
     for (index = 0; index < queue.length; index++) {
         component = queue[index];
-        id = component.id;
+        id = component.$$id;
         has[id] = null;
         component[LifeCycleType.BeforeUpdate] && component[LifeCycleType.BeforeUpdate]();
         component.forceUpdate(RenderMode.SYNC);
@@ -35,14 +35,14 @@ function flushSchedulerQueue() {
 
 
 export function queueComponent(component: Component) {
-    const id = component.id;
+    const id = component.$$id;
     if (!has[id]) {
         has[id] = true;
         if (!flushing) {
             queue.push(component);
         } else {
             let i = queue.length - 1;
-            while (i > index && queue[i].id > component.id) {
+            while (i > index && queue[i].$$id > component.$$id) {
                 i--;
             }
             queue.splice(i + 1, 0, component);
