@@ -3,6 +3,7 @@ export type IPropType = { [x: string]: any };
 export type ICmdsType = { [commandName: string]: any }; // { commandName:commandArgs }
 export type IRefType = (elm: any) => any;
 export const TextNodeTag = {};
+export const NullNodeTag = {};
 
 const noProperties = {};
 const noChildren = [];
@@ -12,6 +13,7 @@ export enum VNodeType {
     Component,
     NativeNode,
     NativeText,
+    NullNode,
 }
 
 export class VNode {
@@ -28,6 +30,8 @@ export class VNode {
         // type
         if (tag === TextNodeTag) {
             this.type = VNodeType.NativeText;
+        } else if (tag === NullNodeTag) {
+            this.type = VNodeType.NullNode;
         } else if (typeof tag === 'string') {
             this.type = VNodeType.NativeNode;
         } else if (typeof tag === 'function') {
@@ -57,7 +61,7 @@ const EMPTY_CHILDREN = [];
 
 export function h(tag: ITagName, props?: IPropType): VNode {
     props == null ? undefined : props;
-    
+
     // key
     let key;
     if (props && props.key != null) {
@@ -115,7 +119,10 @@ export function h(tag: ITagName, props?: IPropType): VNode {
             if (childType === 'string' || childType === 'number' || childType === 'boolean') {
                 child = new VNode(TextNodeTag, { value: String(child) });
             }
-
+            if (!child) {
+                // console.warn('child is null');
+                continue;
+            }
             if (children === EMPTY_CHILDREN) {
                 children = [child];
             } else {

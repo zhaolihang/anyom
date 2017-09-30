@@ -224,9 +224,8 @@ class Tag extends Component {
     }
 
     render() {
-        return (
-            <div>small tag</div>
-        );
+        let be = 0;
+        return be ? (<div>small tag</div>) : null;
     }
 
 }
@@ -261,6 +260,7 @@ class Button extends Component {
                 }
             }} >
                 {title || '按钮'}
+                {null}
                 <Tag></Tag>
             </button>
         );

@@ -1,5 +1,5 @@
 import { overwrite } from "./utils";
-import { VNode } from "./vnode";
+import { VNode, TextNodeTag, NullNodeTag } from "./vnode";
 import { diff } from "./diff";
 import { patch } from "./patch";
 import { createElement } from "./create-element";
@@ -58,13 +58,13 @@ export class Component extends EventEmitter {
         if (renderMode === RenderMode.SYNC) {
 
             if (this.renderedVNode) {
-                let newVNode = this.render();
+                let newVNode = this._render();
                 let patches = diff(this.renderedVNode, newVNode);
                 let newRootRNode = patch(this.renderedNodeProxy, patches);
                 this.renderedVNode = newVNode;
                 this.renderedNodeProxy = newRootRNode;
             } else {
-                this.renderedVNode = this.render();
+                this.renderedVNode = this._render();
                 this.renderedNodeProxy = createElement(this.renderedVNode);
             }
 
@@ -72,6 +72,11 @@ export class Component extends EventEmitter {
             queueComponent(this);
         }
 
+    }
+
+    private _render(): VNode {
+        let vnode = this.render() || new VNode(NullNodeTag, {});// 处理返回的VNode 是null 的情况
+        return vnode;
     }
 
     render(): VNode {

@@ -52,8 +52,9 @@ export class NodeProxy {
         if (this.vNodeType === VNodeType.NativeText) {
             return <Text>(document.createTextNode(vNode.props.value));
         } else if (this.vNodeType === VNodeType.NativeNode) {
-            let nativeNode = <HTMLElement>(document.createElement(vNode.tag));
-            return nativeNode;
+            return <HTMLElement>(document.createElement(vNode.tag));
+        } else if (this.vNodeType === VNodeType.NullNode) {
+            return document.createComment('   ');
         }
     }
 
