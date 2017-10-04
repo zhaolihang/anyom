@@ -67,6 +67,12 @@ export class Component extends EventEmitter {
     setProps(props) {
         this.$props = props || {};
         this.forceUpdate(RenderMode.ASYNC);
+        this.onProps(props)
+    }
+
+    protected onProps(props) {//to override
+        // use props to update state
+        // eg: this.firstName = props.firstName;
     }
 
     forceUpdate(renderMode: RenderMode) {
