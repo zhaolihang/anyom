@@ -193,9 +193,9 @@ export class NodeProxy {
         let event = getEventNameOfNative(propName);
         if (event) {
             if (previous && previous[propName]) {
-                element.removeEventListener(event.name, previous[propName], event.capture);
+                element.removeEventListener(event.name, previous[propName]);
             }
-            element.addEventListener(event.name, propValue, event.capture);
+            element.addEventListener(event.name, propValue);
             return;
         }
 
@@ -236,7 +236,7 @@ export class NodeProxy {
         let event = getEventNameOfNative(propName);
         if (event) {
             if (previous && previous[propName]) {
-                element.removeEventListener(event.name, previous[propName], event.capture);
+                element.removeEventListener(event.name, previous[propName]);
             }
         } else {
             if (element.hasAttribute(propName)) {

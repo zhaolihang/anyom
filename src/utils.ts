@@ -113,13 +113,9 @@ export function indexInRange(indices, left, right) {
 }
 
 export function getEventNameOfNative(propName: string) {
-    //propName eg: 'on-click-capture'
+    //propName eg: 'on-click'
     if (startsWith(propName, 'on-')) {
-        if (endsWith(propName, '-capture')) {
-            return { name: propName.substring(3, propName.length - 9), capture: true };
-        } else {
-            return { name: propName.substring(3), capture: false };
-        }
+        return { name: propName.substring(3), capture: false };
     }
 }
 

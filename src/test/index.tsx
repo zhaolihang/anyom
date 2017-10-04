@@ -214,10 +214,14 @@ const rootNode = document.getElementById('body');
 const rootNodeProxy = render(new VNode('div'))
 rootNode.appendChild(rootNodeProxy.getNativeNode());
 
-const Flag = function (props) {
-    // log('ComponentStateless this === undefined', this === undefined);
-    return <div>{props.flag ? true : false} </div>
-}
+// const Flag = function (props) {
+//     // log('ComponentStateless this === undefined', this === undefined);
+//     return <div>{props.flag ? true : false} </div>
+// }
+
+let qqq = [2];
+let a = <div key="" ref="string" on-name={() => { }}
+    cmd-xxx={{ vvv: 123 }} two-bind={qqq[0]}></div >
 
 // let scope = this;
 // const Flag = (props) => {
@@ -225,215 +229,218 @@ const Flag = function (props) {
 //     return <div>{props.flag ? true : false} </div>
 // }
 
-class Tag extends Component {
-    mounted() {
-        log('Tag mounted');
-    }
+// class Tag extends Component {
+//     mounted() {
+//         log('Tag mounted');
+//     }
 
-    unmounted() {
-        log('Tag unmounted');
-    }
+//     unmounted() {
+//         log('Tag unmounted');
+//     }
 
-    render() {
-        let be = 0;
-        return be ? (<div>small tag</div>) : (<Flag></Flag>);
-    }
+//     render() {
+//         let be = 0;
+//         return be ? (<div>small tag</div>) : (<Flag></Flag>);
+//     }
 
-}
-class Button extends Component {
-    created() {
-        log('Button created');
-    }
+// }
+// class Button extends Component {
+//     created() {
+//         log('Button created');
+//     }
 
-    mounted() {
-        log('Button mounted');
-    }
+//     mounted() {
+//         log('Button mounted');
+//     }
 
-    unmounted() {
-        log('Button unmounted');
-    }
+//     unmounted() {
+//         log('Button unmounted');
+//     }
 
-    beforeUpdate() {
-        log('Button beforeUpdate');
-    }
+//     beforeUpdate() {
+//         log('Button beforeUpdate');
+//     }
 
-    afterUpdate() {
-        log('Button afterUpdate');
-    }
+//     afterUpdate() {
+//         log('Button afterUpdate');
+//     }
 
-    render() {
-        let title = this.$props.title;
-        let onclick = this.$props.onclick;
-        return (
-            <button className={'button'} on-click={(e) => {
-                if (onclick) {
-                    onclick(e);
-                }
-            }} >
-                {title || '按钮'}
-                {null}
-            </button>
-        );
-    }
-}
+//     render() {
+//         let title = this.$props.title;
+//         let onclick = this.$props.onclick;
+//         return (
+//             <button className={'button'} on-click={(e) => {
+//                 if (onclick) {
+//                     onclick(e);
+//                 }
+//             }} >
+//                 {title || '按钮'}
+//                 {null}
+//             </button>
+//         );
+//     }
+// }
 
-class Input extends Component {
+// class Input extends Component {
 
-    created() {
-        log('Button created');
-    }
+//     created() {
+//         log('Button created');
+//     }
 
-    mounted() {
-        log('Button mounted');
-    }
+//     mounted() {
+//         log('Button mounted');
+//     }
 
-    unmounted() {
-        log('Button unmounted');
-    }
+//     unmounted() {
+//         log('Button unmounted');
+//     }
 
-    beforeUpdate() {
-        log('Button beforeUpdate');
-    }
+//     beforeUpdate() {
+//         log('Button beforeUpdate');
+//     }
 
-    afterUpdate() {
-        log('Button afterUpdate');
-    }
+//     afterUpdate() {
+//         log('Button afterUpdate');
+//     }
 
-    render() {
-        return (
-            <input ref={(elm) => {
-                this.$refs.input = elm;
-            }} {...this.$props} on-change={(e) => {
-                this.emit('input', e.target.value);
-                log(e.target.value);
-            }} />
-        );
-    }
-}
+//     render() {
+//         return (
+//             <input ref={(elm) => {
+//                 this.$refs.input = elm;
+//             }} {...this.$props} on-change={(e) => {
+//                 this.emit('input', e.target.value);
+//                 log(e.target.value);
+//             }} />
+//         );
+//     }
+// }
 
 
-class App extends Component {
+// class App extends Component {
 
-    num: number;
-    isName: boolean;
-    btnTitle: string;
-    testArr: string[];
-    testObj: any;
-    testString: string;
-    initialState() {
-        return {
-            num: 0,
-            isName: true,
-            btnTitle: 'SecondBut',
-            testArr: ['test1', 'test2'],
-            testObj: { test1: 1, test2: 2 },
-            testString: 'string',
-        };
-    }
+//     num: number;
+//     isName: boolean;
+//     btnTitle: string;
+//     testArr: string[];
+//     testObj: any;
+//     testString: string;
+//     initialState() {
+//         return {
+//             num: 0,
+//             isName: true,
+//             btnTitle: 'SecondBut',
+//             testArr: ['test1', 'test2'],
+//             testObj: { test1: 1, test2: 2 },
+//             testString: 'string',
+//         };
+//     }
 
-    created() {
-        log('App created');
-    }
+//     created() {
+//         log('App created');
+//     }
 
-    mounted() {
-        log('App mounted');
-    }
+//     mounted() {
+//         log('App mounted');
+//     }
 
-    unmounted() {
-        log('App unmounted');
-    }
+//     unmounted() {
+//         log('App unmounted');
+//     }
 
-    beforeUpdate() {
-        log('App beforeUpdate');
-    }
+//     beforeUpdate() {
+//         log('App beforeUpdate');
+//     }
 
-    afterUpdate() {
-        log('App afterUpdate');
-    }
+//     afterUpdate() {
+//         log('App afterUpdate');
+//     }
 
-    render() {
-        // compile injected : let $$thiz = this;
+//     render() {
+//         // compile injected : let $$thiz = this;
 
-        let testspread = { a: 0, c: 0 };
-        let isName = this.isName;
-        let btnTitle = this.btnTitle;
-        let num = this.num;
-        let input = isName ? <Input key='name' ref={(elm) => { this.$refs.name = elm; }} type='text' placeholder='name' /> : <Input key='password' ref={(elm) => { this.$refs.password = elm; }} type='password' placeholder='password' />;
+//         let testspread = { a: 0, c: 0 };
+//         let isName = this.isName;
+//         let btnTitle = this.btnTitle;
+//         let num = this.num;
+//         let input = isName ? <Input key='name' ref={(elm) => { this.$refs.name = elm; }} type='text' placeholder='name' /> : <Input key='password' ref={(elm) => { this.$refs.password = elm; }} type='password' placeholder='password' />;
 
-        let testArr = this.testArr;
-        let modelArr = testArr.map((v, i, arr) => {
-            return <Input a-model={arr[i]} />;
-            // compiled:  <Input value={arr[i]} on-input={(v)=>{ arr[i]=v; }} />
-        });
+//         let testArr = this.testArr;
+//         let modelArr = testArr.map((v, i, arr) => {
+//             return <Input a-model={arr[i]} />;
+//             // compiled:  <Input value={arr[i]} on-input={(v)=>{ arr[i]=v; }} />
+//         });
 
-        let testObj = this.testObj;
-        let modelObj = Object.keys(testObj).map((key) => {
-            return <Input a-model={testObj[key]} />
-        });
+//         let testObj = this.testObj;
+//         let modelObj = Object.keys(testObj).map((key) => {
+//             return <Input a-model={testObj[key]} />
+//         });
 
-        // <Input a-model='testString' ref="testStringInput" />; 
-        // compiled:  <Input value={$$thiz['testString']} on-input={(v)=>{ $$thiz['testString]=v; }} ref={(v)=>{ $$thiz.$refs['testStringInput']=v; }} />
+//         // <Input a-model='testString' ref="testStringInput" />; 
+//         // compiled:  <Input value={$$thiz['testString']} on-input={(v)=>{ $$thiz['testString]=v; }} ref={(v)=>{ $$thiz.$refs['testStringInput']=v; }} />
 
-        return (
-            <div a={{ a: 0 }} {...testspread} className={'app'}>
-                <span style={{ display: 'block' }}>Hello world!</span>
-                <Button ref={(elm) => { this.$refs.button = elm; }} onclick={() => {
-                    log('test ref name =', this.$refs.name);
-                    this.isName = !isName;
-                    this.num = num + 1;
-                }} title={btnTitle}>
-                    <Flag flag={isName}></Flag>
-                </Button>
-                {input}
-            </div>
-        );
-    }
-}
+//         return (
+//             <div a={{ a: 0 }} {...testspread} className={'app'}>
+//                 <span style={{ display: 'block' }}>Hello world!</span>
+//                 <Button ref={(elm) => { this.$refs.button = elm; }} onclick={() => {
+//                     log('test ref name =', this.$refs.name);
+//                     this.isName = !isName;
+//                     this.num = num + 1;
+//                 }} title={btnTitle}>
+//                     <Flag flag={isName}></Flag>
+//                 </Button>
+//                 {input}
+//             </div>
+//         );
+//     }
+// }
 
-let firstVNode = (<div >
-    <Button></Button>
-    <div key={'1'}>111</div>
-    <div key={'2'}>222</div>
-    <div key={'3'}>333</div>
-    <div key={'4'}>444</div>
-</div>)
+// // <div key={string or number} ref="string" on-name={function} 
+// //      cmd-xxx={value} two-bind={"string" or memberexpression}></div>
 
-let firstNodeProxy = render(firstVNode)
-rootNodeProxy.appendChild(firstNodeProxy);
+// let firstVNode = (<div >
+//     <Button></Button>
+//     <div key={'1'}>111</div>
+//     <div key={'2'}>222</div>
+//     <div key={'3'}>333</div>
+//     <div key={'4'}>444</div>
+// </div>)
 
-let secondVNode = (<div>
+// let firstNodeProxy = render(firstVNode)
+// rootNodeProxy.appendChild(firstNodeProxy);
 
-    <div key={'draggable'} cmds={{ draggable: { a: 123 } }}>draggable</div>
-    <div key={'4'}>444</div>
-    <div key={'3'}>333</div>
-    <div key={'droppable'} cmds={{
-        droppable: (error, data) => {
-            if (!error) {
-                log('droppable', data);
-                return;
-            }
-            log(error);
-        },
-    }}>droppable</div>
-    <img height="100" src="http://nodejs.cn/static/images/logo.svg" ></img>
-    <App>
-    </App>
-    <div cmds={{ dragmove: true }} innerHTML="<div>I'm from innerHtml</div>"></div>
-</div >)
+// let secondVNode = (<div>
 
-setTimeout(() => {
-    let patches = diff(firstVNode, secondVNode);
-    log('*********************************************');
-    log('patches', patches);
+//     <div key={'draggable'} cmds={{ draggable: { a: 123 } }}>draggable</div>
+//     <div key={'4'}>444</div>
+//     <div key={'3'}>333</div>
+//     <div key={'droppable'} cmds={{
+//         droppable: (error, data) => {
+//             if (!error) {
+//                 log('droppable', data);
+//                 return;
+//             }
+//             log(error);
+//         },
+//     }}>droppable</div>
+//     <img height="100" src="http://nodejs.cn/static/images/logo.svg" ></img>
+//     <App>
+//     </App>
+//     <div cmds={{ dragmove: true }} innerHTML="<div>I'm from innerHtml</div>"></div>
+// </div >)
 
-    log('---------------------------------------------');
-    log('firstNodeProxy', firstNodeProxy);
-    let newFirstNodeProxy = patch(firstNodeProxy, patches);
-    log('---------------------------------------------');
-    log('newFirstNodeProxy', newFirstNodeProxy);
+// setTimeout(() => {
+//     let patches = diff(firstVNode, secondVNode);
+//     log('*********************************************');
+//     log('patches', patches);
 
-    log('---------------------------------------------');
-    log('newFirstNodeProxy === firstNodeProxy', newFirstNodeProxy === firstNodeProxy);
-}, 1000);
+//     log('---------------------------------------------');
+//     log('firstNodeProxy', firstNodeProxy);
+//     let newFirstNodeProxy = patch(firstNodeProxy, patches);
+//     log('---------------------------------------------');
+//     log('newFirstNodeProxy', newFirstNodeProxy);
 
-(window as any).rootnode = rootNodeProxy;
+//     log('---------------------------------------------');
+//     log('newFirstNodeProxy === firstNodeProxy', newFirstNodeProxy === firstNodeProxy);
+// }, 1000);
+
+// (window as any).rootnode = rootNodeProxy;
