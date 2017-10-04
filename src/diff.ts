@@ -12,6 +12,7 @@ export enum VPatchType {
     REMOVE,
     REF,
     COMMANDS,
+    ONS,
 }
 
 export class VPatch {
@@ -107,6 +108,40 @@ function diffCommands(aCmds, bCmds) {
 }
 
 
+function diffOns(aOns, bOns) {
+    if (aOns === bOns) {
+        return;
+    }
+
+    let diff;
+    for (let aKey in aOns) {
+        if (!(aKey in bOns)) {
+            diff = diff || {};
+            diff[aKey] = undefined;
+        }
+        let aValue = aOns[aKey];
+        let bValue = bOns[aKey];
+
+        if (aValue === bValue) {
+            continue;
+        } else {
+            diff = diff || {};
+            diff[aKey] = bValue;
+        }
+    }
+
+    for (let bKey in bOns) {
+        if (!(bKey in aOns)) {
+            diff = diff || {};
+            diff[bKey] = bOns[bKey];
+        }
+    }
+
+    return diff;
+}
+
+
+
 type VPatchResultType = VPatch | VPatch[];
 
 export interface IDiffMap {
@@ -127,6 +162,7 @@ export function diff(a: VNode, b?: VNode) {
 };
 
 const noCmds = {};
+const noOns = {};
 function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
     if (a === b) {
         return;
@@ -157,6 +193,11 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
             let cmdPatch = diffCommands(a.cmds || noCmds, b.cmds || noCmds);
             if (cmdPatch) {
                 apply = appendPatch(apply, new VPatch(VPatchType.COMMANDS, a, { patch: cmdPatch, newCmds: b.cmds }));
+            }
+
+            let onPatch = diffOns(a.ons || noOns, b.ons || noOns);
+            if (onPatch) {
+                apply = appendPatch(apply, new VPatch(VPatchType.ONS, a, onPatch));
             }
 
             apply = diffChildren(a, b, patch, apply, index);

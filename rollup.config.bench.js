@@ -11,11 +11,26 @@ export default {
     plugins: [
         resolve({}),
         commonjs(),
-        typescript({
+        typescript({ //  to es6 
             typescript: require('typescript'),
+            target: "es6",
         }),
         babel({
-            exclude: 'node_modules/**'
+            exclude: 'node_modules/**',
+            plugins: [
+                'anyom',  // compiled code contains arrowFunction
+                [
+                    "transform-react-jsx",
+                    {
+                        "pragma": "h", // default pragma is React.createElement
+                        "useBuiltIns": true
+                    }
+                ]
+            ],
+        }),
+        typescript({//  to es5 
+            typescript: require('typescript'),
+            target: "es5",
         }),
         uglify(),
     ],

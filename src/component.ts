@@ -1,12 +1,12 @@
 import { proxy } from "./utils";
-import { VNode,NullNodeTag } from "./vnode";
+import { VNode, NullNodeTag } from "./vnode";
 import { diff } from "./diff";
 import { patch } from "./patch";
 import { createElement } from "./create-element";
 import { queueComponent } from "./scheduler";
 import { NodeProxy } from "./node-proxy";
 import { EventEmitter } from "./EventEmitter";
-import { Observer, Watcher } from "./observer-watcher/index";
+import { Observer, Watcher, set, del } from "./observer-watcher/index";
 
 export const LifeCycleType = {
     Created: 'created',
@@ -101,6 +101,9 @@ export class Component extends EventEmitter {
     render(): VNode {
         throw new Error('请重写本方法');
     }
+
+    $set = set;
+    $del = del;
 }
 
 export class ComponentStateless extends Component {

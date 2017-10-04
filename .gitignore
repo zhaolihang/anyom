@@ -6,7 +6,7 @@ distbench
 babelworkplace
 !rollup.config*
 !utils/*
-*.js.map
 *.js
+*.jsx
 *.js.map
 *.jsx.map

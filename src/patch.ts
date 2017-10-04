@@ -1,5 +1,5 @@
 import { isObject, getPrototype, ascending, indexInRange } from "./utils";
-import { VNode, IPropType, ICmdsType } from "./vnode";
+import { VNode, IPropType, ICmdsType, IOnsType } from "./vnode";
 import { IDiffMap, VPatch, VPatchType } from "./diff";
 import { Component } from "./component";
 import { NodeProxy } from "./node-proxy";
@@ -147,6 +147,9 @@ function patchOp(nodeProxy: NodeProxy, vpatch: VPatch) {
         case VPatchType.COMMANDS:
             applyCommands(nodeProxy, patch.patch, vNode.cmds, patch.newCommands);
             return nodeProxy;
+        case VPatchType.ONS:
+            applyOns(nodeProxy, patch, vNode.ons);
+            return nodeProxy;
         default:
             return nodeProxy;
     }
@@ -269,4 +272,22 @@ export function applyCommands(proxy: NodeProxy, cmdPatch: ICmdsType, previousCmd
         }
     }
     proxy.setCmds(newCommands);
+}
+
+
+export function applyOns(proxy: NodeProxy, onPatch: IOnsType, previousOns: IOnsType) {
+    for (let onName in onPatch) {
+        let cmdValue = onPatch[onName];
+        if (cmdValue === undefined) {
+            if (previousOns && (onName in previousOns)) {
+                proxy.removeOn(onName, previousOns[onName]);
+            }
+        } else {
+            if (previousOns && (onName in previousOns)) {
+                proxy.updateOn(onName, cmdValue, previousOns[onName])
+            } else {
+                proxy.addOn(onName, cmdValue);
+            }
+        }
+    }
 }

@@ -1,6 +1,7 @@
 export type ITagName = any;
 export type IPropType = { [x: string]: any };
 export type ICmdsType = { [commandName: string]: any }; // { commandName:commandArgs }
+export type IOnsType = { [x: string]: (...args: any[]) => any }; 
 export type IRefType = (elm: any) => any;
 export const TextNodeTag = {};
 export const NullNodeTag = {};
@@ -23,7 +24,7 @@ export class VNode {
     ref: IRefType;
     key: string;
     cmds: ICmdsType;
-    ons: { [x: string]: (...args: any[]) => any };
+    ons: IOnsType;
     ns: string;
 
     constructor(public tag: ITagName, public props: IPropType = noProperties, public children: VNode[] = noChildren, key?: string) {

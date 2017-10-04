@@ -2,7 +2,7 @@ import { ITagName, VNode, VNodeType, ICmdsType, IRefType } from "./vnode";
 import { Component, LifeCycleType, ComponentStateless } from "./component";
 import { startsWith, endsWith, getEventNameOfNative, getPrototype } from "./utils";
 import { getCommand } from "./commands";
-import { applyNativeProps, applyCommands } from "./patch";
+import { applyNativeProps, applyCommands, applyOns } from "./patch";
 
 export enum ProxyType {
     None = 0,
@@ -40,6 +40,9 @@ export class NodeProxy {
         }
         if (vNode.cmds) {
             applyCommands(this, vNode.cmds, undefined, vNode.cmds);
+        }
+        if (vNode.ons) {
+            applyOns(this, vNode.ons, undefined);
         }
         if (vNode.ref) {
             this.setRef(vNode.ref);
@@ -288,6 +291,28 @@ export class NodeProxy {
         if (cmd && cmd.update) {
             cmd.update(this.getNativeNode(), cmdValue, previousCmdValue);
         }
+    }
+
+    // ons
+    addOn(onName: string, onValue: any) {
+        if (this.proxyType === ProxyType.NATIVE) {
+            (this.element as HTMLElement).addEventListener(onName, onValue);
+        } else {
+            (this.element as Component).on(onName, onValue);
+        }
+    }
+
+    removeOn(onName: string, previousOnValue: any) {
+        if (this.proxyType === ProxyType.NATIVE) {
+            (this.element as HTMLElement).removeEventListener(onName, previousOnValue[onName]);
+        } else {
+            (this.element as Component).off(onName, previousOnValue[onName]);
+        }
+    }
+
+    updateOn(onName: string, onValue: any, previousOnValue: any) {
+        this.removeOn(onName, previousOnValue);
+        this.addOn(onName, onValue);
     }
 
 }

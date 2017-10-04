@@ -24,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^8.0.24",
     "babel-core": "^6.26.0",
+    "babel-plugin-anyom": "^0.0.4",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "del-cli": "^1.1.0",
     "rollup": "^0.43.0",

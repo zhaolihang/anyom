@@ -22,9 +22,19 @@ var stopMeasure = function () {
 export class Main extends Component {
     start = 0;
     length = 0;
+    store = new Store();
+
+    data: any[];
+    selected: string;
+    initialState() {
+        return {
+            data: [],
+            selected: null,
+        };
+    }
+
     constructor(props) {
         super(props);
-        (this as any).state = { store: new Store() };
         this.select = this.select.bind(this);
         this.delete = this.delete.bind(this);
         this.add = this.add.bind(this);
@@ -51,47 +61,64 @@ export class Main extends Component {
     }
     run() {
         startMeasure("run");
-        (this as any).state.store.run();
-        (this as any).setState({ store: (this as any).state.store });
+        this.store.run();
+        this.data = this.store.data;
+        // (this as any).setState({ store: (this as any).state.store });
     }
     add() {
         startMeasure("add");
-        (this as any).state.store.add();
-        (this as any).setState({ store: (this as any).state.store });
+        this.store.add();
+        this.data = this.store.data;
+        // (this as any).state.store.add();
+        // (this as any).setState({ store: (this as any).state.store });
     }
     update() {
         startMeasure("update");
-        (this as any).state.store.update();
-        (this as any).setState({ store: (this as any).state.store });
+        this.store.update();
+        this.data = this.store.data;
+        // (this as any).state.store.update();
+        // (this as any).setState({ store: (this as any).state.store });
     }
     select(id) {
         startMeasure("select");
-        (this as any).state.store.select(id);
-        (this as any).setState({ store: (this as any).state.store });
+        this.store.select(id);
+        this.selected = this.store.selected;
+
+        // (this as any).state.store.select(id);
+        // (this as any).setState({ store: (this as any).state.store });
     }
     delete(id) {
         startMeasure("delete");
-        (this as any).state.store.delete(id);
-        (this as any).setState({ store: (this as any).state.store });
+        this.store.delete(id);
+        this.data = this.store.data;
+        // (this as any).state.store.delete(id);
+        // (this as any).setState({ store: (this as any).state.store });
     }
     runLots() {
         startMeasure("runLots");
-        (this as any).state.store.runLots();
-        (this as any).setState({ store: (this as any).state.store });
+        this.store.runLots();
+        this.data = this.store.data;
+        // (this as any).state.store.runLots();
+        // (this as any).setState({ store: (this as any).state.store });
     }
     clear() {
         startMeasure("clear");
-        (this as any).state.store.clear();
-        (this as any).setState({ store: (this as any).state.store });
+        this.store.clear();
+        this.data = this.store.data;
+        // (this as any).state.store.clear();
+        // (this as any).setState({ store: (this as any).state.store });
     }
     swapRows() {
         startMeasure("swapRows");
-        (this as any).state.store.swapRows();
-        (this as any).setState({ store: (this as any).state.store });
+        this.store.swapRows();
+        this.data = this.store.data;
+
+        // (this as any).state.store.swapRows();
+        // (this as any).setState({ store: (this as any).state.store });
     }
     render() {
-        let rows = (this as any).state.store.data.map((d, i) => {
-            return <Row key={d.id} data={d} onClick={this.select} onDelete={this.delete} styleClass={d.id === (this as any).state.store.selected ? 'danger' : ''}></Row>
+        let rows = this.data.map((d, i) => {
+            return <Row key={d.id} data={d} on-click={this.select} on-delete={this.delete} styleClass={d.id === this.selected ? 'danger' : ''}></Row>
         });
         return (<div className="container">
             <div className="jumbotron">

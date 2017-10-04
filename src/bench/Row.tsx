@@ -10,14 +10,14 @@ export class Row extends Component {
 	}
 
 	onDelete() {
-		(this as any).props.onDelete((this as any).props.data.id);
+		this.emit('delete',this.$props.data.id)
 	}
 	onClick() {
-		(this as any).props.onClick((this as any).props.data.id);
+		this.emit('click',this.$props.data.id)
 	}
 
 	render() {
-		let { styleClass, onClick, onDelete, data } = (this as any).props;
+		let { styleClass, onClick, onDelete, data } = this.$props;
 		return (<tr className={styleClass}>
 			<td className="col-md-1">{data.id}</td>
 			<td className="col-md-4">

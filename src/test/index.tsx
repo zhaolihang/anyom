@@ -219,228 +219,210 @@ rootNode.appendChild(rootNodeProxy.getNativeNode());
 //     return <div>{props.flag ? true : false} </div>
 // }
 
-let qqq = [2];
-let a = <div key="" ref="string" on-name={() => { }}
-    cmd-xxx={{ vvv: 123 }} two-bind={qqq[0]}></div >
+let scope = this;
+const Flag = (props) => {
+    // log('ComponentStateless this=',this === scope);
+    return <div>{props.flag ? true : false}</div>
+}
 
-// let scope = this;
-// const Flag = (props) => {
-//     // log('ComponentStateless this=',this === scope);
-//     return <div>{props.flag ? true : false} </div>
-// }
+class Tag extends Component {
+    mounted() {
+        log('Tag mounted');
+    }
 
-// class Tag extends Component {
-//     mounted() {
-//         log('Tag mounted');
-//     }
+    unmounted() {
+        log('Tag unmounted');
+    }
 
-//     unmounted() {
-//         log('Tag unmounted');
-//     }
+    render() {
+        let be = 0;
+        return be ? (<div>small tag</div>) : (<Flag></Flag>);
+    }
+}
 
-//     render() {
-//         let be = 0;
-//         return be ? (<div>small tag</div>) : (<Flag></Flag>);
-//     }
+class Button extends Component {
+    created() {
+        log('Button created');
+    }
 
-// }
-// class Button extends Component {
-//     created() {
-//         log('Button created');
-//     }
+    mounted() {
+        log('Button mounted');
+    }
 
-//     mounted() {
-//         log('Button mounted');
-//     }
+    unmounted() {
+        log('Button unmounted');
+    }
 
-//     unmounted() {
-//         log('Button unmounted');
-//     }
+    beforeUpdate() {
+        log('Button beforeUpdate');
+    }
 
-//     beforeUpdate() {
-//         log('Button beforeUpdate');
-//     }
+    afterUpdate() {
+        log('Button afterUpdate');
+    }
 
-//     afterUpdate() {
-//         log('Button afterUpdate');
-//     }
+    render() {
+        let title = this.$props.title;
+        return (
+            <button className={'button'} on-click={(e) => {
+                this.emit('click', e);
+            }} >
+                {title || '按钮'}
+                {null}
+            </button>
+        );
+    }
+}
 
-//     render() {
-//         let title = this.$props.title;
-//         let onclick = this.$props.onclick;
-//         return (
-//             <button className={'button'} on-click={(e) => {
-//                 if (onclick) {
-//                     onclick(e);
-//                 }
-//             }} >
-//                 {title || '按钮'}
-//                 {null}
-//             </button>
-//         );
-//     }
-// }
+class Input extends Component {
 
-// class Input extends Component {
+    created() {
+        log('Input created');
+    }
 
-//     created() {
-//         log('Button created');
-//     }
+    mounted() {
+        log('Input mounted');
+    }
 
-//     mounted() {
-//         log('Button mounted');
-//     }
+    unmounted() {
+        log('Input unmounted');
+    }
 
-//     unmounted() {
-//         log('Button unmounted');
-//     }
+    beforeUpdate() {
+        log('Input beforeUpdate');
+    }
 
-//     beforeUpdate() {
-//         log('Button beforeUpdate');
-//     }
+    afterUpdate() {
+        log('Input afterUpdate');
+    }
 
-//     afterUpdate() {
-//         log('Button afterUpdate');
-//     }
+    render() {
+        return (
+            <input ref='input' on-change={(e) => {
+                this.emit('input', e.target.value);
+                log(e.target.value);
+            }} {...this.$props} />
+        );
+    }
+}
 
-//     render() {
-//         return (
-//             <input ref={(elm) => {
-//                 this.$refs.input = elm;
-//             }} {...this.$props} on-change={(e) => {
-//                 this.emit('input', e.target.value);
-//                 log(e.target.value);
-//             }} />
-//         );
-//     }
-// }
+class App extends Component {
 
+    num: number;
+    isName: boolean;
+    btnTitle: string;
+    testArr: string[];
+    testObj: any;
+    testString: string;
+    inputString: string;
+    initialState() {
+        return {
+            num: 0,
+            isName: true,
+            btnTitle: 'SecondBut',
+            testArr: ['test1', 'test2'],
+            testObj: { test1: 1, test2: 2 },
+            testString: 'string',
+            inputString: '',
+        };
+    }
 
-// class App extends Component {
+    created() {
+        log('App created');
+    }
 
-//     num: number;
-//     isName: boolean;
-//     btnTitle: string;
-//     testArr: string[];
-//     testObj: any;
-//     testString: string;
-//     initialState() {
-//         return {
-//             num: 0,
-//             isName: true,
-//             btnTitle: 'SecondBut',
-//             testArr: ['test1', 'test2'],
-//             testObj: { test1: 1, test2: 2 },
-//             testString: 'string',
-//         };
-//     }
+    mounted() {
+        log('App mounted');
+    }
 
-//     created() {
-//         log('App created');
-//     }
+    unmounted() {
+        log('App unmounted');
+    }
 
-//     mounted() {
-//         log('App mounted');
-//     }
+    beforeUpdate() {
+        log('App beforeUpdate');
+    }
 
-//     unmounted() {
-//         log('App unmounted');
-//     }
+    afterUpdate() {
+        log('App afterUpdate');
+    }
 
-//     beforeUpdate() {
-//         log('App beforeUpdate');
-//     }
+    render() {
+        let testspread = { a: 0, c: 0 };
+        let isName = this.isName;
+        let btnTitle = this.btnTitle;
+        let num = this.num;
+        let input = isName ? <Input key='name' two-bind="inputString" ref={'name'} type='text' placeholder='name' /> : <Input key='password' ref={'password'} two-bind="inputString" type='password' placeholder='password' />;
 
-//     afterUpdate() {
-//         log('App afterUpdate');
-//     }
+        let testArr = this.testArr;
+        let modelArr = testArr.map((v, i, arr) => {
+            return <Input two-bind={arr[i]} />;
+        });
 
-//     render() {
-//         // compile injected : let $$thiz = this;
+        let testObj = this.testObj;
+        let modelObj = Object.keys(testObj).map((key) => {
+            return <Input two-bind={testObj[key]} />
+        });
 
-//         let testspread = { a: 0, c: 0 };
-//         let isName = this.isName;
-//         let btnTitle = this.btnTitle;
-//         let num = this.num;
-//         let input = isName ? <Input key='name' ref={(elm) => { this.$refs.name = elm; }} type='text' placeholder='name' /> : <Input key='password' ref={(elm) => { this.$refs.password = elm; }} type='password' placeholder='password' />;
+        return (
+            <div a={{ a: 0 }} {...testspread} className={'app'}>
+                <span style={{ display: 'block' }}>Hello world!</span>
+                <Button ref={'button'} on-click={() => {
+                    log('test ref name =', this.$refs.name);
+                    this.isName = !isName;
+                    this.num = num + 1;
+                }} title={btnTitle}>
+                    <Flag flag={isName}></Flag>
+                </Button>
+                {input}
+                {modelObj}
+            </div>
+        );
+    }
+}
 
-//         let testArr = this.testArr;
-//         let modelArr = testArr.map((v, i, arr) => {
-//             return <Input a-model={arr[i]} />;
-//             // compiled:  <Input value={arr[i]} on-input={(v)=>{ arr[i]=v; }} />
-//         });
+let firstVNode = (<div >
+    <Button></Button>
+    <div key={'1'}>111</div>
+    <div key={'2'}>222</div>
+    <div key={'3'}>333</div>
+    <div key={'4'}>444</div>
+</div>)
 
-//         let testObj = this.testObj;
-//         let modelObj = Object.keys(testObj).map((key) => {
-//             return <Input a-model={testObj[key]} />
-//         });
+let firstNodeProxy = render(firstVNode)
+rootNodeProxy.appendChild(firstNodeProxy);
 
-//         // <Input a-model='testString' ref="testStringInput" />; 
-//         // compiled:  <Input value={$$thiz['testString']} on-input={(v)=>{ $$thiz['testString]=v; }} ref={(v)=>{ $$thiz.$refs['testStringInput']=v; }} />
+let secondVNode = (<div>
 
-//         return (
-//             <div a={{ a: 0 }} {...testspread} className={'app'}>
-//                 <span style={{ display: 'block' }}>Hello world!</span>
-//                 <Button ref={(elm) => { this.$refs.button = elm; }} onclick={() => {
-//                     log('test ref name =', this.$refs.name);
-//                     this.isName = !isName;
-//                     this.num = num + 1;
-//                 }} title={btnTitle}>
-//                     <Flag flag={isName}></Flag>
-//                 </Button>
-//                 {input}
-//             </div>
-//         );
-//     }
-// }
+    <div key={'draggable'} cmd-draggable={{ a: 123 }}>draggable</div>
+    <div key={'4'}>444</div>
+    <div key={'3'}>333</div>
+    <div key={'droppable'} cmd-droppable={(error, data) => {
+        if (!error) {
+            log('droppable', data);
+            return;
+        }
+        log(error);
+    }}>droppable</div>
+    <img height="100" src="http://nodejs.cn/static/images/logo.svg" ></img>
+    <App>
+    </App>
+    <div cmd-dragmove={true} innerHTML="<div>I'm from innerHtml</div>"></div>
+</div >)
 
-// // <div key={string or number} ref="string" on-name={function} 
-// //      cmd-xxx={value} two-bind={"string" or memberexpression}></div>
+setTimeout(() => {
+    let patches = diff(firstVNode, secondVNode);
+    log('*********************************************');
+    log('patches', patches);
 
-// let firstVNode = (<div >
-//     <Button></Button>
-//     <div key={'1'}>111</div>
-//     <div key={'2'}>222</div>
-//     <div key={'3'}>333</div>
-//     <div key={'4'}>444</div>
-// </div>)
+    log('---------------------------------------------');
+    log('firstNodeProxy', firstNodeProxy);
+    let newFirstNodeProxy = patch(firstNodeProxy, patches);
+    log('---------------------------------------------');
+    log('newFirstNodeProxy', newFirstNodeProxy);
 
-// let firstNodeProxy = render(firstVNode)
-// rootNodeProxy.appendChild(firstNodeProxy);
+    log('---------------------------------------------');
+    log('newFirstNodeProxy === firstNodeProxy', newFirstNodeProxy === firstNodeProxy);
+}, 1000);
 
-// let secondVNode = (<div>
-
-//     <div key={'draggable'} cmds={{ draggable: { a: 123 } }}>draggable</div>
-//     <div key={'4'}>444</div>
-//     <div key={'3'}>333</div>
-//     <div key={'droppable'} cmds={{
-//         droppable: (error, data) => {
-//             if (!error) {
-//                 log('droppable', data);
-//                 return;
-//             }
-//             log(error);
-//         },
-//     }}>droppable</div>
-//     <img height="100" src="http://nodejs.cn/static/images/logo.svg" ></img>
-//     <App>
-//     </App>
-//     <div cmds={{ dragmove: true }} innerHTML="<div>I'm from innerHtml</div>"></div>
-// </div >)
-
-// setTimeout(() => {
-//     let patches = diff(firstVNode, secondVNode);
-//     log('*********************************************');
-//     log('patches', patches);
-
-//     log('---------------------------------------------');
-//     log('firstNodeProxy', firstNodeProxy);
-//     let newFirstNodeProxy = patch(firstNodeProxy, patches);
-//     log('---------------------------------------------');
-//     log('newFirstNodeProxy', newFirstNodeProxy);
-
-//     log('---------------------------------------------');
-//     log('newFirstNodeProxy === firstNodeProxy', newFirstNodeProxy === firstNodeProxy);
-// }, 1000);
-
-// (window as any).rootnode = rootNodeProxy;
+(window as any).rootnode = rootNodeProxy;
