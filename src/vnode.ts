@@ -23,6 +23,7 @@ export class VNode {
     ref: IRefType;
     key: string;
     cmds: ICmdsType;
+    ons: { [x: string]: (...args: any[]) => any };
     ns: string;
 
     constructor(public tag: ITagName, public props: IPropType = noProperties, public children: VNode[] = noChildren, key?: string) {
@@ -83,6 +84,12 @@ export function h(tag: ITagName, props?: IPropType): VNode {
         delete props.cmds;
     }
 
+    let ons: ICmdsType;
+    if (props && props.ons != null) {
+        ons = props.ons;
+        delete props.ons;
+    }
+
     // namespace 
     let ns: string;
     if (props && props.ns != null) {
@@ -136,6 +143,7 @@ export function h(tag: ITagName, props?: IPropType): VNode {
     vnode.ref = ref;
     vnode.ns = ns;
     vnode.cmds = cmds;
+    vnode.ons = ons;
 
     return vnode;
 }
