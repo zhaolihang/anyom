@@ -57,7 +57,7 @@ export class NodeProxy {
         } else if (this.vNodeType === VNodeType.NativeNode) {
             return <HTMLElement>(document.createElement(vNode.tag));
         } else if (this.vNodeType === VNodeType.NullNode) {
-            return document.createComment('   ');
+            return document.createComment('');
         }
     }
 
@@ -123,7 +123,6 @@ export class NodeProxy {
     }
 
     private removedHook() {
-        // 有问题: com 下面的子component的生命周期没有调用 应该先遍历子节点
         let childNodes = this.childNodes;
         let len = childNodes.length;
         for (let i = 0; i < len; i++) {
@@ -193,15 +192,6 @@ export class NodeProxy {
     setAttrOfNative(propName: string, propValue: any, previous?: any) {
         let element: HTMLElement = this.element;
 
-        let event = getEventNameOfNative(propName);
-        if (event) {
-            if (previous && previous[propName]) {
-                element.removeEventListener(event.name, previous[propName]);
-            }
-            element.addEventListener(event.name, propValue);
-            return;
-        }
-
         if (this.vNodeType === VNodeType.NativeNode) {
             // ref: https://javascript.info/dom-attributes-and-properties
             if (element.hasAttribute(propName)) {
@@ -235,18 +225,10 @@ export class NodeProxy {
 
     removeAttrOfNative(propName: string, previous?: any) {
         let element: HTMLElement = this.element;
-
-        let event = getEventNameOfNative(propName);
-        if (event) {
-            if (previous && previous[propName]) {
-                element.removeEventListener(event.name, previous[propName]);
-            }
+        if (element.hasAttribute(propName)) {
+            element.removeAttribute(propName);
         } else {
-            if (element.hasAttribute(propName)) {
-                element.removeAttribute(propName);
-            } else {
-                element[propName] = undefined;
-            }
+            element[propName] = undefined;
         }
     }
 

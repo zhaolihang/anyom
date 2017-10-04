@@ -24,7 +24,7 @@ export class Main extends Component {
     length = 0;
     store = new Store();
 
-    data: any[];
+    data: any;
     selected: string;
     initialState() {
         return {
@@ -62,60 +62,49 @@ export class Main extends Component {
     run() {
         startMeasure("run");
         this.store.run();
-        this.data = this.store.data;
-        // (this as any).setState({ store: (this as any).state.store });
+        this.syncData()
     }
     add() {
         startMeasure("add");
         this.store.add();
-        this.data = this.store.data;
-        // (this as any).state.store.add();
-        // (this as any).setState({ store: (this as any).state.store });
+        this.syncData()
     }
     update() {
         startMeasure("update");
         this.store.update();
-        this.data = this.store.data;
-        // (this as any).state.store.update();
-        // (this as any).setState({ store: (this as any).state.store });
+        this.syncData()
     }
     select(id) {
         startMeasure("select");
         this.store.select(id);
-        this.selected = this.store.selected;
-
-        // (this as any).state.store.select(id);
-        // (this as any).setState({ store: (this as any).state.store });
+        this.syncData()
     }
     delete(id) {
         startMeasure("delete");
         this.store.delete(id);
-        this.data = this.store.data;
-        // (this as any).state.store.delete(id);
-        // (this as any).setState({ store: (this as any).state.store });
+        this.syncData()
     }
     runLots() {
         startMeasure("runLots");
         this.store.runLots();
-        this.data = this.store.data;
-        // (this as any).state.store.runLots();
-        // (this as any).setState({ store: (this as any).state.store });
+        this.syncData()
     }
     clear() {
         startMeasure("clear");
         this.store.clear();
-        this.data = this.store.data;
-        // (this as any).state.store.clear();
-        // (this as any).setState({ store: (this as any).state.store });
+        this.syncData()
     }
     swapRows() {
         startMeasure("swapRows");
         this.store.swapRows();
-        this.data = this.store.data;
-
-        // (this as any).state.store.swapRows();
-        // (this as any).setState({ store: (this as any).state.store });
+        this.syncData()
     }
+
+    syncData() {
+        this.data = Object.freeze(this.store.data);
+        this.selected = this.store.selected;
+    }
+
     render() {
         let rows = this.data.map((d, i) => {
             return <Row key={d.id} data={d} on-click={this.select} on-delete={this.delete} styleClass={d.id === this.selected ? 'danger' : ''}></Row>

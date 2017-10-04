@@ -31,19 +31,14 @@ export const observerState = {
  */
 export class Observer {
     value: any;
-    dep: Dep;
-    vmCount: number; // number of vms that has this object as root $data
+    dep: Dep = new Dep();
 
     constructor(value: any) {
         this.value = value;
-        this.dep = new Dep();
-        this.vmCount = 0;
-
         def(value, '__observer__', this);
 
         if (Array.isArray(value)) {
-            const augment = hasProto ? protoAugment : copyAugment;
-            augment(value, arrayMethods, arrayKeys);
+            hasProto ? protoAugment(value, arrayMethods) : copyAugment(value, arrayMethods, arrayKeys);
             this.observeArray(value);
         } else {
             this.walk(value);
@@ -82,7 +77,7 @@ export class Observer {
  * Augment an target Object or Array by intercepting
  * the prototype chain using __proto__
  */
-function protoAugment(target, src: Object, keys: any) {
+function protoAugment(target, src: Object, keys?: any) {
     /* eslint-disable no-proto */
     target.__proto__ = src;
     /* eslint-enable no-proto */
@@ -105,7 +100,7 @@ function copyAugment(target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  */
-export function observe(value: any, asRootData?: boolean): Observer | void {
+export function observe(value: any): Observer | void {
     if (!isObject(value)) {
         return;
     }
@@ -115,12 +110,8 @@ export function observe(value: any, asRootData?: boolean): Observer | void {
     if (hasOwn(value, '__observer__') && value.__observer__ instanceof Observer) {
         ob = value.__observer__;
     } else if (observerState.shouldConvert && (Array.isArray(value)
-        || isPlainObject(value)) && Object.isExtensible(value) && !value._isVue) {
+        || isPlainObject(value)) && Object.isExtensible(value)) {
         ob = new Observer(value);
-    }
-
-    if (asRootData && ob) {
-        ob.vmCount++;
     }
 
     return ob;
@@ -206,9 +197,6 @@ export function set(target: Array<any> | Object, key: any, val: any): any {
     }
 
     const ob = (target as any).__observer__;
-    if ((target as any)._isVue || (ob && ob.vmCount)) {
-        return val;
-    }
 
     if (!ob) {
         target[key] = val;
@@ -232,10 +220,6 @@ export function del(target: Array<any> | Object, key: any) {
     }
 
     const ob = (target as any).__observer__;
-
-    if ((target as any)._isVue || (ob && ob.vmCount)) {
-        return;
-    }
 
     if (!hasOwn(target, key)) {
         return;
