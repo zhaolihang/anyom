@@ -4,11 +4,11 @@ import Watcher from "./watcher";
 
 export let twoBind = (dataA: any, dataAPath: string, dataB: any, dataBPath: string, options: { deep?: boolean, sync?: boolean }) => {
     if (!(dataA.__observer__ instanceof Observer)) {
-        throw new Error('dataA isnot be observed!');
+        new Observer(dataA);
     }
 
     if (!(dataB.__observer__ instanceof Observer)) {
-        throw new Error('dataB isnot be observed!');
+        new Observer(dataB);
     }
 
     let segmentsA = segmentsPath(dataAPath);
