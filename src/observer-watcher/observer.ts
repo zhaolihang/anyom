@@ -46,9 +46,6 @@ export class Observer {
 
     }
 
-    addWatcher(watcher: Watcher) {
-        this.dep.addSub(watcher);
-    }
     /**
    * Walk through each property and convert them into
    * getter/setters. This method should only be called when

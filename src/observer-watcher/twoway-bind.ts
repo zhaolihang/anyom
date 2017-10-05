@@ -24,18 +24,14 @@ export let twowayBind = (dataA: any, dataAPath: string, dataB: any, dataBPath: s
         obj && set(obj, segmentsB_last, newV);
     };
 
-    let observerA: Observer = dataA.__observer__;
     let watcher_A = new Watcher(dataA, dataAPath, cb_A, options);
-    observerA.addWatcher(watcher_A);
 
     let cb_B = (newV, oldV) => {
         let obj = getObjBySegments(dataA, segmentsA_1);
         obj && set(obj, segmentsA_last, newV);
     };
 
-    let observerB: Observer = dataB.__observer__;
     let watcher_B = new Watcher(dataB, dataBPath, cb_B, options);
-    observerB.addWatcher(watcher_B);
 
     return function disconnect() {
         watcher_A.cleanupDeps()

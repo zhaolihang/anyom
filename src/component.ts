@@ -56,7 +56,6 @@ export class Component extends EventEmitter {
         this.$$watcher = new Watcher(this.$$state, '$state', (newV, oldV) => {
             this.forceUpdate(RenderMode.ASYNC);
         }, { deep: true });
-        ob.addWatcher(this.$$watcher);
     }
 
     getNodeProxy(): NodeProxy {

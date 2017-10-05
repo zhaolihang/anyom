@@ -286,9 +286,9 @@ export class NodeProxy {
 
     removeOn(onName: string, previousOnValue: any) {
         if (this.proxyType === ProxyType.NATIVE) {
-            (this.element as HTMLElement).removeEventListener(onName, previousOnValue[onName]);
+            (this.element as HTMLElement).removeEventListener(onName, previousOnValue);
         } else {
-            (this.element as Component).off(onName, previousOnValue[onName]);
+            (this.element as Component).off(onName, previousOnValue);
         }
     }
 
