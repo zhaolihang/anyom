@@ -1,10 +1,12 @@
-import { h } from "./vnode";
+import { h, VNode } from "./vnode";
 import { Component } from "./component";
 import { createElement, render } from "./create-element";
-import { diff } from "./diff";
+import { diff, VPatch } from "./diff";
 import { patch } from "./patch";
 import { setCommand, getCommand } from "./commands";
 import { nextTick } from "./scheduler";
+import { NodeProxy } from "./node-proxy";
+import { ITagName, IPropType, VNodeType } from "./vnode";
 
 export {
     h,
@@ -18,6 +20,7 @@ export {
     nextTick,
 }
 
+
 export default {
     h,
     createElement,
@@ -28,5 +31,4 @@ export default {
     setCommand,
     getCommand,
     nextTick,
-}
-
+}; 

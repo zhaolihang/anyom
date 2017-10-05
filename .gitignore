@@ -1,6 +1,7 @@
 node_modules
 .rpt2_cache
 disttest
+tscdist
 distbench
 babelworkplace
 !rollup.config*

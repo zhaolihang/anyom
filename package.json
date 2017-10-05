@@ -19,7 +19,8 @@
     "clearall": "npm run cleardist & npm run cleantest",
     "build": "rollup -c",
     "build:bench": "rollup -c rollup.config.bench.js",
-    "build:test": "rollup -w -c rollup.config.test.js"
+    "build:test": "rollup -w -c rollup.config.test.js",
+    "build:debug": "tsc -w -t es5 -m commonjs"    
   },
   "devDependencies": {
     "@types/node": "^8.0.24",

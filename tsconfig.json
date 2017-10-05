@@ -1,16 +1,16 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "module": "es6",
+        "module": "es2015",
         "target": "es5",
         "sourceMap": true,
-        "allowJs": true,
         "listFiles": true,
         "strictNullChecks": false,
         "outDir": "tscdist",
         "jsx": "preserve",
         "jsxFactory": "h",
         "moduleResolution": "node",
+        "declaration": true,
         "lib": [
             "dom",
             "es7"

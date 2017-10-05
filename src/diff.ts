@@ -142,9 +142,9 @@ function diffOns(aOns, bOns) {
 
 
 
-type VPatchResultType = VPatch | VPatch[];
+export type VPatchResultType = VPatch | VPatch[];
 
-export interface IDiffMap {
+export type IDiffMap = {
     vNode: VNode;
     [index: number]: VPatchResultType;
 }
