@@ -40,11 +40,6 @@ export default class Watcher {
         }
 
         this.vm = vm;
-        if (!vm._watchers) {
-            def(vm, '_watchers', []);
-        }
-
-        vm._watchers.push(this);
 
         // options
         if (options) {
@@ -135,7 +130,7 @@ export default class Watcher {
         this.depIds = this.newDepIds;
         this.newDepIds = tmp1;
         this.newDepIds.clear();
-        
+
         let tmp2 = this.deps;
         this.deps = this.newDeps;
         this.newDeps = tmp2;
@@ -200,12 +195,6 @@ export default class Watcher {
    */
     teardown() {
         if (this.active) {
-            // remove self from vm's watcher list this is a somewhat expensive operation so
-            // we skip it if the vm is being destroyed.
-            if (!this.vm._isBeingDestroyed) {
-                remove(this.vm._watchers, this);
-            }
-
             let i = this.deps.length;
             while (i--) {
                 this.deps[i].removeSub(this);
@@ -237,6 +226,7 @@ function _traverse(val: any, seen: ISet) {
 
     if (val.__observer__) {
         const depId = val.__observer__.dep.id;
+        // if obj is hit, it is in circular structure
         if (seen.has(depId)) {
             return;
         }
@@ -252,6 +242,7 @@ function _traverse(val: any, seen: ISet) {
         keys = Object.keys(val);
         i = keys.length;
         while (i--) {
+            // val[keys[i]] will evaluate reactiveGetter by Observer defined
             _traverse(val[keys[i]], seen);
         }
     }

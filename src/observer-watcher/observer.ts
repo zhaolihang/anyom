@@ -30,10 +30,9 @@ export const observerState = {
  * collect dependencies and dispatches updates.
  */
 export class Observer {
-    value: any;
     dep: Dep = new Dep();
 
-    constructor(value: any) {
+    constructor(public value: any, public shallow?: boolean) {
         this.value = value;
         def(value, '__observer__', this);
 
@@ -54,7 +53,7 @@ export class Observer {
     walk(obj: Object) {
         const keys = Object.keys(obj);
         for (let i = 0; i < keys.length; i++) {
-            defineReactive(obj, keys[i], obj[keys[i]]);
+            defineReactive(obj, keys[i], obj[keys[i]], this.shallow);
         }
     }
 
@@ -74,9 +73,9 @@ export class Observer {
  * Augment an target Object or Array by intercepting
  * the prototype chain using __proto__
  */
-function protoAugment(target, src: Object, keys?: any) {
+function protoAugment(target: Object, src: Object, keys?: any) {
     /* eslint-disable no-proto */
-    target.__proto__ = src;
+    (target as any).__proto__ = src;
     /* eslint-enable no-proto */
 }
 
@@ -102,26 +101,21 @@ export function observe(value: any): Observer | void {
         return;
     }
 
-    let ob: Observer | void;
-
     if (hasOwn(value, '__observer__') && value.__observer__ instanceof Observer) {
-        ob = value.__observer__;
+        return value.__observer__ as Observer;
     } else if (observerState.shouldConvert && (Array.isArray(value)
         || isPlainObject(value)) && Object.isExtensible(value)) {
-        ob = new Observer(value);
+        return new Observer(value);
     }
-
-    return ob;
-
 }
 
-export function getObserver(value: any) {
+export function getObserver(value: any): Observer | void {
     return value && value.__observer__
 }
 /**
  * Define a reactive property on an Object.
  */
-export function defineReactive(obj: Object, key: string, val: any) {
+export function defineReactive(obj: Object, key: string, val: any, shallow?: boolean) {
     const dep = new Dep();
 
     const property = Object.getOwnPropertyDescriptor(obj, key);
@@ -133,7 +127,7 @@ export function defineReactive(obj: Object, key: string, val: any) {
     const getter = property && property.get;
     const setter = property && property.set;
 
-    let childOb = observe(val)
+    let childOb = !shallow && observe(val)
     Object.defineProperty(obj, key, {
         enumerable: true,
         configurable: true,
@@ -145,10 +139,9 @@ export function defineReactive(obj: Object, key: string, val: any) {
                 dep.depend();
                 if (childOb) {
                     childOb.dep.depend();
-                }
-
-                if (Array.isArray(value)) {
-                    dependArray(value);
+                    if (Array.isArray(value)) {
+                        dependArray(value);
+                    }
                 }
             }
 
@@ -169,7 +162,7 @@ export function defineReactive(obj: Object, key: string, val: any) {
                 val = newVal;
             }
 
-            childOb = observe(newVal);
+            childOb = !shallow && observe(newVal);
             dep.notify();
         }
     })
@@ -193,7 +186,7 @@ export function set(target: Array<any> | Object, key: any, val: any): any {
         return val;
     }
 
-    const ob = (target as any).__observer__;
+    const ob: Observer = (target as any).__observer__;
 
     if (!ob) {
         target[key] = val;
@@ -216,7 +209,7 @@ export function del(target: Array<any> | Object, key: any) {
         return;
     }
 
-    const ob = (target as any).__observer__;
+    const ob: Observer = (target as any).__observer__;
 
     if (!hasOwn(target, key)) {
         return;
