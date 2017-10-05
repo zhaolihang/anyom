@@ -1,6 +1,9 @@
 import { Observer, Watcher, twoBind, set } from "../index";
 let log = console.log;
-let option = { sync: true, deep: true };
+let option = {
+    sync: true,
+    deep: true
+};
 
 
 let data: any = { a: { b: 1 } }
@@ -8,7 +11,9 @@ new Observer(data);
 let w = new Watcher(data, 'a', (newV, oldV) => {
     log('a change')
 }, option);
-set(data.a, 'q', 9);
+data.a.b = 2
+// data.a =data.a// { b: 1, q: 0 }
+// set(data.a, 'q', 9);
 // data.a.b = 2;
 
 
