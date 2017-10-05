@@ -2,7 +2,7 @@ import { Observer, set } from "./observer";
 import { segmentsPath, getObjBySegments } from "./utils";
 import Watcher from "./watcher";
 
-export let twowayBind = (dataA: any, dataAPath: string, dataB: any, dataBPath: string, options = { deep: false, sync: false }) => {
+export let twoBind = (dataA: any, dataAPath: string, dataB: any, dataBPath: string, options: { deep?: boolean, sync?: boolean }) => {
     if (!(dataA.__observer__ instanceof Observer)) {
         throw new Error('dataA isnot be observed!');
     }
@@ -34,8 +34,8 @@ export let twowayBind = (dataA: any, dataAPath: string, dataB: any, dataBPath: s
     let watcher_B = new Watcher(dataB, dataBPath, cb_B, options);
 
     return function disconnect() {
-        watcher_A.cleanupDeps()
-        watcher_B.cleanupDeps()
+        watcher_A.teardown();
+        watcher_B.teardown();
     };
 
 };

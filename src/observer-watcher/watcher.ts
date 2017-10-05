@@ -97,7 +97,7 @@ export default class Watcher {
                 traverse(value);
             }
             popTarget();
-            this.cleanupDeps();
+            this.updateDeps();
         }
 
         return value;
@@ -121,7 +121,7 @@ export default class Watcher {
     /**
    * Clean up for dependency collection.
    */
-    cleanupDeps() {
+    updateDeps() {
 
         let i = this.deps.length;
         while (i--) {
