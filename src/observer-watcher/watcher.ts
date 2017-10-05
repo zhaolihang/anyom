@@ -135,6 +135,7 @@ export default class Watcher {
         this.depIds = this.newDepIds;
         this.newDepIds = tmp1;
         this.newDepIds.clear();
+        
         let tmp2 = this.deps;
         this.deps = this.newDeps;
         this.newDeps = tmp2;
