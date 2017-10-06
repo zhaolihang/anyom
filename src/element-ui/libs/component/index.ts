@@ -11,7 +11,7 @@ export default class ElComponent extends Component {
     return this.classNames.apply(this, args.concat([this.props.className]));
   }
 
-  style(args) {
+  style(args?) {
     return Object.assign({}, args, this.props.style)
   }
 }

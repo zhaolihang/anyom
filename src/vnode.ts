@@ -124,10 +124,16 @@ export function h(tag: ITagName, props?: IPropType): VNode {
             }
         } else {
 
-            let childType = typeof child;
-            if (childType === 'string' || childType === 'number' || childType === 'boolean') {
-                child = new VNode(TextNodeTag, { value: String(child) });
+            if (child === false) {
+                continue;
+                // child = new VNode(NullNodeTag);
+            } else {
+                let childType = typeof child;
+                if (childType === 'string' || childType === 'number' || childType === 'boolean') {
+                    child = new VNode(TextNodeTag, { value: String(child) });
+                }
             }
+
             if (!child) {
                 // console.warn('child is null');
                 continue;
