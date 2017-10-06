@@ -9,6 +9,9 @@ export type ICommandObjType = {
 };
 
 export function setCommand(name: string, cmdObj: ICommandObjType) {
+    if (Commands[name]) {
+        return Commands[name]
+    }
     Commands[name] = cmdObj;
     return cmdObj;
 }

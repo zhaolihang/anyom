@@ -217,6 +217,9 @@ function traverse(val: any) {
 }
 
 function _traverse(val: any, seen: ISet) {
+    if (!val || val.__observe_forbidden__) {
+        return
+    }
     let i, keys;
     const isA = Array.isArray(val);
 

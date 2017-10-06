@@ -125,6 +125,7 @@ export default class Input extends Component {
             style={this.textareaStyle}
             rows={rows}
             on-change={this.handleChange}
+            on-input={this.handleChange}
             on-focus={this.handleFocus}
             on-blur={this.handleBlur}
           ></textarea>
@@ -141,9 +142,13 @@ export default class Input extends Component {
             className="el-input__inner"
             autoComplete={autoComplete}
             on-change={this.handleChange}
+            on-input={this.handleChange}
             on-focus={this.handleFocus}
             on-blur={this.handleBlur}
+            on-mousedown={(e) => { this.emit('mousedown', e) }}
             on-keydown={(e) => { this.emit('keydown', e) }}
+            on-keyup={(e) => { this.emit('keyup', e) }}
+
           />
           {validating && <i className="el-input__icon el-icon-loading"></i>}
           {append && <div className="el-input-group__append">{append}</div>}
