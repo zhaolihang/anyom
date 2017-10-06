@@ -97,8 +97,8 @@ export class NodeProxy {
     private addedHook() {
         if (this.proxyType === ProxyType.COMPONENT) {
             let com: Component = this.element;
-            com.getNodeProxy().addedHook();
             com[LifeCycleType.Mounted] && com[LifeCycleType.Mounted]();
+            com.getNodeProxy().addedHook();
         }
     }
 
