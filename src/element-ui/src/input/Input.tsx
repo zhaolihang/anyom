@@ -132,7 +132,7 @@ export default class Input extends Component {
       )
     } else {
       return (
-        <div style={this.style()} className={this.className(classname)} on-mouseEnter={(e) => { this.emit('mouseEnter', e) }} on-mouseLeave={(e) => { this.emit('mouseLeave', e) }}>
+        <div style={this.style()} className={this.className(classname)} on-mouseenter={(e) => { this.emit('mouseenter', e) }} on-mouseleave={(e) => { this.emit('mouseleave', e) }}>
           {prepend && <div className="el-input-group__prepend">{prepend}</div>}
           {typeof icon === 'string' ? <i className={`el-input__icon el-icon-${icon}`} on-click={this.handleIconClick}>{prepend}</i> : icon}
           <input { ...otherProps }
@@ -143,6 +143,7 @@ export default class Input extends Component {
             on-change={this.handleChange}
             on-focus={this.handleFocus}
             on-blur={this.handleBlur}
+            on-keydown={(e) => { this.emit('keydown', e) }}
           />
           {validating && <i className="el-input__icon el-icon-loading"></i>}
           {append && <div className="el-input-group__append">{append}</div>}

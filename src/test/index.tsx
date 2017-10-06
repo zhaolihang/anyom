@@ -11,6 +11,7 @@ import RadioButton from "../element-ui/src/radio/RadioButton";
 import CheckBox from "../element-ui/src/checkbox/CheckBox";
 import CheckBoxGroup from "../element-ui/src/checkbox/CheckBoxGroup";
 import Input from "../element-ui/src/input/Input";
+import InputNumber from "../element-ui/src/input-number/InputNumber";
 
 const log = console.log;
 
@@ -384,6 +385,17 @@ firstVNode = <div>
         <Input placeholder="请输入内容" size="mini" />
     </div>
 </div>
+
+
+firstVNode = <div>
+    <div>
+        <InputNumber size="large" defaultValue={5}></InputNumber>
+        <InputNumber defaultValue={6}></InputNumber>
+        <InputNumber size="small" controls={false} defaultValue={7}></InputNumber>
+    </div>
+</div>
+
+
 
 
 let firstNodeProxy = render(firstVNode)
