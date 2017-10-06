@@ -33,6 +33,7 @@ export default class Button extends Component {
       })} disabled={this.props.disabled} type={this.props.nativeType} on-click={this.onClick}>
         {this.props.loading && <i className="el-icon-loading" />}
         {this.props.icon && !this.props.loading && <i className={`el-icon-${this.props.icon}`} />}
+        <span>{this.props.children}</span>
       </button>
     )
   }

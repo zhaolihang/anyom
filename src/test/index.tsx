@@ -4,6 +4,12 @@ import Col from "../element-ui/src/layout/Col";
 import Row from "../element-ui/src/layout/Row";
 import Button from "../element-ui/src/button/Button";
 import ButtonGroup from "../element-ui/src/button/ButtonGroup";
+import Radio from "../element-ui/src/radio/Radio";
+import { Component } from "../index";
+import RadioGroup from "../element-ui/src/radio/RadioGroup";
+import RadioButton from "../element-ui/src/radio/RadioButton";
+import CheckBox from "../element-ui/src/checkbox/CheckBox";
+import CheckBoxGroup from "../element-ui/src/checkbox/CheckBoxGroup";
 
 const log = console.log;
 
@@ -223,7 +229,153 @@ firstVNode = <div>
     <Button on-click={() => { log('but clicked') }}>TEST</Button>
 </div>
 
+
+class RadioTest extends Component {
+
+    value: number;
+    radio3: string;
+    radio4: string;
+    radio5: string;
+    protected initialState() {
+        return {
+            value: 0,
+            radio3: '上海',
+            radio4: '上海',
+            radio5: '上海'
+        }
+    }
+
+    constructor(props) {
+        super(props);
+        this.onChange = this.onChange.bind(this);
+    }
+
+    onChange(v) {
+        this.value = v;
+    }
+    render() {
+        return <div>
+            <div>
+                <RadioGroup value={this.value} on-change={this.onChange}>
+                    <Radio value={3}>备选项3</Radio>
+                    <Radio value={6}>备选项6</Radio>
+                    <Radio value={9}>备选项9</Radio>
+                </RadioGroup>
+            </div>
+            <div>
+                <RadioGroup value={this.radio3} on-change={(v) => { this.radio3 = v }}>
+                    <RadioButton value="上海" />
+                    <RadioButton value="北京" />
+                    <RadioButton value="广州" />
+                    <RadioButton value="深圳" />
+                </RadioGroup>
+                <RadioGroup value={this.radio4} on-change={(v) => { this.radio4 = v }}>
+                    <RadioButton value="上海" />
+                    <RadioButton value="北京" />
+                    <RadioButton value="广州" disabled={true} />
+                    <RadioButton value="深圳" />
+                </RadioGroup>
+                <RadioGroup value={this.radio5} disabled={true}>
+                    <RadioButton value="上海" />
+                    <RadioButton value="北京" />
+                    <RadioButton value="广州" />
+                    <RadioButton value="深圳" />
+                </RadioGroup>
+            </div>
+        </div>
+    }
+
+}
+firstVNode = <div>
+    <RadioTest ></RadioTest>
+</div>
+
+class CheckboxIndeterminate extends Component {
+
+    checkAll: boolean;
+    cities: string[];
+    checkedCities: string[];
+    isIndeterminate: boolean;
+    protected initialState() {
+        return {
+            checkAll: false,
+            cities: ['上海', '北京', '广州', '深圳'],
+            checkedCities: ['上海', '北京'],
+            isIndeterminate: true,
+        }
+    }
+
+    constructor(props) {
+        super(props);
+        this.handleCheckAllChange = this.handleCheckAllChange.bind(this);
+        this.handleCheckedCitiesChange = this.handleCheckedCitiesChange.bind(this);
+    }
+
+
+    handleCheckAllChange(checked) {
+        const checkedCities = checked ? ['上海', '北京', '广州', '深圳'] : [];
+        this.isIndeterminate = false;
+        this.checkAll = checked;
+        this.checkedCities = checkedCities;
+    }
+
+    handleCheckedCitiesChange(value) {
+        const checkedCount = value.length;
+        const citiesLength = this.cities.length;
+
+        this.isIndeterminate = checkedCount > 0 && checkedCount < citiesLength;
+        this.checkAll = checkedCount === citiesLength;
+        this.checkedCities = value;
+    }
+
+    render() {
+        return <div>
+            <CheckBox
+                checked={this.checkAll}
+                indeterminate={this.isIndeterminate}
+                on-change={this.handleCheckAllChange}>全选</CheckBox>
+            <CheckBoxGroup
+                value={this.checkedCities}
+                on-change={this.handleCheckedCitiesChange}>
+                {
+                    this.cities.map((city, index) =>
+                        <CheckBox key={index} label={city}></CheckBox>
+                    )
+                }
+            </CheckBoxGroup>
+        </div>
+    }
+}
+
+
+firstVNode = <div>
+    {/* <div>
+        <Checkbox checked>备选项</Checkbox>
+    </div>
+    <div>
+        <Checkbox disabled>备选项1</Checkbox>
+        <Checkbox checked disabled>备选项2</Checkbox>
+    </div>
+    <div>
+        <CheckboxGroup value={['复选框 A', '选中且禁用']}>
+            <Checkbox label="复选框 A"></Checkbox>
+            <Checkbox label="复选框 B"></Checkbox>
+            <Checkbox label="复选框 C"></Checkbox>
+            <Checkbox label="禁用" disabled></Checkbox>
+            <Checkbox label="选中且禁用" disabled></Checkbox>
+        </CheckboxGroup>
+    </div> */}
+    <div>
+        <CheckboxIndeterminate></CheckboxIndeterminate>
+    </div>
+
+
+
+</div>
+
+
+
 let firstNodeProxy = render(firstVNode)
 rootNodeProxy.appendChild(firstNodeProxy);
-
+log(firstNodeProxy);
 (window as any).rootnode = rootNodeProxy;

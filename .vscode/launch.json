@@ -2,6 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Debug Test/index.html",
+            "type": "chrome",
+            "request": "launch",
+            "sourceMaps": true,
+            "file": "${workspaceRoot}/disttest/index.html"
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "Test observer-watcher",

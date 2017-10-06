@@ -20,11 +20,19 @@ export class EventEmitter {
                 this.$$listeners[evt] = [];
             else {
                 var listeners = this.$$listeners[evt];
-                for (var i = 0; i < listeners.length;)
-                    if (listeners[i].fn === fn)
+                let find = false;
+                for (var i = 0; i < listeners.length;) {
+                    if (listeners[i].fn === fn) {
+                        find = true
                         listeners.splice(i, 1);
-                    else
+                    } else {
                         ++i;
+                    }
+                }
+                if (!find) {
+                    console.log(fn)
+                    debugger;
+                }
             }
         }
         return this;

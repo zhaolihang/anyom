@@ -6,7 +6,7 @@ import { patch } from "./patch";
 import { setCommand, getCommand } from "./commands";
 import { nextTick } from "./scheduler";
 import { NodeProxy } from "./node-proxy";
-import { ITagName, IPropType, VNodeType } from "./vnode";
+import { ITagName, IPropType, VNodeType, cloneVNode } from "./vnode";
 
 export {
     h,
@@ -18,6 +18,7 @@ export {
     setCommand,
     getCommand,
     nextTick,
+    cloneVNode,
 }
 
 
@@ -31,4 +32,5 @@ export default {
     setCommand,
     getCommand,
     nextTick,
+    cloneVNode,
 }; 

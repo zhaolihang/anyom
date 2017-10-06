@@ -67,7 +67,7 @@ export function h(tag: ITagName, props?: IPropType): VNode {
 
     // key
     let key;
-    if (props && props.key != null) {
+    if (props) {
         key = props.key;
         delete props.key;
     }
@@ -147,7 +147,16 @@ export function h(tag: ITagName, props?: IPropType): VNode {
         }
     }
 
-    let vnode = new VNode(tag, props, children, key);
+    let vnode;
+    if (typeof tag === 'function') {// Component
+        if (children !== EMPTY_CHILDREN) {
+            props = props || {}
+            props.children = children;
+        }
+        vnode = new VNode(tag, props, EMPTY_CHILDREN, key);
+    } else {
+        vnode = new VNode(tag, props, children, key);
+    }
     vnode.ref = ref;
     vnode.ns = ns;
     vnode.cmds = cmds;
@@ -156,3 +165,11 @@ export function h(tag: ITagName, props?: IPropType): VNode {
     return vnode;
 }
 
+export function cloneVNode(vNode: VNode) {
+    let newVnode = new VNode(vNode.tag, vNode.props, vNode.children, vNode.key);
+    newVnode.ref = vNode.ref;
+    newVnode.ns = vNode.ns;
+    newVnode.cmds = vNode.cmds;
+    newVnode.ons = vNode.ons;
+    return newVnode;
+}

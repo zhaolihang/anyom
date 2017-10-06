@@ -25,13 +25,12 @@ export enum RenderMode {
 
 let GID = 0;
 export class Component extends EventEmitter {
-    proxyOwner: NodeProxy;
     protected $$renderedVNode: VNode;
     protected $$renderedNodeProxy: NodeProxy;
 
     $$id: number;
     protected $refs: any = {};
-    protected props: any;
+    props: any;
     private $$state: any = {};
     private $$watcher: Watcher;
 
@@ -67,17 +66,6 @@ export class Component extends EventEmitter {
     getNodeProxy(): NodeProxy {
         this.$$renderedNodeProxy || this.forceUpdate(RenderMode.SYNC);
         return this.$$renderedNodeProxy;
-    }
-
-    getParentCom(): Component {
-        if (this.proxyOwner) {
-            this.proxyOwner.parentNode
-        }
-        return null;
-    }
-
-    getParentComProp(name: string) {
-        return null;
     }
 
     setProps(props) {

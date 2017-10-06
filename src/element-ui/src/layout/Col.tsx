@@ -10,17 +10,9 @@ const defaultProps = {
 
 export default class Col extends Component {
 
-  getGutter() {
-    let parent = this.proxyOwner.parentNode
-    while (parent && !(parent.element instanceof Row)) {
-      parent = parent.parentNode;
-    }
-    return parent ? parent.element.props.gutter : 0;
-  }
-
   getStyle(): { paddingLeft: string, paddingRight: string } {
     const style: any = {};
-    let gutter = this.getGutter();
+    let gutter = this.props.gutter;
     if (gutter) {
       style.paddingLeft = `${gutter / 2}px`;
       style.paddingRight = style.paddingLeft;
@@ -66,6 +58,6 @@ export default class Col extends Component {
     return h(this.props.tag, {
       className: this.className('el-col', classList),
       style: this.style(this.getStyle())
-    });
+    }, this.props.children);
   }
 }

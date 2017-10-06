@@ -1,6 +1,8 @@
 
 import { Component } from '../../libs';
 import { h } from '../../../index';
+import { VNode } from '../../../vnode';
+import Col from './Col';
 
 const defaultProps = {
   justify: 'start',
@@ -26,6 +28,17 @@ export default class Row extends Component {
   }
 
   render() {
+    let children = this.props.children && this.props.children.map((vnode: VNode) => {
+      if (this.props.gutter) {
+        if (vnode.tag === Col) {
+          let props = Object.assign({}, vnode.props, {
+            gutter: this.props.gutter,
+          });
+          vnode.props = props;
+        }
+      }
+      return vnode;
+    });
     return h(this.props.tag, {
       className: this.className('el-row',
         this.props.justify !== 'start' && `is-justify-${this.props.justify}`,
@@ -34,6 +47,6 @@ export default class Row extends Component {
         }
       ),
       style: this.style(this.getStyle())
-    });
+    }, children);
   }
 }
