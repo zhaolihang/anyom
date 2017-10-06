@@ -33,6 +33,13 @@ export class Component extends EventEmitter {
     props: any;
     private $$state: any = {};
     private $$watcher: Watcher;
+    private $$watchers: Watcher[] = [];
+
+    $watcher(exp: string, fun: Function, opt?: { sync: boolean, deep: boolean }) {
+        let w = new Watcher(this.$$state['$state'], exp, fun, opt);
+        this.$$watchers.push(w);
+        return w;
+    }
 
     protected initialState(): any {
         // can access this.props
@@ -107,6 +114,10 @@ export class Component extends EventEmitter {
 
     private $$destory() {
         this.$$watcher.teardown();
+        for (let w of this.$$watchers) {
+            w.teardown()
+        }
+        this.$$watchers.length = 0;
     }
 
     render(): VNode {
@@ -116,6 +127,8 @@ export class Component extends EventEmitter {
     $set = set;
     $del = del;
 }
+
+(Component.prototype as any).__observe_forbidden__ = true;
 
 export class ComponentStateless extends Component {
 
