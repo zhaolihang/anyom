@@ -10,6 +10,7 @@ import RadioGroup from "../element-ui/src/radio/RadioGroup";
 import RadioButton from "../element-ui/src/radio/RadioButton";
 import CheckBox from "../element-ui/src/checkbox/CheckBox";
 import CheckBoxGroup from "../element-ui/src/checkbox/CheckBoxGroup";
+import Input from "../element-ui/src/input/Input";
 
 const log = console.log;
 
@@ -290,7 +291,7 @@ firstVNode = <div>
     <RadioTest ></RadioTest>
 </div>
 
-class CheckboxIndeterminate extends Component {
+class CheckBoxIndeterminate extends Component {
 
     checkAll: boolean;
     cities: string[];
@@ -349,30 +350,40 @@ class CheckboxIndeterminate extends Component {
 
 
 firstVNode = <div>
-    {/* <div>
-        <Checkbox checked>备选项</Checkbox>
+    <div>
+        <CheckBox checked>备选项</CheckBox>
     </div>
     <div>
-        <Checkbox disabled>备选项1</Checkbox>
-        <Checkbox checked disabled>备选项2</Checkbox>
+        <CheckBox disabled>备选项1</CheckBox>
+        <CheckBox checked disabled>备选项2</CheckBox>
     </div>
     <div>
-        <CheckboxGroup value={['复选框 A', '选中且禁用']}>
-            <Checkbox label="复选框 A"></Checkbox>
-            <Checkbox label="复选框 B"></Checkbox>
-            <Checkbox label="复选框 C"></Checkbox>
-            <Checkbox label="禁用" disabled></Checkbox>
-            <Checkbox label="选中且禁用" disabled></Checkbox>
-        </CheckboxGroup>
-    </div> */}
-    <div>
-        <CheckboxIndeterminate></CheckboxIndeterminate>
+        <CheckBoxGroup value={['复选框 A', '选中且禁用']}>
+            <CheckBox label="复选框 A"></CheckBox>
+            <CheckBox label="复选框 B"></CheckBox>
+            <CheckBox label="复选框 C"></CheckBox>
+            <CheckBox label="禁用" disabled></CheckBox>
+            <CheckBox label="选中且禁用" disabled></CheckBox>
+        </CheckBoxGroup>
     </div>
-
-
-
+    <div>
+        <CheckBoxIndeterminate></CheckBoxIndeterminate>
+    </div>
 </div>
 
+firstVNode = <div>
+    <Input
+        type="textarea"
+        autosize={{ minRows: 2, maxRows: 4 }}
+        placeholder="请输入内容"
+    />
+    <div className="demo-input" >
+        <Input placeholder="请输入内容" size="large" />
+        <Input placeholder="请输入内容" />
+        <Input placeholder="请输入内容" size="small" />
+        <Input placeholder="请输入内容" size="mini" />
+    </div>
+</div>
 
 
 let firstNodeProxy = render(firstVNode)

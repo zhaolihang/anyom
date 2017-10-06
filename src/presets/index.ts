@@ -5,7 +5,6 @@ import { NodeProxy } from "../node-proxy";
 import { Component } from "../component";
 import { setCommand, getCommand } from "../commands";
 import { VNode, h } from "../vnode";
-import { Row, Col } from "../element-ui/src/layout/index";
 
 const log = console.log;
 {//init html

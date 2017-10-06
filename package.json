@@ -45,5 +45,7 @@
     "url": "git+https://github.com/zhaolihang/anyom.git"
   },
   "license": "ISC",
-  "dependencies": {}
+  "dependencies": {
+    "tslib": "^1.7.1"
+  }
 }
