@@ -25,12 +25,13 @@ export enum RenderMode {
 
 let GID = 0;
 export class Component extends EventEmitter {
+    proxyOwner: NodeProxy;
     protected $$renderedVNode: VNode;
     protected $$renderedNodeProxy: NodeProxy;
 
     $$id: number;
     protected $refs: any = {};
-    protected $props: any;
+    protected props: any;
     private $$state: any = {};
     private $$watcher: Watcher;
 
@@ -39,10 +40,15 @@ export class Component extends EventEmitter {
         return {};
     }
 
+    protected initialProps(props): any {
+        return props;
+    }
+
     constructor(props) {
         super()
         this.$$id = ++GID;
-        this.$props = props || {};
+
+        this.props = this.initialProps(props || {});
 
         let $state = this.initialState();
         this.$$state['$state'] = $state;
@@ -63,13 +69,25 @@ export class Component extends EventEmitter {
         return this.$$renderedNodeProxy;
     }
 
-    setProps(props) {
-        this.$props = props || {};
-        this.forceUpdate(RenderMode.ASYNC);
-        this.onProps(props)
+    getParentCom(): Component {
+        if (this.proxyOwner) {
+            this.proxyOwner.parentNode
+        }
+        return null;
     }
 
-    protected onProps(props) {//to override
+    getParentComProp(name: string) {
+        return null;
+    }
+
+    setProps(props) {
+        this.props = this.initialProps(props || {});
+        this.onUpdateProps(this.props);
+        this.forceUpdate(RenderMode.ASYNC);
+    }
+
+    // sync props to state if nesseary
+    protected onUpdateProps(props) {//to override
         // use props to update state
         // eg: this.firstName = props.firstName;
     }
@@ -116,7 +134,7 @@ export class ComponentStateless extends Component {
     constructor(props, renderFn) {
         super(props)
         this.render = () => {
-            return renderFn(this.$props);
+            return renderFn(this.props);
         };
     }
 

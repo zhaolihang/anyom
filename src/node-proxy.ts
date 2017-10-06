@@ -65,6 +65,7 @@ export class NodeProxy {
         let com: Component;
         if (Ctor.prototype && Ctor.prototype.render) {
             com = new Ctor(vNode.props);
+            com.proxyOwner = this;
         } else {
             com = new ComponentStateless(vNode.props, Ctor);
         }

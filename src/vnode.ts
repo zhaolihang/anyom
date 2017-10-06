@@ -1,7 +1,7 @@
 export type ITagName = any;
 export type IPropType = { [x: string]: any };
 export type ICmdsType = { [commandName: string]: any }; // { commandName:commandArgs }
-export type IOnsType = { [x: string]: (...args: any[]) => any }; 
+export type IOnsType = { [x: string]: (...args: any[]) => any };
 export type IRefType = (elm: any) => any;
 export const TextNodeTag = {};
 export const NullNodeTag = {};
@@ -61,6 +61,7 @@ export class VNode {
 const stack: VNode[] = [];
 const EMPTY_CHILDREN = [];
 
+export function h(tag: ITagName, props?: IPropType, ...args): VNode;
 export function h(tag: ITagName, props?: IPropType): VNode {
     props == null ? undefined : props;
 

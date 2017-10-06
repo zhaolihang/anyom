@@ -3,6 +3,7 @@
     "compilerOptions": {
         "module": "es2015",
         "target": "es5",
+        "allowJs": true,
         "sourceMap": true,
         "listFiles": true,
         "strictNullChecks": false,
@@ -10,7 +11,6 @@
         "jsx": "preserve",
         "jsxFactory": "h",
         "moduleResolution": "node",
-        "declaration": true,
         "lib": [
             "dom",
             "es7"
