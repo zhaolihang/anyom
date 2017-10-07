@@ -17,29 +17,6 @@ CSSreset(`
   }
 `)
 
-type State = {
-    options: Array<Object>,
-    isSelect: boolean,
-    inputLength: number,
-    inputWidth: number,
-    inputHovering: boolean,
-    filteredOptionsCount: number,
-    optionsCount: number,
-    hoverIndex: number,
-    bottomOverflowBeforeHidden: number,
-    cachedPlaceHolder: string,
-    currentPlaceholder: string,
-    selectedLabel: string,
-    value: any,
-    visible: boolean,
-    query: string,
-    selected: any,
-    voidRemoteQuery: boolean,
-    valueChangeBySelected: boolean,
-    selectedInit: boolean,
-    dropdownUl?: HTMLElement
-};
-
 const sizeMap: { [size: string]: number } = {
     'large': 42,
     'small': 30,
@@ -120,7 +97,6 @@ export default class Select extends Component {
             this.onValueChange(this.value);
         });
         this.$watcher('query', () => {
-            console.log('onQueryChange')
             this.onQueryChange(this.query);
         });
 
@@ -807,7 +783,7 @@ export default class Select extends Component {
                                         on-keyup={this.managePlaceholder.bind(this)}
                                         on-keydown={(e) => {
                                             this.resetInputState(e);
-
+                                            console.log(e)
                                             switch (e.keyCode) {
                                                 case 27:
                                                     this.visible = false; e.preventDefault();
