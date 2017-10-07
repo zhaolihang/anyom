@@ -33,11 +33,12 @@
     "rollup-plugin-babel": "^3.0.2",
     "rollup-plugin-commonjs": "^8.2.1",
     "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-replace": "^2.0.0",
     "rollup-plugin-typescript": "^0.8.1",
     "rollup-plugin-uglify": "^2.0.1",
     "rollup-watch": "^4.3.1",
     "throttle-debounce": "^1.0.1",
-    "typescript": "^2.4.2"
+    "typescript": "^2.5.3"
   },
   "author": "625335512@qq.com",
   "homepage": "https://github.com/zhaolihang/anyom",

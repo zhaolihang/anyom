@@ -1,16 +1,16 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-        "module": "es2015",
+        "module": "commonjs",
         "target": "es5",
-        "allowJs": true,
+        "allowJs": false,
         "sourceMap": true,
         "listFiles": true,
         "strictNullChecks": false,
         "importHelpers": true,
         "outDir": "tscdist",
-        "jsx": "preserve",
-        "jsxFactory": "h",
+        "jsx": "react",
+        "jsxFactory": "createElement",
         "moduleResolution": "node",
         "lib": [
             "dom",
