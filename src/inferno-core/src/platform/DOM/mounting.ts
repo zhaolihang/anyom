@@ -11,12 +11,13 @@ import {
   isObject,
   isStringOrNumber,
   isUndefined,
+  EMPTY_OBJ,
   LifecycleClass,
   throwError
-} from "../shared";
-import VNodeFlags from "../vnode-flags";
-import { options } from "../core/options";
-import { directClone, isVNode, VNode } from "../core/VNodes";
+} from "../../shared";
+import VNodeFlags from "../../vnode-flags";
+import { options } from "../../core/options";
+import { directClone, isVNode, VNode } from "../../core/VNodes";
 import { patchProp } from "./patching";
 import { recycleComponent, recycleElement } from "./recycling";
 import { componentToDOMNodeMap } from "./rendering";
@@ -25,7 +26,6 @@ import {
   createClassComponentInstance,
   createFunctionalComponentInput,
   documentCreateElement,
-  EMPTY_OBJ,
   setTextContent
 } from "./utils";
 import {

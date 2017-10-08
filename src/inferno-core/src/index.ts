@@ -9,16 +9,15 @@ import {
   cloneVNode,
   createVNode,
 } from "./core/VNodes";
-import { isUnitlessNumber as internal_isUnitlessNumber } from "./DOM/constants";
-import { linkEvent } from "./DOM/events/linkEvent";
-import { patch as internal_patch } from "./DOM/patching";
+import { isUnitlessNumber as internal_isUnitlessNumber } from "./platform/DOM/constants";
+import { linkEvent } from "./platform/DOM/events/linkEvent";
+import { patch as internal_patch } from "./platform/DOM/patching";
 import {
   componentToDOMNodeMap as internal_DOMNodeMap,
   createRenderer,
   findDOMNode,
   render
-} from "./DOM/rendering";
-import { EMPTY_OBJ } from "./DOM/utils";
+} from "./platform/DOM/rendering";
 
 if (process.env.NODE_ENV !== "production") {
   /* tslint:disable-next-line:no-empty */
@@ -40,7 +39,6 @@ const version = process.env.INFERNO_VERSION;
 
 // we duplicate it so it plays nicely with different module loading systems
 export default {
-  EMPTY_OBJ, // used to shared common items between Inferno libs
   NO_OP, // used to shared common items between Inferno libs
   cloneVNode, // cloning
   createRenderer,
@@ -58,7 +56,6 @@ export default {
 };
 
 export {
-  EMPTY_OBJ,
   NO_OP,
   cloneVNode,
   createRenderer,

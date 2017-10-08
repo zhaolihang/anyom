@@ -9,13 +9,12 @@ import {
   isNull,
   isStatefulComponent,
   isStringOrNumber,
-  isUndefined
+  isUndefined,
+  EMPTY_OBJ
 } from "../shared";
 import VNodeFlags from "../vnode-flags";
-import { EMPTY_OBJ } from "../DOM/utils";
 import { normalize } from "./normalization";
 import { options } from "./options";
-
 export type InfernoInput = VNode | null | string | number;
 export type Ref = (node?: Element | null) => void;
 export type InfernoChildren =

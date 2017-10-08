@@ -2,7 +2,7 @@
  * @module Inferno
  */ /** TypeDoc Comment */
 
-import { isBrowser } from "../../shared";
+import { isBrowser } from "../../../shared";
 
 const isiOS =
   isBrowser &&

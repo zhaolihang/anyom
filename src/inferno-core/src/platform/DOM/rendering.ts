@@ -10,22 +10,23 @@ import {
   Lifecycle,
   LifecycleClass,
   NO_OP,
+  EMPTY_OBJ,
   throwError,
   warning
-} from "../shared";
-import VNodeFlags from "../vnode-flags";
-import { options, Root } from "../core/options";
+} from "../../shared";
+import VNodeFlags from "../../vnode-flags";
+import { options, Root } from "../../core/options";
 import {
   directClone,
   InfernoChildren,
   InfernoInput,
   VNode
-} from "../core/VNodes";
+} from "../../core/VNodes";
 import { hydrateRoot } from "./hydration";
 import { mount } from "./mounting";
 import { patch } from "./patching";
 import { unmount } from "./unmounting";
-import { EMPTY_OBJ } from "./utils";
+
 
 // rather than use a Map, like we did before, we can use an array here
 // given there shouldn't be THAT many roots on the page, the difference

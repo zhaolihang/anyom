@@ -16,17 +16,18 @@ import {
   isUndefined,
   LifecycleClass,
   NO_OP,
+  EMPTY_OBJ,
   throwError
-} from "../shared";
-import VNodeFlags from "../vnode-flags";
-import { options } from "../core/options";
+} from "../../shared";
+import VNodeFlags from "../../vnode-flags";
+import { options } from "../../core/options";
 import {
   createTextVNode,
   createVoidVNode,
   directClone,
   isVNode,
   VNode
-} from "../core/VNodes";
+} from "../../core/VNodes";
 import {
   booleanProps,
   delegatedEvents,
@@ -49,7 +50,6 @@ import { componentToDOMNodeMap } from "./rendering";
 import { unmount } from "./unmounting";
 import {
   appendChild,
-  EMPTY_OBJ,
   insertOrAppend,
   isKeyed,
   isSameInnerHTML,
@@ -1041,7 +1041,7 @@ export function patchEvent(name: string, lastValue, nextValue, dom) {
         const linkEvent = nextValue.event;
 
         if (linkEvent && isFunction(linkEvent)) {
-          dom[nameLowerCase] = function(e) {
+          dom[nameLowerCase] = function (e) {
             linkEvent(nextValue.data, e);
           };
         } else {

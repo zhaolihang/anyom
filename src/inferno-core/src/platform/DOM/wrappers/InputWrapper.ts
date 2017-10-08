@@ -2,8 +2,7 @@
  * @module Inferno
  */ /** TypeDoc Comment */
 
-import { isNullOrUndef } from "../../shared";
-import { EMPTY_OBJ } from "../utils";
+import { isNullOrUndef, EMPTY_OBJ } from "../../../shared";
 
 export function isCheckedType(type) {
   return type === "checkbox" || type === "radio";

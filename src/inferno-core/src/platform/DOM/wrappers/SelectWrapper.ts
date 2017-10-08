@@ -2,10 +2,8 @@
  * @module Inferno
  */ /** TypeDoc Comment */
 
-import { isArray, isInvalid, isNullOrUndef } from "../../shared";
-import { isVNode } from "../../core/VNodes";
-import { EMPTY_OBJ } from "../utils";
-
+import { isArray, isInvalid, isNullOrUndef, EMPTY_OBJ } from "../../../shared";
+import { isVNode } from "../../../core/VNodes";
 function updateChildOptionGroup(vNode, value) {
   const type = vNode.type;
 

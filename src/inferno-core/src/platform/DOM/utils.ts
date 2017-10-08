@@ -11,28 +11,21 @@ import {
   isStringOrNumber,
   isUndefined,
   LifecycleClass,
-  throwError
-} from "../shared";
-import VNodeFlags from "../vnode-flags";
-import { options } from "../core/options";
+  throwError,
+  EMPTY_OBJ
+} from "../../shared";
+import VNodeFlags from "../../vnode-flags";
+import { options } from "../../core/options";
 import {
   createTextVNode,
   createVoidVNode,
   directClone,
   Props,
   VNode
-} from "../core/VNodes";
+} from "../../core/VNodes";
 import { svgNS } from "./constants";
 import { mount } from "./mounting";
 import { unmount } from "./unmounting";
-
-// We need EMPTY_OBJ defined in one place.
-// Its used for comparison so we cant inline it into shared
-export const EMPTY_OBJ = {};
-
-if (process.env.NODE_ENV !== "production") {
-  Object.freeze(EMPTY_OBJ);
-}
 
 export function createClassComponentInstance(
   vNode: VNode,

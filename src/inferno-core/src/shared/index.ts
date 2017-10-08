@@ -1,4 +1,12 @@
 
+// We need EMPTY_OBJ defined in one place.
+// Its used for comparison so we cant inline it into shared
+export const EMPTY_OBJ = {};
+
+if (process.env.NODE_ENV !== "production") {
+  Object.freeze(EMPTY_OBJ);
+}
+
 export const NO_OP = "$NO_OP";
 export const ERROR_MSG =
   "a runtime error occured! Use Inferno in development environment to find the error.";

@@ -10,15 +10,16 @@ import {
   isNullOrUndef,
   isObject,
   isUndefined,
+  EMPTY_OBJ,
   LifecycleClass
-} from "../shared";
-import VNodeFlags from "../vnode-flags";
-import { options } from "../core/options";
-import { VNode } from "../core/VNodes";
+} from "../../shared";
+import VNodeFlags from "../../vnode-flags";
+import { options } from "../../core/options";
+import { VNode } from "../../core/VNodes";
 import { isAttrAnEvent, patchEvent } from "./patching";
 import { poolComponent, poolElement } from "./recycling";
 import { componentToDOMNodeMap } from "./rendering";
-import { EMPTY_OBJ, removeChild } from "./utils";
+import { removeChild } from "./utils";
 
 export function unmount(
   vNode: VNode,

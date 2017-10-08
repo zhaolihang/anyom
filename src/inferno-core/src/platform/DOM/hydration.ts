@@ -11,11 +11,12 @@ import {
   isStringOrNumber,
   LifecycleClass,
   throwError,
+  EMPTY_OBJ,
   warning
-} from "../shared";
-import VNodeFlags from "../vnode-flags";
-import { options } from "../core/options";
-import { InfernoChildren, VNode } from "../core/VNodes";
+} from "../../shared";
+import VNodeFlags from "../../vnode-flags";
+import { options } from "../../core/options";
+import { InfernoChildren, VNode } from "../../core/VNodes";
 import { svgNS } from "./constants";
 import {
   mount,
@@ -30,7 +31,7 @@ import { componentToDOMNodeMap } from "./rendering";
 import {
   createClassComponentInstance,
   createFunctionalComponentInput,
-  EMPTY_OBJ,
+
   isSamePropsInnerHTML,
   replaceChild
 } from "./utils";

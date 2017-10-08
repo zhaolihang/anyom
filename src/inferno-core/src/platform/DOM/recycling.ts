@@ -2,9 +2,9 @@
  * @module Inferno
  */ /** TypeDoc Comment */
 
-import { isNull, isUndefined, LifecycleClass } from "../shared";
-import VNodeFlags from "../vnode-flags";
-import { Refs, VNode } from "../core/VNodes";
+import { isNull, isUndefined, LifecycleClass } from "../../shared";
+import VNodeFlags from "../../vnode-flags";
+import { Refs, VNode } from "../../core/VNodes";
 import { patchComponent, patchElement } from "./patching";
 
 const componentPools = new Map<Function | null, Pools>();

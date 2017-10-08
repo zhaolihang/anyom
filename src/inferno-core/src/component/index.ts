@@ -5,7 +5,6 @@
 // Make sure u use EMPTY_OBJ from 'inferno', otherwise it'll be a different reference
 import {
   createVNode,
-  EMPTY_OBJ,
   internal_DOMNodeMap,
   internal_patch,
   options,
@@ -21,7 +20,8 @@ import {
   isNullOrUndef,
   isStringOrNumber,
   NO_OP,
-  throwError
+  throwError,
+  EMPTY_OBJ
 } from "../shared";
 import VNodeFlags from "../vnode-flags";
 import { VNode, Props } from "../core/VNodes";

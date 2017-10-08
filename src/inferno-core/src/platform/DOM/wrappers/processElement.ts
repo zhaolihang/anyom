@@ -2,9 +2,9 @@
  * @module Inferno
  */ /** TypeDoc Comment */
 
-import { isNullOrUndef } from "../../shared";
-import VNodeFlags from "../../vnode-flags";
-import { VNode } from "../../core/VNodes";
+import { isNullOrUndef } from "../../../shared";
+import VNodeFlags from "../../../vnode-flags";
+import { VNode } from "../../../core/VNodes";
 import { isCheckedType, processInput } from "./InputWrapper";
 import { processSelect } from "./SelectWrapper";
 import { processTextarea } from "./TextareaWrapper";
