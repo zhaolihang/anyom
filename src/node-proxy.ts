@@ -1,4 +1,4 @@
-import { ITagName, VNode, VNodeType, ICmdsType, IRefType } from "./vnode";
+import { TagName, VNode, VNodeType, Cmds, IRefType } from "./vnode";
 import { Component, LifeCycleType, ComponentStateless } from "./component";
 import { getCommand } from "./commands";
 import { applyNativeProps, applyCommands, applyOns } from "./patch";
@@ -21,7 +21,7 @@ export class NodeProxy {
     proxyType: ProxyType;
     element: any;
     ref: IRefType;
-    cmds: ICmdsType;
+    cmds: Cmds;
 
     constructor(vNode: VNode) {
         this.vNodeType = vNode.type;
@@ -237,7 +237,7 @@ export class NodeProxy {
     }
 
     // commands
-    setCmds(newCmds: ICmdsType) {
+    setCmds(newCmds: Cmds) {
         this.cmds = newCmds;
     }
 
@@ -272,28 +272,6 @@ export class NodeProxy {
         if (cmd && cmd.update) {
             cmd.update(this.getNativeNode(), cmdValue, previousCmdValue);
         }
-    }
-
-    // ons
-    addOn(onName: string, onValue: any) {
-        if (this.proxyType === ProxyType.NATIVE) {
-            (this.element as HTMLElement).addEventListener(onName, onValue);
-        } else {
-            (this.element as Component).on(onName, onValue);
-        }
-    }
-
-    removeOn(onName: string, previousOnValue: any) {
-        if (this.proxyType === ProxyType.NATIVE) {
-            (this.element as HTMLElement).removeEventListener(onName, previousOnValue);
-        } else {
-            (this.element as Component).off(onName, previousOnValue);
-        }
-    }
-
-    updateOn(onName: string, onValue: any, previousOnValue: any) {
-        this.removeOn(onName, previousOnValue);
-        this.addOn(onName, onValue);
     }
 
 }

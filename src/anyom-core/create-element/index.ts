@@ -43,7 +43,6 @@ export default function createElement<T>(
   let ref: any = null;
   let cmds: any = null;
   let key = null;
-  let className = null;
   let newProps;
 
   if (_children) {
@@ -59,13 +58,10 @@ export default function createElement<T>(
       newProps = {} as T & Props;
 
       for (const prop in props) {
-        if (prop === "className" || prop === "class") {
-          className = props[prop];
-        } else if (prop === "key") {
+        if (prop === "key") {
           key = props.key;
         } else if (prop === "children" && isUndefined(children)) {
           children = props.children; // always favour children args, default to props
-
         } else if (prop === "ref") {
           ref = props.ref;
         } else if (prop.substr(0, 4) === "cmd-") {
@@ -114,7 +110,6 @@ export default function createElement<T>(
   return createVNode(
     0,
     type as string | Function,
-    className,
     children,
     newProps,
     key,

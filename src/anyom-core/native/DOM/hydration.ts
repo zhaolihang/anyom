@@ -106,7 +106,6 @@ function hydrateElement(
 ): NativeElement {
   const children = vNode.children;
   const props = vNode.props;
-  const className = vNode.className;
   const flags = vNode.flags;
   const ref = vNode.ref;
   const cmds = vNode.cmds;
@@ -135,11 +134,6 @@ function hydrateElement(
       // do not add a hasOwnProperty check here, it affects performance
       patchProp(prop, null, props[prop], dom);
     }
-  }
-  if (!isNullOrUndef(className)) {
-    setClassName(dom, className)
-  } else {
-    removeClassName(dom)
   }
   if (ref) {
     mountRef(dom, ref, lifecycle);

@@ -1,5 +1,5 @@
-import { isObject, getPrototype, ascending, indexInRange } from "./utils";
-import { VNode, IPropType, ICmdsType, IOnsType } from "./vnode";
+import { isObject, getPrototype, ascending, indexInRange, getParentNode, replaceChild, getChildNodes, removedChild, appendChild, removedChildWithArg, insertChildWithArg, setComponentProps, setRef } from "./utils";
+import { VNode, PropsType, Cmds } from "./vnode";
 import { IDiffMap, VPatch, VPatchType } from "./diff";
 import { Component } from "./component";
 import { NodeProxy } from "./node-proxy";
@@ -10,9 +10,9 @@ export function patch(nodeProxy: NodeProxy, patches: IDiffMap): NodeProxy {
     let resultNode = patchEach(nodeProxy, patches);
 
     if (nodeProxy !== resultNode) {
-        let parentNode = nodeProxy.parentNode;
+        let parentNode = getParentNode(nodeProxy);
         if (parentNode) {
-            parentNode.replaceChild(resultNode, nodeProxy);
+            replaceChild(parentNode, resultNode, nodeProxy)
         }
     }
 
@@ -95,7 +95,7 @@ function recurse(nodeProxy: NodeProxy, tree, indices: number[], nodes: { [index:
 
         if (vChildren) {
 
-            let childNodes = nodeProxy.childNodes;
+            let childNodes = getChildNodes(nodeProxy);
 
             for (let i = 0; i < tree.children.length; i++) {
                 rootIndex += 1;
@@ -127,9 +127,13 @@ function patchOp(nodeProxy: NodeProxy, vpatch: VPatch) {
     switch (type) {
         case VPatchType.INSERT:
             return insertNode(nodeProxy, patch);
-        case VPatchType.REMOVE:
-            nodeProxy.parentNode && nodeProxy.parentNode.removeChild(nodeProxy);
+        case VPatchType.REMOVE: {
+            let parentNode = getParentNode(nodeProxy)
+            if (parentNode) {
+                removedChild(parentNode, nodeProxy)
+            }
             return null;
+        }
         case VPatchType.ORDER:
             reorderChildren(nodeProxy, patch);
             return nodeProxy;
@@ -137,18 +141,15 @@ function patchOp(nodeProxy: NodeProxy, vpatch: VPatch) {
             applyNativeProps(nodeProxy, patch, vNode.props);
             return nodeProxy;
         case VPatchType.COMPONENTPROPS:
-            nodeProxy.setComponentProps(patch, vNode.props);
+            setComponentProps(nodeProxy,patch, vNode.props)
             return nodeProxy;
         case VPatchType.REPLACE:
             return replaceNode(nodeProxy, vNode, patch);
         case VPatchType.REF:
-            nodeProxy.setRef(patch);
+            setRef(nodeProxy,patch)
             return nodeProxy;
         case VPatchType.COMMANDS:
             applyCommands(nodeProxy, patch.patch, vNode.cmds, patch.newCommands);
-            return nodeProxy;
-        case VPatchType.ONS:
-            applyOns(nodeProxy, patch, vNode.ons);
             return nodeProxy;
         default:
             return nodeProxy;
@@ -159,18 +160,18 @@ function insertNode(parentNodeProxy: NodeProxy, vNode: VNode) {
     let newNode = render(vNode);
 
     if (parentNodeProxy) {
-        parentNodeProxy.appendChild(newNode);
+        appendChild(parentNodeProxy, newNode)
     }
 
     return parentNodeProxy;
 }
 
 function replaceNode(nodeProxy: NodeProxy, leftVNode: VNode, vNode: VNode) {
-    let parentNode = nodeProxy.parentNode;
+    let parentNode = getParentNode(nodeProxy);
     let newNode = render(vNode);
 
     if (parentNode && newNode !== nodeProxy) {
-        parentNode.replaceChild(newNode, nodeProxy);
+        replaceChild(parentNode, newNode, nodeProxy);
     }
 
     return newNode;
@@ -179,7 +180,7 @@ function replaceNode(nodeProxy: NodeProxy, leftVNode: VNode, vNode: VNode) {
 
 function reorderChildren(parentNodeProxy: NodeProxy, moves) {
 
-    let childNodes = parentNodeProxy.childNodes;
+    let childNodes = getChildNodes(parentNodeProxy);
     let keyMap: { [key: string]: NodeProxy } = {};
     let node: NodeProxy;
     let remove: { from: number, key?: string };
@@ -204,21 +205,21 @@ function reorderChildren(parentNodeProxy: NodeProxy, moves) {
             keyMap[remove.key] = node;
             insertKeyMap[remove.key] && (reorderKeyMap[remove.key] = true);
         }
-        parentNodeProxy.removeChild(node, reorderKeyMap[remove.key]);
+        removedChildWithArg(parentNodeProxy, node, reorderKeyMap[remove.key])
     }
 
     let length = childNodes.length;
     for (let j = 0; j < insertsLen; j++) {
         insert = inserts[j];
         node = keyMap[insert.key];
-        parentNodeProxy.insertBefore(node, insert.to >= length++ ? null : childNodes[insert.to], reorderKeyMap[insert.key]);
+        insertChildWithArg(parentNodeProxy, node, insert.to >= length++ ? null : childNodes[insert.to], reorderKeyMap[insert.key]);
     }
 
 }
 
 //
 
-export function applyNativeProps(proxy: NodeProxy, props: IPropType, previous?: IPropType) {
+export function applyNativeProps(proxy: NodeProxy, props: PropsType, previous?: PropsType) {
 
     for (let propName in props) {
         let propValue = props[propName];
@@ -256,7 +257,7 @@ function patchNativeNodeObject(proxy: NodeProxy, props, previous, propName, prop
 }
 
 
-export function applyCommands(proxy: NodeProxy, cmdPatch: ICmdsType, previousCmds: ICmdsType, newCommands: ICmdsType) {
+export function applyCommands(proxy: NodeProxy, cmdPatch: Cmds, previousCmds: Cmds, newCommands: Cmds) {
     for (let cmdName in cmdPatch) {
         let cmdValue = cmdPatch[cmdName];
         if (cmdValue === undefined) {
@@ -272,22 +273,4 @@ export function applyCommands(proxy: NodeProxy, cmdPatch: ICmdsType, previousCmd
         }
     }
     proxy.setCmds(newCommands);
-}
-
-
-export function applyOns(proxy: NodeProxy, onPatch: IOnsType, previousOns: IOnsType) {
-    for (let onName in onPatch) {
-        let cmdValue = onPatch[onName];
-        if (cmdValue === undefined) {
-            if (previousOns && (onName in previousOns)) {
-                proxy.removeOn(onName, previousOns[onName]);
-            }
-        } else {
-            if (previousOns && (onName in previousOns)) {
-                proxy.updateOn(onName, cmdValue, previousOns[onName])
-            } else {
-                proxy.addOn(onName, cmdValue);
-            }
-        }
-    }
 }

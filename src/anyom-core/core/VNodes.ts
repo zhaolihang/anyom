@@ -50,7 +50,6 @@ export interface Refs {
 export interface VNode {
   children: InfernoChildren;
   dom: NativeElement | null;
-  className: string | null;
   flags: number;
   key: any;
   props: Props | null;
@@ -91,7 +90,6 @@ export function getFlagsType(type: Type): number {
 export function createVNode(
   flags: number,
   type: Type,
-  className?: string | null,
   children?: InfernoChildren,
   props?: Props | null,
   key?: any,
@@ -104,7 +102,6 @@ export function createVNode(
 
   const vNode: VNode = {
     children: children === void 0 ? null : children,
-    className: className === void 0 ? null : className,
     dom: null,
     flags,
     key: key === void 0 ? null : key,
@@ -142,7 +139,6 @@ export function directClone(vNodeToClone: VNode): VNode {
     newVNode = createVNode(
       flags,
       vNodeToClone.type,
-      null,
       null,
       props,
       vNodeToClone.key,
@@ -194,7 +190,6 @@ export function directClone(vNodeToClone: VNode): VNode {
     newVNode = createVNode(
       flags,
       vNodeToClone.type,
-      vNodeToClone.className,
       children,
       props,
       vNodeToClone.key,
@@ -259,22 +254,16 @@ export function cloneVNode(
     newVNode = tmpArray;
   } else {
     const flags = vNodeToClone.flags;
-    let className = vNodeToClone.className;
     let key = vNodeToClone.key;
     let ref = vNodeToClone.ref;
     let cmds = vNodeToClone.cmds;
     if (props) {
-      if (props.hasOwnProperty("className")) {
-        className = props.className as string;
-      }
       if (props.hasOwnProperty("ref")) {
         ref = props.ref as Ref;
       }
-
       if (props.hasOwnProperty("key")) {
         key = props.key;
       }
-
       if (props.hasOwnProperty("key")) {
         cmds = props.cmds;
       }
@@ -284,7 +273,6 @@ export function cloneVNode(
       newVNode = createVNode(
         flags,
         vNodeToClone.type,
-        className,
         null,
         !vNodeToClone.props && !props
           ? EMPTY_OBJ
@@ -331,7 +319,6 @@ export function cloneVNode(
       newVNode = createVNode(
         flags,
         vNodeToClone.type,
-        className,
         children,
         !vNodeToClone.props && !props
           ? EMPTY_OBJ
@@ -353,7 +340,7 @@ export function createVoidVNode(): VNode {
 }
 
 export function createTextVNode(text: string | number, key): VNode {
-  return createVNode(VNodeFlags.Text, null, null, text, null, key);
+  return createVNode(VNodeFlags.Text, null, text, null, key);
 }
 
 export function isVNode(o: VNode): boolean {

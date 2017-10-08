@@ -1,6 +1,5 @@
-let Commands = {
 
-}
+const Commands = new Map<string, any>();
 
 export type ICommandObjType = {
     bind?: (node, newValue) => any,
@@ -9,13 +8,17 @@ export type ICommandObjType = {
 };
 
 export function setCommand(name: string, cmdObj: ICommandObjType) {
-    if (Commands[name]) {
-        return Commands[name]
+    if (Commands.has(name)) {
+        return Commands.get(name);
     }
-    Commands[name] = cmdObj;
+    Commands.set(name, cmdObj);
     return cmdObj;
 }
 
+export function hasCommand(name: string): boolean {
+    return Commands.has(name);
+}
+
 export function getCommand(name: string): ICommandObjType {
-    return Commands[name];
+    return Commands.get(name);
 }

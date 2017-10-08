@@ -1,3 +1,5 @@
+import { NodeProxy } from "./node-proxy";
+
 export function noop(...x: any[]): any;
 export function noop() { };
 
@@ -117,5 +119,43 @@ export function proxy(target: any, source: any, key: string) {
         source[key] = val;
     }
     Object.defineProperty(target, key, sharedPropertyDefinition)
+}
+
+
+
+export function getParentNode(node: NodeProxy): NodeProxy {
+    return node.parentNode
+}
+
+export function replaceChild(parentNode: NodeProxy, newNode: NodeProxy, oldNode: NodeProxy) {
+    parentNode.replaceChild(newNode, oldNode);
+}
+
+export function getChildNodes(nodeProxy: NodeProxy): NodeProxy[] {
+    return nodeProxy.childNodes;
+}
+
+export function removedChild(parent: NodeProxy, child: NodeProxy) {
+    parent.removeChild(child);
+}
+
+export function removedChildWithArg(parent: NodeProxy, child: NodeProxy, recycle = false) {
+    parent.removeChild(child, recycle);
+}
+
+export function appendChild(parent: NodeProxy, child: NodeProxy) {
+    parent.removeChild(child);
+}
+export function insertChildWithArg(parent: NodeProxy, newNode: NodeProxy, insertTo: NodeProxy | null, recycle = false) {
+    parent.insertBefore(newNode, insertTo, recycle);
+}
+
+
+export function setComponentProps(nodeProxy: NodeProxy, props, previous?: any) {
+    nodeProxy.setComponentProps(props, previous);
+}
+
+export function setRef(nodeProxy: NodeProxy, patch) {
+    nodeProxy.setRef(patch);
 }
 

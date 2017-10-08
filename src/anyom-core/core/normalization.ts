@@ -134,10 +134,6 @@ function normalizeProps(vNode: VNode, props: Props, children: InfernoChildren) {
     if (isNullOrUndef(children) && props.hasOwnProperty("children")) {
       vNode.children = props.children;
     }
-    if (props.hasOwnProperty("className")) {
-      vNode.className = props.className || null;
-      delete props.className;
-    }
   }
   if (props.hasOwnProperty("ref")) {
     vNode.ref = props.ref as any;

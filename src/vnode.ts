@@ -1,47 +1,78 @@
-export type ITagName = any;
-export type IPropType = { [x: string]: any };
-export type ICmdsType = { [commandName: string]: any }; // { commandName:commandArgs }
-export type IOnsType = { [x: string]: (...args: any[]) => any };
-export type IRefType = (elm: any) => any;
-export const TextNodeTag = {};
-export const NullNodeTag = {};
+import { hasCommand } from "./commands";
+import { isString, isStatefulComponent, isInvalid, toArray, ComponentHooks } from "./shared";
+import { Component } from "./component";
+import { NodeProxy } from "./node-proxy";
 
-const noProperties = {};
-const noChildren = [];
+export interface NativeElement {
+
+}
+export type TagName = Function | string;
+export type PropsType = {
+    children?: VNode[];
+    ref?: Function
+    key?: string | number;
+    [x: string]: any
+};
+
+export type Cmds = { [x: string]: any }
+
+export type Ref = (node?: NativeElement | null) => void;
+export interface Refs {
+    onComponentDidMount?: (domNode: NativeElement) => void;
+    onComponentWillMount?(): void;
+    onComponentShouldUpdate?(lastProps, nextProps): boolean;
+    onComponentWillUpdate?(lastProps, nextProps): void;
+    onComponentDidUpdate?(lastProps, nextProps): void;
+    onComponentWillUnmount?(domNode: NativeElement): void;
+}
+
+
+export function getVNodeTypeByString(name: string): VNodeType {
+    return VNodeType.Element;
+}
+
+export function getVNodeType(type: any): VNodeType {
+    if (isString(type)) {
+        return getVNodeTypeByString(type);
+    } else {
+        return isStatefulComponent(type) ? VNodeType.ComponentClass : VNodeType.ComponentFunction;
+    }
+}
+
+export function isVNode(o: VNode): boolean {
+    return !!o.type;
+}
 
 export enum VNodeType {
-    None = 0,
-    Component,
-    NativeNode,
-    NativeText,
-    NullNode,
+    Text = 1,
+    Element = 1 << 1,
+
+    ComponentClass = 1 << 2,
+    ComponentFunction = 1 << 3,
+    ComponentUnknown = 1 << 4,
+    Component = ComponentFunction | ComponentClass,
+
+    Void = 1 << 10,
 }
+
+
 
 export class VNode {
     count = 0;
-    type: VNodeType;
 
-    ref: IRefType;
     key: string;
-    cmds: ICmdsType;
-    ons: IOnsType;
-    ns: string;
+    tag: TagName;
+    type: VNodeType;
+    props: PropsType
+    children: VNode[]
+    instance: Component | Function | NodeProxy;
 
-    constructor(public tag: ITagName, public props: IPropType = noProperties, public children: VNode[] = noChildren, key?: string) {
-
-        // type
-        if (tag === TextNodeTag) {
-            this.type = VNodeType.NativeText;
-        } else if (tag === NullNodeTag) {
-            this.type = VNodeType.NullNode;
-        } else if (typeof tag === 'string') {
-            this.type = VNodeType.NativeNode;
-        } else if (typeof tag === 'function') {
-            this.type = VNodeType.Component;
-        }
-
-        //key
-        this.key = key != null ? String(key) : undefined;
+    constructor(type: VNodeType, tag: TagName, props: PropsType, children: VNode[], key?: string) {
+        this.key = key != null ? String(key) : null;
+        this.tag = tag;
+        this.type = type;
+        this.props = props;
+        this.children = children;
 
         let count = (children && children.length) || 0;
         let descendants = 0;
@@ -49,71 +80,37 @@ export class VNode {
             let child = children[i];
             descendants += child.count;
         }
-        //count
         this.count = count + descendants;
-
     }
 
 }
 
-//
-
 const stack: VNode[] = [];
 const EMPTY_CHILDREN = [];
 
-export function h(tag: ITagName, props?: IPropType, ...args): VNode;
-export function h(tag: ITagName, props?: IPropType): VNode {
-    props == null ? undefined : props;
-
-    // key
+export function h(tag: TagName, props?: PropsType, ...args): VNode;
+export function h(tag: TagName, props?: PropsType): VNode {
+    let type = getVNodeType(tag);
+    let children: VNode[] = null;
     let key;
     if (props) {
         key = props.key;
         delete props.key;
-    }
-
-    // ref
-    let ref;
-    if (props && props.ref != null) {
-        ref = props.ref;
-        delete props.ref;
-    }
-
-    // cmd 指令
-    let cmds: ICmdsType;
-    if (props && props.cmds != null) {
-        cmds = props.cmds;
-        delete props.cmds;
-    }
-
-    let ons: ICmdsType;
-    if (props && props.ons != null) {
-        ons = props.ons;
-        delete props.ons;
-    }
-
-    // namespace 
-    let ns: string;
-    if (props && props.ns != null) {
-        ns = props.ns;
-        delete props.ns;
+        if (!isInvalid(props.children)) {
+            children = [...toArray(props.children)];
+            children = children.reverse();
+            delete props.children;
+        }
     }
 
     ////////////////////////////////////////////////////
     let i;
-    for (i = arguments.length; i-- > 2;) {
-        stack.push(arguments[i]);
-    }
-
-    if (props && props.children != null) {
-        if (!stack.length) {
-            stack.push(props.children);
+    if (!children) {
+        for (i = arguments.length; i-- > 2;) {
+            stack.push(arguments[i]);
         }
-        delete props.children;
     }
 
-    // children
-    let children: VNode[] = EMPTY_CHILDREN;
     let child: any;
 
     while (stack.length) {
@@ -123,53 +120,31 @@ export function h(tag: ITagName, props?: IPropType): VNode {
                 stack.push(child[i]);
             }
         } else {
-
-            if (child === false) {
-                continue;
-                // child = new VNode(NullNodeTag);
-            } else {
-                let childType = typeof child;
-                if (childType === 'string' || childType === 'number' || childType === 'boolean') {
-                    child = new VNode(TextNodeTag, { value: String(child) });
-                }
-            }
-
-            if (!child) {
-                // console.warn('child is null');
+            if (isInvalid(child)) {
                 continue;
             }
-            if (children === EMPTY_CHILDREN) {
+            let childType = typeof child;
+            if (childType === 'string' || childType === 'number') {
+                child = new VNode(VNodeType.Text, null, { value: String(child) }, null);
+            }
+            if (!children) {
                 children = [child];
             } else {
                 children.push(child);
             }
-
         }
     }
-
-    let vnode;
-    if (typeof tag === 'function') {// Component
-        if (children !== EMPTY_CHILDREN) {
+    if (type & VNodeType.Component) {
+        if (children) {
             props = props || {}
             props.children = children;
         }
-        vnode = new VNode(tag, props, EMPTY_CHILDREN, key);
+        return new VNode(type, tag, props, null, key);
     } else {
-        vnode = new VNode(tag, props, children, key);
+        return new VNode(type, tag, props, children, key);
     }
-    vnode.ref = ref;
-    vnode.ns = ns;
-    vnode.cmds = cmds;
-    vnode.ons = ons;
-
-    return vnode;
 }
 
-export function cloneVNode(vNode: VNode) {
-    let newVnode = new VNode(vNode.tag, vNode.props, vNode.children, vNode.key);
-    newVnode.ref = vNode.ref;
-    newVnode.ns = vNode.ns;
-    newVnode.cmds = vNode.cmds;
-    newVnode.ons = vNode.ons;
-    return newVnode;
+export function cloneVNode(vNode: VNode): VNode {
+    return vNode;
 }

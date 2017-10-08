@@ -6,7 +6,7 @@ import { patch } from "./patch";
 import { setCommand, getCommand } from "./commands";
 import { nextTick } from "./scheduler";
 import { NodeProxy } from "./node-proxy";
-import { ITagName, IPropType, VNodeType, cloneVNode } from "./vnode";
+import { TagName, PropsType, VNodeType, cloneVNode } from "./vnode";
 
 export {
     h,

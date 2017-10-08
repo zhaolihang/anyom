@@ -1,4 +1,4 @@
-import { VNode, ITagName, IPropType, VNodeType } from "./vnode";
+import { VNode, TagName, PropsType, VNodeType } from "./vnode";
 import { isObject, getPrototype, deepEqual } from "./utils";
 
 //
@@ -10,9 +10,6 @@ export enum VPatchType {
     ORDER,
     INSERT,
     REMOVE,
-    REF,
-    COMMANDS,
-    ONS,
 }
 
 export class VPatch {
@@ -20,8 +17,8 @@ export class VPatch {
     }
 }
 
-
-function diffProps(a: IPropType, b: IPropType) {
+let noPorps = {};
+function diffProps(a: PropsType = noPorps, b: PropsType = noPorps) {
 
     let diff;
     for (let aKey in a) {
@@ -65,82 +62,6 @@ function diffProps(a: IPropType, b: IPropType) {
     return diff;
 }
 
-function diffCommands(aCmds, bCmds) {
-    if (aCmds === bCmds) {
-        return;
-    }
-
-    let diff;
-    for (let aKey in aCmds) {
-        if (!(aKey in bCmds)) {
-            diff = diff || {};
-            diff[aKey] = undefined;
-        }
-        let aValue = aCmds[aKey];
-        let bValue = bCmds[aKey];
-
-        if (aValue === bValue) {
-            continue;
-        } else if (isObject(aValue) && isObject(bValue)) {
-            if (getPrototype(bValue) !== getPrototype(aValue)) {
-                diff = diff || {};
-                diff[aKey] = bValue;
-            } else {
-                if (!deepEqual(aValue, bValue)) {
-                    diff = diff || {};
-                    diff[aKey] = bValue;
-                }
-            }
-        } else {
-            diff = diff || {};
-            diff[aKey] = bValue;
-        }
-    }
-
-    for (let bKey in bCmds) {
-        if (!(bKey in aCmds)) {
-            diff = diff || {};
-            diff[bKey] = bCmds[bKey];
-        }
-    }
-
-    return diff;
-}
-
-
-function diffOns(aOns, bOns) {
-    if (aOns === bOns) {
-        return;
-    }
-
-    let diff;
-    for (let aKey in aOns) {
-        if (!(aKey in bOns)) {
-            diff = diff || {};
-            diff[aKey] = undefined;
-        }
-        let aValue = aOns[aKey];
-        let bValue = bOns[aKey];
-
-        if (aValue === bValue) {
-            continue;
-        } else {
-            diff = diff || {};
-            diff[aKey] = bValue;
-        }
-    }
-
-    for (let bKey in bOns) {
-        if (!(bKey in aOns)) {
-            diff = diff || {};
-            diff[bKey] = bOns[bKey];
-        }
-    }
-
-    return diff;
-}
-
-
 
 export type VPatchResultType = VPatch | VPatch[];
 
@@ -161,8 +82,6 @@ export function diff(a: VNode, b?: VNode) {
     return patch;
 };
 
-const noCmds = {};
-const noOns = {};
 function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
     if (a === b) {
         return;
@@ -175,8 +94,8 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
     } else {
         if (a.tag === b.tag && a.key === b.key) {
 
-            if (a.type === VNodeType.Component) {
-                if (!deepEqual(a.props, b.props)) {
+            if (a.type & VNodeType.Component) {
+                if (a.props !== b.props) {
                     apply = appendPatch(apply, new VPatch(VPatchType.COMPONENTPROPS, a, b.props));
                 }
             } else {
@@ -185,21 +104,6 @@ function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
                     apply = appendPatch(apply, new VPatch(VPatchType.NATIVEPROPS, a, propsPatch));
                 }
             }
-
-            if (a.ref !== b.ref) {
-                apply = appendPatch(apply, new VPatch(VPatchType.REF, a, b.ref));
-            }
-
-            let cmdPatch = diffCommands(a.cmds || noCmds, b.cmds || noCmds);
-            if (cmdPatch) {
-                apply = appendPatch(apply, new VPatch(VPatchType.COMMANDS, a, { patch: cmdPatch, newCmds: b.cmds }));
-            }
-
-            let onPatch = diffOns(a.ons || noOns, b.ons || noOns);
-            if (onPatch) {
-                apply = appendPatch(apply, new VPatch(VPatchType.ONS, a, onPatch));
-            }
-
             apply = diffChildren(a, b, patch, apply, index);
         } else {
             apply = appendPatch(apply, new VPatch(VPatchType.REPLACE, a, b));

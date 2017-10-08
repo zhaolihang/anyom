@@ -10,7 +10,7 @@
         "importHelpers": true,
         "outDir": "tscdist",
         "jsx": "react",
-        "jsxFactory": "createElement",
+        "jsxFactory": "h",
         "moduleResolution": "node",
         "lib": [
             "dom",
