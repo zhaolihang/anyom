@@ -17,6 +17,9 @@ import { normalize } from "./normalization";
 import { options } from "./options";
 export type InfernoInput = VNode | null | string | number;
 export type Ref = (node?: Element | null) => void;
+export type Cmd = any;
+export type Cmds = { [x: string]: Cmd };
+
 export type InfernoChildren =
   | string
   | number
@@ -53,6 +56,7 @@ export interface VNode {
   key: any;
   props: Props | null;
   ref: Ref | null;
+  cmds?: Cmds | null;
   type: Type;
   parentVNode?: VNode;
 }
@@ -77,6 +81,7 @@ export function createVNode(
   props?: Props | null,
   key?: any,
   ref?: Ref | null,
+  cmds?: Cmds | null,
   noNormalise?: boolean
 ): VNode {
   if (flags & VNodeFlags.ComponentUnknown) {
@@ -93,6 +98,7 @@ export function createVNode(
     key: key === void 0 ? null : key,
     props: props === void 0 ? null : props,
     ref: ref === void 0 ? null : ref,
+    cmds: cmds === void 0 ? null : cmds,
     type
   };
   if (noNormalise !== true) {
@@ -129,6 +135,7 @@ export function directClone(vNodeToClone: VNode): VNode {
       props,
       vNodeToClone.key,
       vNodeToClone.ref,
+      vNodeToClone.cmds,
       true
     );
     const newProps = newVNode.props;
@@ -180,6 +187,7 @@ export function directClone(vNodeToClone: VNode): VNode {
       props,
       vNodeToClone.key,
       vNodeToClone.ref,
+      vNodeToClone.cmds,
       !children
     );
   } else if (flags & VNodeFlags.Text) {
@@ -242,6 +250,7 @@ export function cloneVNode(
     let className = vNodeToClone.className;
     let key = vNodeToClone.key;
     let ref = vNodeToClone.ref;
+    let cmds = vNodeToClone.cmds;
     if (props) {
       if (props.hasOwnProperty("className")) {
         className = props.className as string;
@@ -266,6 +275,7 @@ export function cloneVNode(
           : combineFrom(vNodeToClone.props, props),
         key,
         ref,
+        cmds,
         true
       );
       const newProps = newVNode.props;
@@ -312,6 +322,7 @@ export function cloneVNode(
           : combineFrom(vNodeToClone.props, props),
         key,
         ref,
+        cmds,
         false
       );
     } else if (flags & VNodeFlags.Text) {

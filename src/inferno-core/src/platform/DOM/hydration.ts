@@ -24,7 +24,8 @@ import {
   mountElement,
   mountFunctionalComponentCallbacks,
   mountRef,
-  mountText
+  mountText,
+  mountCmds
 } from "./mounting";
 import { patchProp } from "./patching";
 import { componentToDOMNodeMap } from "./rendering";
@@ -72,6 +73,7 @@ function hydrateComponent(
 ): Element {
   const type = vNode.type;
   const ref = vNode.ref;
+  const cmds = vNode.cmds;
   const props = vNode.props || EMPTY_OBJ;
 
   if (isClass) {
@@ -89,7 +91,7 @@ function hydrateComponent(
     instance._vNode = vNode;
     hydrate(input, dom, lifecycle, instance._childContext, _isSVG);
     vNode.dom = input.dom;
-    mountClassComponentCallbacks(vNode, ref, instance, lifecycle);
+    mountClassComponentCallbacks(vNode, ref, cmds, dom, instance, lifecycle);
     instance._updating = false; // Mount finished allow going sync
     if (options.findDOMNodeEnabled) {
       componentToDOMNodeMap.set(instance, dom);
@@ -99,7 +101,7 @@ function hydrateComponent(
     hydrate(input, dom, lifecycle, context, isSVG);
     vNode.children = input;
     vNode.dom = input.dom;
-    mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
+    mountFunctionalComponentCallbacks(props, ref, cmds, dom, lifecycle);
   }
   return dom;
 }
@@ -116,6 +118,7 @@ function hydrateElement(
   const className = vNode.className;
   const flags = vNode.flags;
   const ref = vNode.ref;
+  const cmds = vNode.cmds;
 
   isSVG = isSVG || (flags & VNodeFlags.SvgElement) > 0;
   if (dom.nodeType !== 1 || dom.tagName.toLowerCase() !== vNode.type) {
@@ -163,6 +166,10 @@ function hydrateElement(
   }
   if (ref) {
     mountRef(dom, ref, lifecycle);
+    cmds
+  }
+  if (cmds) {
+    mountCmds(dom, cmds, lifecycle);
   }
   return dom;
 }

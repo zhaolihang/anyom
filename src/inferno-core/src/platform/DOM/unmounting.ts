@@ -20,6 +20,7 @@ import { isAttrAnEvent, patchEvent } from "./patching";
 import { poolComponent, poolElement } from "./recycling";
 import { componentToDOMNodeMap } from "./rendering";
 import { removeChild } from "./utils";
+import { getCommand } from "../../command/index";
 
 export function unmount(
   vNode: VNode,
@@ -37,6 +38,7 @@ export function unmount(
       (flags & VNodeFlags.ComponentClass) > 0;
     const props = vNode.props || EMPTY_OBJ;
     const ref = vNode.ref as any;
+    const cmds = vNode.cmds;
 
     if (!isRecycling) {
       if (isStatefulComponent) {
@@ -49,6 +51,15 @@ export function unmount(
           }
           if (ref && !isRecycling) {
             ref(null);
+          }
+          if (cmds) {
+            for (let cmd in cmds) {
+              let cmdValue = cmds[cmd];
+              let cmdTmp = getCommand(cmd);
+              if (cmdTmp && cmdTmp.unbind) {
+                cmdTmp.unbind(dom, cmdValue);
+              }
+            }
           }
           instance._unmounted = true;
           if (options.findDOMNodeEnabled) {
@@ -82,10 +93,21 @@ export function unmount(
     }
   } else if (flags & VNodeFlags.Element) {
     const ref = vNode.ref as any;
+    const cmds = vNode.cmds as any;
     const props = vNode.props;
 
     if (!isRecycling && isFunction(ref)) {
       ref(null);
+    }
+
+    if (cmds) {
+      for (let cmd in cmds) {
+        let cmdValue = cmds[cmd];
+        let cmdTmp = getCommand(cmd);
+        if (cmdTmp && cmdTmp.unbind) {
+          cmdTmp.unbind(dom, cmdValue);
+        }
+      }
     }
 
     const children = vNode.children;

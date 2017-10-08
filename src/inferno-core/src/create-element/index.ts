@@ -44,6 +44,7 @@ export default function createElement<T>(
   // 从 props 提取各个参数 给 createVNode函数使用
   let children: any = _children;
   let ref: any = null;
+  let cmds: any = null;
   let key = null;
   let className = null;
   let flags = 0;
@@ -69,8 +70,15 @@ export default function createElement<T>(
           key = props.key;
         } else if (prop === "children" && isUndefined(children)) {
           children = props.children; // always favour children args, default to props
+
         } else if (prop === "ref") {
           ref = props.ref;
+        } else if (prop.substr(0, 4) === "cmd-") {
+          if (!cmds) {
+            cmds = {}
+          }
+          let cmdName = prop.substr(4, prop.length - 4)
+          cmds[cmdName] = props[prop]
         } else {
           newProps[prop] = props[prop];
         }
@@ -97,6 +105,12 @@ export default function createElement<T>(
           ref[prop] = props[prop];
         } else if (prop === "key") {
           key = props.key;
+        } else if (prop.substr(0, 4) === "cmd-") {
+          if (!cmds) {
+            cmds = {}
+          }
+          let cmdName = prop.substr(4, prop.length - 4)
+          cmds[cmdName] = props[prop]
         } else {
           newProps[prop] = props[prop];
         }
@@ -110,6 +124,7 @@ export default function createElement<T>(
     children,
     newProps,
     key,
-    ref
+    ref,
+    cmds
   );
 }

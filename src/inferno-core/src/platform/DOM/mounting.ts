@@ -32,6 +32,7 @@ import {
   isControlledFormElement,
   processElement
 } from "./wrappers/processElement";
+import { getCommand } from "../../command";
 
 export function mount(
   vNode: VNode,
@@ -122,6 +123,7 @@ export function mountElement(
   const props = vNode.props;
   const className = vNode.className;
   const ref = vNode.ref;
+  const cmds = vNode.cmds;
 
   vNode.dom = dom;
 
@@ -163,6 +165,10 @@ export function mountElement(
   if (!isNull(ref)) {
     mountRef(dom, ref, lifecycle);
   }
+  if (!isNull(cmds)) {
+    mountCmds(dom, cmds, lifecycle);
+  }
+
   if (!isNull(parentDom)) {
     appendChild(parentDom, dom);
   }
@@ -211,6 +217,7 @@ export function mountComponent(
   const type = vNode.type;
   const props = vNode.props || EMPTY_OBJ;
   const ref = vNode.ref;
+  const cmds = vNode.cmds;
 
   if (isClass) {
     const instance = createClassComponentInstance(
@@ -233,7 +240,7 @@ export function mountComponent(
     if (!isNull(parentDom)) {
       appendChild(parentDom, dom);
     }
-    mountClassComponentCallbacks(vNode, ref, instance, lifecycle);
+    mountClassComponentCallbacks(vNode, ref, cmds, dom, instance, lifecycle);
     instance._updating = false;
     if (options.findDOMNodeEnabled) {
       componentToDOMNodeMap.set(instance, dom);
@@ -243,7 +250,7 @@ export function mountComponent(
 
     vNode.dom = dom = mount(input, null, lifecycle, context, isSVG);
     vNode.children = input;
-    mountFunctionalComponentCallbacks(props, ref, dom, lifecycle);
+    mountFunctionalComponentCallbacks(props, ref, cmds, dom, lifecycle);
     if (!isNull(parentDom)) {
       appendChild(parentDom, dom);
     }
@@ -254,6 +261,8 @@ export function mountComponent(
 export function mountClassComponentCallbacks(
   vNode: VNode,
   ref,
+  cmds,
+  dom,
   instance,
   lifecycle: LifecycleClass
 ) {
@@ -281,6 +290,17 @@ export function mountClassComponentCallbacks(
       throwError();
     }
   }
+
+  if (cmds) {
+    for (let cmd in cmds) {
+      let cmdValue = cmds[cmd];
+      let cmdTmp = getCommand(cmd);
+      if (cmdTmp && cmdTmp.bind) {
+        cmdTmp.bind(dom, cmdValue);
+      }
+    }
+  }
+
   const hasDidMount = !isUndefined(instance.componentDidMount);
   const afterMount = options.afterMount;
 
@@ -301,6 +321,7 @@ export function mountClassComponentCallbacks(
 export function mountFunctionalComponentCallbacks(
   props,
   ref,
+  cmds,
   dom,
   lifecycle: LifecycleClass
 ) {
@@ -310,6 +331,16 @@ export function mountFunctionalComponentCallbacks(
     }
     if (!isNullOrUndef(ref.onComponentDidMount)) {
       lifecycle.addListener(() => ref.onComponentDidMount(dom, props));
+    }
+  }
+
+  if (cmds) {
+    for (let cmd in cmds) {
+      let cmdValue = cmds[cmd];
+      let cmdTmp = getCommand(cmd);
+      if (cmdTmp && cmdTmp.bind) {
+        cmdTmp.bind(dom, cmdValue);
+      }
     }
   }
 }
@@ -329,3 +360,18 @@ export function mountRef(dom: Element, value, lifecycle: LifecycleClass) {
     throwError();
   }
 }
+
+export function mountCmds(dom: Element, cmds, lifecycle: LifecycleClass) {
+  if (cmds) {
+    for (let cmd in cmds) {
+      let cmdValue = cmds[cmd];
+      let cmdTmp = getCommand(cmd);
+      if (cmdTmp && cmdTmp.bind) {
+        cmdTmp.bind(dom, cmdValue);
+      }
+    }
+  }
+}
+
+
+

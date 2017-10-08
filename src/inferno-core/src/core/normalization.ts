@@ -146,6 +146,10 @@ function normalizeProps(vNode: VNode, props: Props, children: InfernoChildren) {
     vNode.key = props.key;
     delete props.key;
   }
+  if (props.hasOwnProperty("cmds")) {
+    vNode.cmds = props.cmds;
+    delete props.cmds;
+  }
 }
 
 export function getFlagsForElementVnode(type: string): number {
@@ -210,17 +214,17 @@ export function normalize(vNode: VNode): void {
     // This code will be stripped out from production CODE
     // It helps users to track errors in their applications.
 
-    const verifyKeys = function(vNodes) {
-      const keyValues = vNodes.map(function(vnode) {
+    const verifyKeys = function (vNodes) {
+      const keyValues = vNodes.map(function (vnode) {
         return vnode.key;
       });
-      keyValues.some(function(item, idx) {
+      keyValues.some(function (item, idx) {
         const hasDuplicate = keyValues.indexOf(item) !== idx;
 
         if (hasDuplicate) {
           warning(
             "Inferno normalisation(...): Encountered two children with same key, all keys must be unique within its siblings. Duplicated key is:" +
-              item
+            item
           );
         }
 

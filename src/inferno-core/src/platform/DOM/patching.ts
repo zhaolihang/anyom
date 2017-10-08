@@ -65,6 +65,7 @@ import {
   isControlledFormElement,
   processElement
 } from "./wrappers/processElement";
+import { getCommand } from "../../command/index";
 
 export function patch(
   lastVNode: VNode,
@@ -207,6 +208,7 @@ export function patchElement(
     const lastFlags = lastVNode.flags;
     const nextFlags = nextVNode.flags;
     const nextRef = nextVNode.ref;
+    const cmds = nextVNode.cmds;
     const lastClassName = lastVNode.className;
     const nextClassName = nextVNode.className;
 
@@ -289,6 +291,44 @@ export function patchElement(
         mountRef(dom as Element, nextRef, lifecycle);
       }
     }
+    do {
+      let aCmds = lastVNode.cmds || {}
+      let bCmds = cmds || {}
+      if (lastVNode.cmds === cmds) {
+        return;
+      }
+
+      for (let aKey in aCmds) {
+        if (!(aKey in bCmds)) {
+          let cmdValue = aCmds[aKey];
+          let cmdTmp = getCommand(aKey);
+          if (cmdTmp && cmdTmp.unbind) {
+            cmdTmp.unbind(dom, cmdValue);
+          }
+        }
+        let aValue = aCmds[aKey];
+        let bValue = bCmds[aKey];
+
+        if (aValue === bValue) {
+          continue;
+        } else {
+          let cmdTmp = getCommand(aKey);
+          if (cmdTmp && cmdTmp.update) {
+            cmdTmp.update(dom, bValue, aValue);
+          }
+        }
+      }
+
+      for (let bKey in bCmds) {
+        if (!(bKey in aCmds)) {
+          let cmdTmp = getCommand(bKey);
+          if (cmdTmp && cmdTmp.bind) {
+            cmdTmp.bind(dom, bCmds[bKey]);
+          }
+        }
+      }
+    } while (0);
+
   }
 }
 
