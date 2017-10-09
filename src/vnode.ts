@@ -65,7 +65,7 @@ export class VNode {
     type: VNodeType;
     props: PropsType
     children: VNode[]
-    instance: Component | Function | NodeProxy;
+    instance: Component | Function | NodeProxy = null;
 
     constructor(type: VNodeType, tag: TagName, props: PropsType, children: VNode[], key?: string) {
         this.key = key != null ? String(key) : null;
