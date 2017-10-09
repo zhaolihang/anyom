@@ -91,28 +91,25 @@ const EMPTY_CHILDREN = [];
 export function h(tag: TagName, props?: PropsType, ...args): VNode;
 export function h(tag: TagName, props?: PropsType): VNode {
     let type = getVNodeType(tag);
-    let children: VNode[] = null;
     let key;
     if (props) {
         key = props.key;
         delete props.key;
         if (!isInvalid(props.children)) {
-            children = [...toArray(props.children)];
-            children = children.reverse();
+            stack.push(props.children as any);
             delete props.children;
         }
     }
-
-    ////////////////////////////////////////////////////
     let i;
-    if (!children) {
+    if (!stack.length) {
         for (i = arguments.length; i-- > 2;) {
             stack.push(arguments[i]);
         }
     }
+    ////////////////////////////////////////////////////
 
     let child: any;
-
+    let children: VNode[] = null;
     while (stack.length) {
 
         if ((child = stack.pop()) && Array.isArray(child)) {
