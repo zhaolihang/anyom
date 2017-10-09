@@ -1,11 +1,10 @@
 import { proxy } from "./utils";
-import { VNode, NullNodeTag } from "./vnode";
+import { VNode, VNodeType } from "./vnode";
 import { diff } from "./diff";
 import { patch } from "./patch";
 import { createElement } from "./create-element";
 import { queueComponent } from "./scheduler";
 import { NodeProxy } from "./node-proxy";
-import { EventEmitter } from "./EventEmitter";
 import { Observer, Watcher, set, del } from "./observer-watcher/index";
 
 export const LifeCycleType = {
@@ -24,7 +23,7 @@ export enum RenderMode {
 }
 
 let GID = 0;
-export class Component extends EventEmitter {
+export class Component {
     protected $$renderedVNode: VNode;
     protected $$renderedNodeProxy: NodeProxy;
 
@@ -51,7 +50,6 @@ export class Component extends EventEmitter {
     }
 
     constructor(props) {
-        super()
         this.$$id = ++GID;
 
         this.props = this.initialProps(props || {});
@@ -108,7 +106,8 @@ export class Component extends EventEmitter {
     }
 
     private $$render(): VNode {
-        let vnode = this.render() || new VNode(NullNodeTag, {});// 处理返回的VNode 是null 的情况
+
+        let vnode = this.render() || new VNode(VNodeType.Void, null, null, null);// 处理返回的VNode 是null 的情况
         return vnode;
     }
 

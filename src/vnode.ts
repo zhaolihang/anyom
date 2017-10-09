@@ -4,7 +4,8 @@ import { Component } from "./component";
 import { NodeProxy } from "./node-proxy";
 
 export interface NativeElement {
-
+    appendChild(...args): any
+    firstChild:NativeElement
 }
 export type TagName = Function | string;
 export type PropsType = {
@@ -46,16 +47,16 @@ export function isVNode(o: VNode): boolean {
 export enum VNodeType {
     Text = 1,
     Element = 1 << 1,
+    Node = Element | Text,
 
     ComponentClass = 1 << 2,
     ComponentFunction = 1 << 3,
-    ComponentUnknown = 1 << 4,
     Component = ComponentFunction | ComponentClass,
 
     Void = 1 << 10,
 }
 
-export type Instance = Component | Function | NodeProxy;
+export type Instance = Component | Function | NativeElement;
 
 export class VNode {
     count = 0;
