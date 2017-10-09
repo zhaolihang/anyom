@@ -1,7 +1,7 @@
 import { h, VNode } from "./vnode";
 import { Component } from "./component";
 import { createElement, render } from "./create-element";
-import { diff, VPatch } from "./diff";
+import { diff, Patch } from "./diff";
 import { patch } from "./patch";
 import { setCommand, getCommand } from "./commands";
 import { nextTick } from "./scheduler";

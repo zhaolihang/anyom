@@ -1,11 +1,27 @@
 import { h, VNode, VNodeType } from "../vnode";
 import { render } from "../render";
+import { diff } from "../diff";
+import { patch } from "../patchs";
+
 let body = document.body
 let log = console.log;
-let child1 = new VNode(VNodeType.Text, null, { value: String(123) }, null);
-let child2 = new VNode(VNodeType.Text, null, { value: String(456) }, null);
-let vnode = <div children={[child1, child2]}></div >
-log(vnode)
-render(vnode, body)
+let vnode1 = <div>
+    <span key='1'>1</span>
+    <span key='2'>2</span>
+    <span key='3'>3</span>
+</div >
+let vnode2 = <div>
+    <span key='3'>3</span>
+    <span key='1'>1</span>
+    <span key='2'>2</span>
+    <span >?</span>
+</div >
+
+render(vnode1, body)
+
+let patchTree = diff(vnode1, vnode2)
+patch(patchTree)
+log(patchTree)
+log(vnode2);
 
 

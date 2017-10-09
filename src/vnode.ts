@@ -4,8 +4,13 @@ import { Component } from "./component";
 import { NodeProxy } from "./node-proxy";
 
 export interface NativeElement {
-    appendChild(...args): any
-    firstChild:NativeElement
+    appendChild?(...args): any
+    removeChild?(...args): any
+    replaceChild?(...args): any
+    insertBefore?(...args): any
+    firstChild?: NativeElement | any;
+    childNodes?: (NativeElement | any)[] | any;
+    [x: string]: any;
 }
 export type TagName = Function | string;
 export type PropsType = {
@@ -58,6 +63,10 @@ export enum VNodeType {
 
 export type Instance = Component | Function | NativeElement;
 
+let noChildren = [];
+if (Object.freeze) {
+    Object.freeze(noChildren)
+}
 export class VNode {
     count = 0;
 
@@ -73,7 +82,7 @@ export class VNode {
         this.tag = tag;
         this.type = type;
         this.props = props;
-        this.children = children;
+        this.children = children || noChildren;
 
         let count = (children && children.length) || 0;
         let descendants = 0;

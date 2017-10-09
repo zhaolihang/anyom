@@ -1,12 +1,12 @@
 import { isObject, getPrototype, ascending, indexInRange, getParentNode, replaceChild, getChildNodes, removedChild, appendChild, removedChildWithArg, insertChildWithArg, setComponentProps, setRef } from "./utils";
 import { VNode, PropsType, Cmds } from "./vnode";
-import { IDiffMap, VPatch, VPatchType } from "./diff";
+import { PatchTree, Patch, PatchType } from "./diff";
 import { Component } from "./component";
 import { NodeProxy } from "./node-proxy";
 import { render } from "./create-element";
 
 
-export function patch(nodeProxy: NodeProxy, patches: IDiffMap): NodeProxy {
+export function patch(nodeProxy: NodeProxy, patches: PatchTree): NodeProxy {
     let resultNode = patchEach(nodeProxy, patches);
 
     if (nodeProxy !== resultNode) {
@@ -19,7 +19,7 @@ export function patch(nodeProxy: NodeProxy, patches: IDiffMap): NodeProxy {
     return resultNode;
 }
 
-function patchEach(nodeProxy: NodeProxy, patches: IDiffMap) {
+function patchEach(nodeProxy: NodeProxy, patches: PatchTree) {
     let indices: number[] = [];
     for (let key in patches) {
         indices.push(Number(key));
@@ -29,7 +29,7 @@ function patchEach(nodeProxy: NodeProxy, patches: IDiffMap) {
         return nodeProxy;
     }
 
-    let nodeProxyMap = nodeProxyIndex(nodeProxy, patches.vNode, indices);
+    let nodeProxyMap = nodeProxyIndex(nodeProxy, patches.root, indices);
 
     for (let i = 0; i < indices.length; i++) {
         let nodeIndex = indices[i];
@@ -119,37 +119,31 @@ function recurse(nodeProxy: NodeProxy, tree, indices: number[], nodes: { [index:
 
 
 ////////////
-function patchOp(nodeProxy: NodeProxy, vpatch: VPatch) {
+function patchOp(nodeProxy: NodeProxy, vpatch: Patch) {
     let type = vpatch.type;
-    let vNode = vpatch.vNode;
+    let vNode = vpatch.vnode;
     let patch = vpatch.patch;
 
     switch (type) {
-        case VPatchType.INSERT:
+        case PatchType.Append:
             return insertNode(nodeProxy, patch);
-        case VPatchType.REMOVE: {
+        case PatchType.Remove: {
             let parentNode = getParentNode(nodeProxy)
             if (parentNode) {
                 removedChild(parentNode, nodeProxy)
             }
             return null;
         }
-        case VPatchType.ORDER:
+        case PatchType.Reorder:
             reorderChildren(nodeProxy, patch);
             return nodeProxy;
-        case VPatchType.NATIVEPROPS:
+        case PatchType.Replace:
+            return replaceNode(nodeProxy, vNode, patch);
+        case PatchType.NativeProps:
             applyNativeProps(nodeProxy, patch, vNode.props);
             return nodeProxy;
-        case VPatchType.COMPONENTPROPS:
-            setComponentProps(nodeProxy,patch, vNode.props)
-            return nodeProxy;
-        case VPatchType.REPLACE:
-            return replaceNode(nodeProxy, vNode, patch);
-        case VPatchType.REF:
-            setRef(nodeProxy,patch)
-            return nodeProxy;
-        case VPatchType.COMMANDS:
-            applyCommands(nodeProxy, patch.patch, vNode.cmds, patch.newCommands);
+        case PatchType.ComponentProps:
+            setComponentProps(nodeProxy, patch, vNode.props)
             return nodeProxy;
         default:
             return nodeProxy;

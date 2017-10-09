@@ -2,23 +2,80 @@ import { VNode, TagName, PropsType, VNodeType } from "./vnode";
 import { isObject, getPrototype, deepEqual } from "./utils";
 
 //
-export enum VPatchType {
-    NONE = 0,
-    REPLACE,
-    NATIVEPROPS,
-    COMPONENTPROPS,
-    ORDER,
-    INSERT,
-    REMOVE,
+export enum PatchType {
+    None = 0,
+    Append,
+    Remove,
+    Replace,
+    Reorder,
+    NativeProps,
+    ComponentProps,
 }
 
-export class VPatch {
-    constructor(public type: VPatchType, public vNode: VNode, public patch?: any) {
+export class Patch {
+    constructor(public type: PatchType, public parent: VNode, public origin: VNode, public patch?: any) {
     }
 }
 
+export type PatchResult = Patch | Patch[];
+
+export type PatchTree = {
+    root: VNode;
+    [index: number]: PatchResult;
+}
+
+export function diff(a: VNode, b?: VNode) {
+    let patch: PatchTree = {} as any;
+    Object.defineProperty(patch, 'root', {
+        value: a,
+        writable: true,
+        configurable: true,
+        enumerable: false
+    });
+    walk(a, b, patch, 0, null);
+    return patch;
+};
+
+function walk(a: VNode, b: VNode, patch: PatchTree, index: number, parent: VNode) {
+    if (a === b) {
+        return;
+    }
+
+    if (a && b) {
+        b.instance = a.instance;
+    }
+
+    let apply = patch[index];
+
+    if (b == null) {
+        apply = appendPatch(apply, new Patch(PatchType.Remove, parent, a, null));
+    } else {
+        if (a.tag === b.tag && a.key === b.key) {
+
+            if (a.type & VNodeType.Component) {
+                if (!shallowEqualObject(a.props, b.props)) {
+                    apply = appendPatch(apply, new Patch(PatchType.ComponentProps, parent, a, b.props));
+                }
+            } else {
+                let propsPatch = shallowDiffProps(a.props, b.props);
+                if (propsPatch) {
+                    apply = appendPatch(apply, new Patch(PatchType.NativeProps, parent, a, propsPatch));
+                }
+            }
+            apply = diffChildren(a, b, patch, apply, index);
+        } else {
+            apply = appendPatch(apply, new Patch(PatchType.Replace, parent, a, b));
+        }
+    }
+
+    if (apply) {
+        patch[index] = apply;
+    }
+}
+
+
 let noPorps = {};
-function diffProps(a: PropsType = noPorps, b: PropsType = noPorps) {
+function shallowDiffProps(a: PropsType = noPorps, b: PropsType = noPorps) {
 
     let diff;
     for (let aKey in a) {
@@ -32,19 +89,14 @@ function diffProps(a: PropsType = noPorps, b: PropsType = noPorps) {
         if (aValue === bValue) {
             continue;
         } else if (isObject(aValue) && isObject(bValue)) {
-            if (getPrototype(bValue) !== getPrototype(aValue)) {
+            if (aValue.__proto__ !== aValue.__proto__) {
                 diff = diff || {};
                 diff[aKey] = bValue;
             } else {
-                if (!deepEqual(aValue, bValue)) {
+                if (!shallowEqualObject(aValue, bValue)) {
                     diff = diff || {};
                     diff[aKey] = bValue;
                 }
-                // let objectDiff = diffProps(aValue, bValue);
-                // if (objectDiff) {
-                //     diff = diff || {};
-                //     diff[aKey] = objectDiff;
-                // }
             }
         } else {
             diff = diff || {};
@@ -63,59 +115,29 @@ function diffProps(a: PropsType = noPorps, b: PropsType = noPorps) {
 }
 
 
-export type VPatchResultType = VPatch | VPatch[];
 
-export type IDiffMap = {
-    vNode: VNode;
-    [index: number]: VPatchResultType;
-}
-
-export function diff(a: VNode, b?: VNode) {
-    let patch: IDiffMap = {} as any;
-    Object.defineProperty(patch, 'vNode', {
-        value: a,
-        writable: true,
-        configurable: true,
-        enumerable: false
-    });
-    walk(a, b, patch, 0);
-    return patch;
-};
-
-function walk(a: VNode, b: VNode, patch: IDiffMap, index: number) {
-    if (a === b) {
-        return;
-    }
-
-    let apply = patch[index];
-
-    if (b == null) {
-        apply = appendPatch(apply, new VPatch(VPatchType.REMOVE, a, b));
-    } else {
-        if (a.tag === b.tag && a.key === b.key) {
-
-            if (a.type & VNodeType.Component) {
-                if (a.props !== b.props) {
-                    apply = appendPatch(apply, new VPatch(VPatchType.COMPONENTPROPS, a, b.props));
-                }
-            } else {
-                let propsPatch = diffProps(a.props, b.props);
-                if (propsPatch) {
-                    apply = appendPatch(apply, new VPatch(VPatchType.NATIVEPROPS, a, propsPatch));
-                }
-            }
-            apply = diffChildren(a, b, patch, apply, index);
+function shallowEqualObject(a = noPorps, b = noPorps) {
+    for (let aKey in a) {
+        if (!(aKey in b)) {
+            return false
+        }
+        if (a[aKey] === b[aKey]) {
+            continue;
         } else {
-            apply = appendPatch(apply, new VPatch(VPatchType.REPLACE, a, b));
+            return false
         }
     }
 
-    if (apply) {
-        patch[index] = apply;
+    for (let bKey in b) {
+        if (!(bKey in a)) {
+            return false
+        }
     }
+
+    return true;
 }
 
-function diffChildren(a: VNode, b: VNode, patch: IDiffMap, apply: VPatchResultType, index: number) {
+function diffChildren(a: VNode, b: VNode, patch: PatchTree, apply: PatchResult, index: number) {
     let aChildren = a.children;
     let orderedSet = reorder(aChildren, b.children);
     let bChildren = orderedSet.children;
@@ -127,15 +149,16 @@ function diffChildren(a: VNode, b: VNode, patch: IDiffMap, apply: VPatchResultTy
     for (let i = 0; i < len; i++) {
         let leftNode = aChildren[i];
         let rightNode = bChildren[i];
+
         index += 1;
 
         if (!leftNode) {
             if (rightNode) {
                 // Excess nodes in b need to be added
-                apply = appendPatch(apply, new VPatch(VPatchType.INSERT, null, rightNode));
+                apply = appendPatch(apply, new Patch(PatchType.Append, a, null, rightNode));
             }
         } else {
-            walk(leftNode, rightNode, patch, index);
+            walk(leftNode, rightNode, patch, index, a);
         }
 
         if (leftNode && leftNode.count) {
@@ -145,7 +168,7 @@ function diffChildren(a: VNode, b: VNode, patch: IDiffMap, apply: VPatchResultTy
 
     if (orderedSet.moves) {
         // Reorder nodes last
-        apply = appendPatch(apply, new VPatch(VPatchType.ORDER, a, orderedSet.moves));
+        apply = appendPatch(apply, new Patch(PatchType.Reorder, a, null, orderedSet.moves));
     }
 
     return apply;
@@ -343,13 +366,13 @@ function keyIndex(children: VNode[]) {
     };
 }
 
-function appendPatch(apply: VPatchResultType, patch: VPatch): VPatchResultType {
+function appendPatch(apply: PatchResult, patch: Patch): PatchResult {
 
     if (apply) {
         if (Array.isArray(apply)) {
-            (<VPatch[]>apply).push(patch);
+            (<Patch[]>apply).push(patch);
         } else {
-            apply = (<VPatch[]>[apply, patch]);
+            apply = (<Patch[]>[apply, patch]);
         }
         return apply;
     } else {
