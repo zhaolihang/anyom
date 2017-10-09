@@ -55,7 +55,7 @@ export enum VNodeType {
     Void = 1 << 10,
 }
 
-
+export type Instance = Component | Function | NodeProxy;
 
 export class VNode {
     count = 0;
@@ -65,7 +65,7 @@ export class VNode {
     type: VNodeType;
     props: PropsType
     children: VNode[]
-    instance: Component | Function | NodeProxy = null;
+    instance: Instance = null;
 
     constructor(type: VNodeType, tag: TagName, props: PropsType, children: VNode[], key?: string) {
         this.key = key != null ? String(key) : null;
