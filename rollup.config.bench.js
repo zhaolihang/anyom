@@ -18,7 +18,7 @@ export default {
         replacePlugin({
             "process.env.NODE_ENV": JSON.stringify('dev')
         }),
-        // uglify(),
+        uglify(),
     ],
     dest: './distbench/index.js',
     moduleName: 'Anyombench',

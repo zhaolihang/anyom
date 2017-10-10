@@ -95,7 +95,7 @@ function replaceNode(vpatch: PatchReplace) {
 function reorderChildren(vpatch: PatchReorder) {
     let { parent, moves } = vpatch;
 
-    let childNodes = parent.children;
+    let childNodes = [...parent.children];
     let keyMap: { [key: string]: VNode } = {};
     let node: VNode;
     let remove: { from: number, key?: string };
@@ -120,12 +120,14 @@ function reorderChildren(vpatch: PatchReorder) {
             keyMap[remove.key] = node;
             insertKeyMap[remove.key] && (reorderKeyMap[remove.key] = true);
         }
+        childNodes.splice(remove.from, 1);
         removedChildWithArg(node, reorderKeyMap[remove.key])
     }
 
     for (let j = 0; j < insertsLen; j++) {
         insert = inserts[j];
         node = keyMap[insert.key];
+        childNodes.splice(insert.to, 0, node);
         insertChildWithArg(parent, node, insert.to, reorderKeyMap[insert.key]);
     }
 

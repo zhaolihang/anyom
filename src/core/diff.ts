@@ -381,8 +381,8 @@ function remove(arr: any[], index, key) {
 }
 
 function keyIndex(children: VNode[]) {
-    let keys = {};
-    let free = [];
+    let keys: { [key: string]: number } = {};
+    let free: number[] = [];
     let length = children.length;
 
     for (let i = 0; i < length; i++) {
