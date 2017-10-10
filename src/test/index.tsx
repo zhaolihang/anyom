@@ -1,7 +1,8 @@
-import { h, VNode, VNodeType } from "../vnode";
-import { render } from "../render";
-import { diff } from "../diff";
-import { patch } from "../patch";
+import { h, VNode, VNodeType } from "../core/vnode";
+import { render } from "../core/render";
+import { diff } from "../core/diff";
+import { patch } from "../core/patch";
+import { Component } from "../core/component";
 let body = document.body
 let log = console.log;
 function App(props) {
@@ -11,17 +12,27 @@ function App(props) {
         </div>
     )
 }
+
+class TestCom extends Component {
+
+    render() {
+        return (
+            <App text={this.props.text}>
+            </App>
+        )
+    }
+}
+
 let vnode1 = <div>
-    <App text="app first"></App>
+    <TestCom text="app first"></TestCom>
 </div >
 let vnode2 = <div style={{ backgroundColor: 'red', height: '50px' }}>
-    <App text="app second" ></App>
+    <TestCom text="app second" ></TestCom>
 </div >
 
 let ele = render(vnode1, body)
-log(ele)
-
 let patchTree = diff(vnode1, vnode2)
+
 patch(patchTree)
 log(patchTree)
 log(vnode2);
