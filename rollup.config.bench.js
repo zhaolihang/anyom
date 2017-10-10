@@ -4,6 +4,7 @@ import commonjs from 'rollup-plugin-commonjs';
 import typescript from 'rollup-plugin-typescript';
 import babel from 'rollup-plugin-babel';
 import uglify from 'rollup-plugin-uglify';
+import replacePlugin from 'rollup-plugin-replace';
 
 export default {
     entry: './src/bench/index.tsx',
@@ -11,28 +12,13 @@ export default {
     plugins: [
         resolve({}),
         commonjs(),
-        typescript({ //  to es6 
+        typescript({ //  to es5 
             typescript: require('typescript'),
-            target: "es6",
         }),
-        babel({
-            exclude: 'node_modules/**',
-            plugins: [
-                'anyom',  // compiled code contains arrowFunction
-                [
-                    "transform-react-jsx",
-                    {
-                        "pragma": "h", // default pragma is React.createElement
-                        "useBuiltIns": true
-                    }
-                ]
-            ],
+        replacePlugin({
+            "process.env.NODE_ENV": JSON.stringify('dev')
         }),
-        typescript({//  to es5 
-            typescript: require('typescript'),
-            target: "es5",
-        }),
-        uglify(),
+        // uglify(),
     ],
     dest: './distbench/index.js',
     moduleName: 'Anyombench',

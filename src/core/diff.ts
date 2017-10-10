@@ -23,7 +23,7 @@ export class PatchRemove implements Patch {
 
 export class PatchProps implements Patch {
     type = PatchType.Props;
-    constructor(public origin: VNode, public props: PropsType) {
+    constructor(public origin: VNode, public newNode: VNode, public props: PropsType) {
     }
 }
 export class PatchReplace implements Patch {
@@ -88,12 +88,12 @@ function walk(a: VNode, b: VNode, patch: PatchTree, index: number, parent: VNode
 
             if (a.type & VNodeType.Component) {
                 if (!shallowEqualObject(a.props, b.props)) {
-                    apply = appendPatch(apply, new PatchProps(a, b.props));
+                    apply = appendPatch(apply, new PatchProps(a, b, b.props));
                 }
             } else {
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
-                    apply = appendPatch(apply, new PatchProps(a, propsPatch));
+                    apply = appendPatch(apply, new PatchProps(a, b, propsPatch));
                 }
             }
             apply = diffChildren(a, b, patch, apply, index);

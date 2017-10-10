@@ -32,7 +32,6 @@ export const isArray = Array.isArray;
 
 export function isStringOrNumber(o: any): o is string | number {
   const type = typeof o;
-
   return type === "string" || type === "number";
 }
 
@@ -80,8 +79,13 @@ export function throwError(message?: string) {
 }
 
 export function warning(message: string) {
-  // tslint:disable-next-line:no-console
   console.warn(message);
+}
+
+export function eventAttr(name: string) {
+  if (name[0] === 'o' && name[1] === 'n') {
+    return name.substring(2).toLowerCase();
+  }
 }
 
 export function combineFrom(first?: {} | null, second?: {} | null): object {

@@ -1,4 +1,7 @@
 import { VNode } from "./vnode";
+import { queueComponent } from "./scheduler";
+import { diff } from "./diff";
+import { patch } from "./patch";
 
 export const LifeCycleType = {
     Created: 'created',
@@ -21,18 +24,45 @@ export class Component {
     $$lastResult: VNode;
 
     props: any;
+    state: any;
 
     setProps(props) {
         this.props = props;
     }
 
+    setState(state) {
+        if (this['shouldComponentUpdate']) {
+            if (!this['shouldComponentUpdate'](this.props, state)) {
+                this.state = Object.assign({}, this.state, state);
+                return;
+            }
+        }
+        this.state = Object.assign({}, this.state, state);
+        queueComponent(this)
+    }
+
+    getInitialState() {
+        return {}
+    }
+
+    // shouldComponentUpdate(nextProps, nextState): boolean;
+
     constructor(props) {
         this.$$id = ++GID;
         this.props = props;
+        this.state = this.getInitialState();
     }
 
     render(): VNode {
         throw new Error('请重写本方法');
+    }
+
+    $$updateComponent() {
+        let instance = this;
+        let currResult = instance.render();
+        let patchTree = diff(instance.$$lastResult, currResult)
+        patch(patchTree);
+        instance.$$lastResult = currResult;
     }
 }
 

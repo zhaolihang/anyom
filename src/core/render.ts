@@ -1,5 +1,6 @@
 import { VNode, VNodeType, Instance, NativeElement } from "./vnode";
 import { Component } from "./component";
+import { initElementProps } from "./patch";
 
 
 export function findNativeElementByVNode(vnode: VNode): NativeElement {
@@ -51,6 +52,7 @@ function createInstanceByVNode(vnode: VNode, parentNode: NativeElement): NativeE
 
 function createElement(vnode: VNode, parentNode: NativeElement): NativeElement {
     vnode.instance = document.createElement(vnode.tag as string);
+    initElementProps(vnode);
     if (parentNode) {
         parentNode.appendChild(vnode.instance)
     }
