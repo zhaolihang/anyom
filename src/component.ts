@@ -1,11 +1,4 @@
-import { proxy } from "./utils";
-import { VNode, VNodeType } from "./vnode";
-import { diff } from "./diff";
-import { patch } from "./patch";
-import { createElement } from "./create-element";
-import { queueComponent } from "./scheduler";
-import { NodeProxy } from "./node-proxy";
-import { Observer, Watcher, set, del } from "./observer-watcher/index";
+import { VNode } from "./vnode";
 
 export const LifeCycleType = {
     Created: 'created',

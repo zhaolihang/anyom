@@ -1,6 +1,6 @@
 import { VNode, TagName, PropsType, VNodeType } from "./vnode";
-import { isObject, getPrototype, deepEqual } from "./utils";
-
+import { getPrototype, deepEqual } from "./utils";
+import { isObject } from "./shared";
 //
 export enum PatchType {
     None = 0,
