@@ -1,6 +1,6 @@
 import { ascending } from "./utils";
 import { VNode, NativeElement } from "./vnode";
-import { PatchTree, Patch, PatchType } from "./diff";
+import { PatchTree, Patch, PatchType, PatchAppend, PatchRemove, PatchReplace, PatchReorder } from "./diff";
 import { render } from "./render";
 
 export function patch(patches: PatchTree) {
@@ -44,42 +44,44 @@ let noChild = {};
 
 ////////////
 function patchOp(vpatch: Patch) {
-    let { type, parent, origin, patch } = vpatch
+    let { type } = vpatch
     switch (type) {
         case PatchType.Append:
-            appendNode(parent, patch as VNode);
+            appendNode(vpatch as PatchAppend);
             break;
         case PatchType.Remove:
-            removedChild(parent, origin)
+            removedChild(vpatch as PatchRemove)
             break;
         case PatchType.Replace:
-            replaceNode(parent, origin, patch as VNode)
+            replaceNode(vpatch as PatchReplace)
             break;
         case PatchType.Reorder:
-            reorderChildren(parent, patch)
+            reorderChildren(vpatch as PatchReorder);
             break;
     }
 }
 
-function appendNode(parent: VNode, vnode: VNode) {
+function appendNode(vpatch: PatchAppend) {
+    let { parent, newNode } = vpatch
+    render(newNode, parent.instance as NativeElement)
+}
+
+function removedChild(vpatch: PatchRemove) {
+    let instance = vpatch.origin.instance as NativeElement;
+    (instance.parentNode as NativeElement).removeChild(instance);
+}
+
+function replaceNode(vpatch: PatchReplace) {
+    let instance = vpatch.origin.instance as NativeElement;
+    let parent = instance.parentNode as NativeElement;
+    let newNode = vpatch.newNode;
     if (parent && parent.instance) {
-        render(vnode, parent.instance as NativeElement)
+        parent.replaceChild(instance, render(newNode));
     }
 }
 
-function removedChild(parent: VNode, child: VNode) {
-    if (parent && parent.instance) {
-        (parent.instance as NativeElement).removeChild(child.instance as NativeElement)
-    }
-}
-
-function replaceNode(parent: VNode, origin: VNode, newNode: VNode) {
-    if (parent && parent.instance) {
-        (parent.instance as NativeElement).replaceChild(origin.instance as NativeElement, newNode.instance as NativeElement)
-    }
-}
-
-function reorderChildren(parent: VNode, moves) {
+function reorderChildren(vpatch: PatchReorder) {
+    let { parent, moves } = vpatch;
 
     let childNodes = parent.children;
     let keyMap: { [key: string]: VNode } = {};
@@ -106,7 +108,7 @@ function reorderChildren(parent: VNode, moves) {
             keyMap[remove.key] = node;
             insertKeyMap[remove.key] && (reorderKeyMap[remove.key] = true);
         }
-        removedChildWithArg(parent, node, reorderKeyMap[remove.key])
+        removedChildWithArg(node, reorderKeyMap[remove.key])
     }
 
     for (let j = 0; j < insertsLen; j++) {
@@ -117,8 +119,9 @@ function reorderChildren(parent: VNode, moves) {
 
 }
 
-function removedChildWithArg(parent: VNode, child: VNode, recycle = false) {
-    removedChild(parent, child);
+function removedChildWithArg(origin: VNode, recycle = false) {
+    let instance = origin.instance as NativeElement;
+    (instance.parentNode as NativeElement).removeChild(instance);
 }
 
 function insertChildWithArg(parent: VNode, child: VNode, insertTo: number, recycle = false) {

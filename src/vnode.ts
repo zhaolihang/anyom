@@ -1,5 +1,5 @@
 import { hasCommand } from "./commands";
-import { isString, isStatefulComponent, isInvalid, toArray, ComponentHooks } from "./shared";
+import { isString, isInvalid, toArray, ComponentHooks, isUndefined } from "./shared";
 import { Component } from "./component";
 import { NodeProxy } from "./node-proxy";
 
@@ -10,17 +10,16 @@ export interface NativeElement {
     insertBefore?(...args): any
     firstChild?: NativeElement | any;
     childNodes?: (NativeElement | any)[] | any;
+    parentNode?: NativeElement | any;
     [x: string]: any;
 }
 export type TagName = Function | string;
 export type PropsType = {
-    children?: VNode[];
-    ref?: Function
     key?: string | number;
+    children?: VNode[];
+    ref?: Ref;
     [x: string]: any
 };
-
-export type Cmds = { [x: string]: any }
 
 export type Ref = (node?: NativeElement | null) => void;
 export interface Refs {
@@ -33,13 +32,13 @@ export interface Refs {
 }
 
 
-export function getVNodeTypeByString(name: string): VNodeType {
-    return VNodeType.Element;
+function isStatefulComponent(o: any): boolean {
+    return !isUndefined(o.prototype) && !isUndefined(o.prototype.render);
 }
 
 export function getVNodeType(type: any): VNodeType {
     if (isString(type)) {
-        return getVNodeTypeByString(type);
+        return VNodeType.Element;
     } else {
         return isStatefulComponent(type) ? VNodeType.ComponentClass : VNodeType.ComponentFunction;
     }

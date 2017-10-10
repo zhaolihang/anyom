@@ -1,13 +1,23 @@
 import { VNode, VNodeType, Instance, NativeElement } from "./vnode";
 import { Component } from "./component";
+let gElement: NativeElement = null;
 
 export function render(vnode: VNode, parentNode?: NativeElement) {
+    gElement = null;
+    __render(vnode, parentNode);
+    return gElement;
+}
+
+function __render(vnode: VNode, parentNode?: NativeElement) {
     let newParentNode = createInstanceByVNode(vnode, parentNode);
+    if (!gElement && newParentNode && newParentNode !== parentNode) {
+        gElement = newParentNode;
+    }
     let children = vnode.children;
     if (children) {
         let len = children.length
         for (let i = 0; i < len; i++) {
-            render(children[i], newParentNode);
+            __render(children[i], newParentNode);
         }
     }
 }

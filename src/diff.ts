@@ -8,14 +8,47 @@ export enum PatchType {
     Remove,
     Replace,
     Reorder,
-    NativeProps,
-    ComponentProps,
+    Props,
 }
 
-export class Patch {
-    constructor(public type: PatchType, public parent: VNode, public origin: VNode, public patch?: any) {
+export interface Patch {
+    type: PatchType;
+}
+
+export class PatchRemove implements Patch {
+    type = PatchType.Remove;
+    constructor(public origin: VNode) {
     }
 }
+
+export class PatchProps implements Patch {
+    type = PatchType.Props;
+    constructor(public origin: VNode, public props: PropsType) {
+    }
+}
+export class PatchReplace implements Patch {
+    type = PatchType.Replace;
+    constructor(public origin: VNode, public newNode: VNode) {
+    }
+}
+
+export class PatchAppend implements Patch {
+    type = PatchType.Append;
+    constructor(public parent: VNode, public newNode: VNode) {
+    }
+}
+
+type Moves = {
+    removes: { from: number; key: string }[];
+    inserts: { to: number; key: string }[];
+}
+
+export class PatchReorder implements Patch {
+    type = PatchType.Reorder;
+    constructor(public parent: VNode, public moves: Moves) {
+    }
+}
+
 
 export type PatchResult = Patch | Patch[];
 
@@ -48,23 +81,23 @@ function walk(a: VNode, b: VNode, patch: PatchTree, index: number, parent: VNode
     let apply = patch[index];
 
     if (b == null) {
-        apply = appendPatch(apply, new Patch(PatchType.Remove, parent, a, null));
+        apply = appendPatch(apply, new PatchRemove(a));
     } else {
         if (a.tag === b.tag && a.key === b.key) {
 
             if (a.type & VNodeType.Component) {
                 if (!shallowEqualObject(a.props, b.props)) {
-                    apply = appendPatch(apply, new Patch(PatchType.ComponentProps, parent, a, b.props));
+                    apply = appendPatch(apply, new PatchProps(a, b.props));
                 }
             } else {
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
-                    apply = appendPatch(apply, new Patch(PatchType.NativeProps, parent, a, propsPatch));
+                    apply = appendPatch(apply, new PatchProps(a, propsPatch));
                 }
             }
             apply = diffChildren(a, b, patch, apply, index);
         } else {
-            apply = appendPatch(apply, new Patch(PatchType.Replace, parent, a, b));
+            apply = appendPatch(apply, new PatchReplace(a, b));
         }
     }
 
@@ -155,7 +188,7 @@ function diffChildren(a: VNode, b: VNode, patch: PatchTree, apply: PatchResult, 
         if (!leftNode) {
             if (rightNode) {
                 // Excess nodes in b need to be added
-                apply = appendPatch(apply, new Patch(PatchType.Append, a, null, rightNode));
+                apply = appendPatch(apply, new PatchAppend(a, rightNode));
             }
         } else {
             walk(leftNode, rightNode, patch, index, a);
@@ -168,7 +201,7 @@ function diffChildren(a: VNode, b: VNode, patch: PatchTree, apply: PatchResult, 
 
     if (orderedSet.moves) {
         // Reorder nodes last
-        apply = appendPatch(apply, new Patch(PatchType.Reorder, a, null, orderedSet.moves));
+        apply = appendPatch(apply, new PatchReorder(a, orderedSet.moves));
     }
 
     return apply;
@@ -261,8 +294,8 @@ function reorder(aChildren: VNode[], bChildren: VNode[]) {
 
     let simulate = newChildren.slice();
     let simulateIndex = 0;
-    let removes = [];
-    let inserts = [];
+    let removes: { from: number; key: string }[] = [];
+    let inserts: { to: number; key: string }[] = [];
     let simulateItem;
 
     for (let k = 0; k < bChildren.length;) {
