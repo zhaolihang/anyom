@@ -74,18 +74,14 @@ function walk(a: VNode, b: VNode, patch: PatchTree, index: number, parent: VNode
         return;
     }
 
-    if (a && b) {
-        b.instance = a.instance;
-        b.lastResult = a.lastResult;
-    }
-
     let apply = patch[index];
 
     if (b == null) {
         apply = appendPatch(apply, new PatchRemove(a));
     } else {
         if (a.tag === b.tag && a.key === b.key) {
-
+            b.instance = a.instance;
+            b.lastResult = a.lastResult;
             if (a.type & VNodeType.Component) {
                 if (!shallowEqualObject(a.props, b.props)) {
                     apply = appendPatch(apply, new PatchProps(a, b, b.props));
@@ -236,65 +232,66 @@ function reorder(aChildren: VNode[], bChildren: VNode[]) {
     }
 
     // O(MAX(N, M)) memory
-    let newChildren = [];
+    let newChildrenFromB = [];// 与 aChildren 对号入座的bChildren 中的item
 
-    let freeIndex = 0;
-    let freeCount = bFree.length;
+    let freeIndexB = 0;
+    let freeCountB = bFree.length;
     let deletedItems = 0;
 
     // Iterate through a and match a node in b
     // O(N) time,
-    for (let i = 0; i < aChildren.length; i++) {
+    for (let i = 0; i < aChildren.length; i++) {// 此行目的 是找到需要 删除 的和需要 移动 的
         let aItem = aChildren[i];
-        let itemIndex;
+        let itemIndexB;
 
         if (aItem.key) {
-            if (bKeys.hasOwnProperty(aItem.key)) {
+            if (bKeys.hasOwnProperty(aItem.key)) {// 同时存在 某个 key  对号入座
                 // Match up the old keys
-                itemIndex = bKeys[aItem.key];
-                newChildren.push(bChildren[itemIndex]);
+                itemIndexB = bKeys[aItem.key];
+                newChildrenFromB.push(bChildren[itemIndexB]);
 
-            } else {
+            } else {// 新的节点列表中没有这个key 说明是需要删除的
                 // Remove old keyed items
-                itemIndex = i - deletedItems++;
-                newChildren.push(null);
+                itemIndexB = i - deletedItems++;
+                newChildrenFromB.push(null);
             }
-        } else {
+        } else {//aItem 是没有key的那么也要在b列表的没有key 的item里面对号入座
             // Match the item in a with the next free item in b
-            if (freeIndex < freeCount) {
-                itemIndex = bFree[freeIndex++];
-                newChildren.push(bChildren[itemIndex]);
-            } else {
+            if (freeIndexB < freeCountB) {// b的 没有key的item 列表中有剩余
+                itemIndexB = bFree[freeIndexB++];
+                newChildrenFromB.push(bChildren[itemIndexB]);
+            } else {// aItem 是没有key b列表中没有剩余的可匹配项 那么这个item 就需要被删除了
                 // There are no free items in b to match with
                 // the free items in a, so the extra free nodes
                 // are deleted.
-                itemIndex = i - deletedItems++;
-                newChildren.push(null);
+                itemIndexB = i - deletedItems++;
+                newChildrenFromB.push(null);
             }
         }
     }
 
-    let lastFreeIndex = freeIndex >= bFree.length ? bChildren.length : bFree[freeIndex];
+    // 剩余的没有匹配的没有key的 b列表的中item 的开始索引
+    let lastFreeIndex = freeIndexB >= bFree.length ? bChildren.length : bFree[freeIndexB];
 
     // Iterate through b and append any new keys
     // O(M) time
-    for (let j = 0; j < bChildren.length; j++) {
-        let newItem = bChildren[j];
+    for (let j = 0; j < bChildren.length; j++) {// 此行目的 是找到需要 新添加的
+        let bItem = bChildren[j];
 
-        if (newItem.key) {
-            if (!aKeys.hasOwnProperty(newItem.key)) {
+        if (bItem.key) {
+            if (!aKeys.hasOwnProperty(bItem.key)) {// b的key 在a列表中没有  加到 新列表的后面
                 // Add any new keyed items
                 // We are adding new items to the end and then sorting them
                 // in place. In future we should insert new items in place.
-                newChildren.push(newItem);
+                newChildrenFromB.push(bItem);
             }
-        } else if (j >= lastFreeIndex) {
+        } else if (j >= lastFreeIndex) {// 没有被记录下来的才是新的
             // Add any leftover non-keyed items
-            newChildren.push(newItem);
+            newChildrenFromB.push(bItem);
         }
     }
 
-    let simulate = newChildren.slice();
+    let simulate = newChildrenFromB.slice();
     let simulateIndex = 0;
     let removes: { from: number; key: string }[] = [];
     let inserts: { to: number; key: string }[] = [];
@@ -357,13 +354,13 @@ function reorder(aChildren: VNode[], bChildren: VNode[]) {
     // let the delete patch remove these items.
     if (removes.length === deletedItems && !inserts.length) {
         return {
-            children: newChildren,
+            children: newChildrenFromB,
             moves: null
         };
     }
 
     return {
-        children: newChildren,
+        children: newChildrenFromB,
         moves: {
             removes: removes,
             inserts: inserts
