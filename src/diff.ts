@@ -76,6 +76,7 @@ function walk(a: VNode, b: VNode, patch: PatchTree, index: number, parent: VNode
 
     if (a && b) {
         b.instance = a.instance;
+        b.lastResult = a.lastResult;
     }
 
     let apply = patch[index];
@@ -108,8 +109,9 @@ function walk(a: VNode, b: VNode, patch: PatchTree, index: number, parent: VNode
 
 
 let noPorps = {};
-function shallowDiffProps(a: PropsType = noPorps, b: PropsType = noPorps) {
-
+export function shallowDiffProps(a: PropsType, b: PropsType) {
+    a = a || noPorps;
+    b = b || noPorps;
     let diff;
     for (let aKey in a) {
         if (!(aKey in b)) {

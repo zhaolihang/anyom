@@ -1,10 +1,4 @@
-import { diff } from "../diff";
-import { patch } from "../patch";
-import { render } from "../create-element";
-import { NodeProxy } from "../node-proxy";
-import { Component } from "../component";
 import { setCommand, getCommand } from "../commands";
-import { VNode, h } from "../vnode";
 
 const log = console.log;
 {//init html

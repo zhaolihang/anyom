@@ -1,68 +1,36 @@
-import { isObject, getPrototype, ascending, indexInRange, getParentNode, replaceChild, getChildNodes, removedChild, appendChild, removedChildWithArg, insertChildWithArg, setComponentProps, setRef } from "./utils";
-import { VNode, PropsType, Cmds } from "./vnode";
-import { PatchTree, Patch, PatchType } from "./diff";
+import { ascending } from "./utils";
+import { VNode, NativeElement, VNodeType, PropsType } from "./vnode";
+import { PatchTree, Patch, PatchType, PatchAppend, PatchRemove, PatchReplace, PatchReorder, PatchProps, shallowDiffProps, diff } from "./diff";
+import { render, findNativeElementByVNode } from "./render";
 import { Component } from "./component";
-import { NodeProxy } from "./node-proxy";
-import { render } from "./create-element";
 
-
-export function patch(nodeProxy: NodeProxy, patches: PatchTree): NodeProxy {
-    let resultNode = patchEach(nodeProxy, patches);
-
-    if (nodeProxy !== resultNode) {
-        let parentNode = getParentNode(nodeProxy);
-        if (parentNode) {
-            replaceChild(parentNode, resultNode, nodeProxy)
-        }
-    }
-
-    return resultNode;
+export function patch(patches: PatchTree) {
+    patchEach(patches);
 }
 
-function patchEach(nodeProxy: NodeProxy, patches: PatchTree) {
+function patchEach(patches: PatchTree) {
     let indices: number[] = [];
     for (let key in patches) {
         indices.push(Number(key));
     }
-
+    indices.sort(ascending);
     if (indices.length === 0) {
-        return nodeProxy;
+        return;
     }
-
-    let nodeProxyMap = nodeProxyIndex(nodeProxy, patches.root, indices);
 
     for (let i = 0; i < indices.length; i++) {
-        let nodeIndex = indices[i];
-        nodeProxy = applyPatch(nodeProxy, nodeProxyMap[nodeIndex], patches[nodeIndex]);
+        applyPatch(patches[indices[i]]);
     }
-
-    return nodeProxy;
 }
 
-function applyPatch(rootNodeProxy: NodeProxy, childNodeProxy: NodeProxy, patchList) {
-    if (!childNodeProxy) {
-        return rootNodeProxy;
-    }
-
-    let newNodeProxy;
-
+function applyPatch(patchList) {
     if (Array.isArray(patchList)) {
         for (let i = 0; i < patchList.length; i++) {
-            newNodeProxy = patchOp(childNodeProxy, patchList[i]);
-
-            if (childNodeProxy === rootNodeProxy) {
-                rootNodeProxy = newNodeProxy;
-            }
+            patchOp(patchList[i]);
         }
     } else {
-        newNodeProxy = patchOp(childNodeProxy, patchList);
-
-        if (childNodeProxy === rootNodeProxy) {
-            rootNodeProxy = newNodeProxy;
-        }
+        patchOp(patchList);
     }
-
-    return rootNodeProxy;
 }
 
 
@@ -74,109 +42,60 @@ function applyPatch(rootNodeProxy: NodeProxy, childNodeProxy: NodeProxy, patchLi
 
 let noChild = {};
 
-export function nodeProxyIndex(nodeProxy: NodeProxy, tree: VNode, indices: number[]): { [index: number]: NodeProxy } {
-    if (!indices || indices.length === 0) {
-        return {};
-    } else {
-        indices.sort(ascending);
-        return recurse(nodeProxy, tree, indices, undefined, 0);
-    }
-}
-
-function recurse(nodeProxy: NodeProxy, tree, indices: number[], nodes: { [index: number]: NodeProxy }, rootIndex: number) {
-    nodes = nodes || {};
-
-    if (nodeProxy) {
-        if (indexInRange(indices, rootIndex, rootIndex)) {
-            nodes[rootIndex] = nodeProxy;
-        }
-
-        let vChildren = tree.children;
-
-        if (vChildren) {
-
-            let childNodes = getChildNodes(nodeProxy);
-
-            for (let i = 0; i < tree.children.length; i++) {
-                rootIndex += 1;
-
-                let vChild = vChildren[i] || noChild;
-                let nextIndex = rootIndex + (vChild.count || 0);
-
-                // skip recursion down the tree if there are no nodes down here
-                if (indexInRange(indices, rootIndex, nextIndex)) {
-                    recurse(childNodes[i], vChild, indices, nodes, rootIndex);
-                }
-
-                rootIndex = nextIndex;
-            }
-        }
-    }
-
-    return nodes;
-}
-
-
 
 ////////////
-function patchOp(nodeProxy: NodeProxy, vpatch: Patch) {
-    let type = vpatch.type;
-    let vNode = vpatch.vnode;
-    let patch = vpatch.patch;
-
+function patchOp(vpatch: Patch) {
+    let { type } = vpatch
     switch (type) {
         case PatchType.Append:
-            return insertNode(nodeProxy, patch);
-        case PatchType.Remove: {
-            let parentNode = getParentNode(nodeProxy)
-            if (parentNode) {
-                removedChild(parentNode, nodeProxy)
-            }
-            return null;
-        }
-        case PatchType.Reorder:
-            reorderChildren(nodeProxy, patch);
-            return nodeProxy;
+            appendNode(vpatch as PatchAppend);
+            break;
+        case PatchType.Remove:
+            removedChild(vpatch as PatchRemove)
+            break;
         case PatchType.Replace:
-            return replaceNode(nodeProxy, vNode, patch);
-        case PatchType.NativeProps:
-            applyNativeProps(nodeProxy, patch, vNode.props);
-            return nodeProxy;
-        case PatchType.ComponentProps:
-            setComponentProps(nodeProxy, patch, vNode.props)
-            return nodeProxy;
-        default:
-            return nodeProxy;
+            replaceNode(vpatch as PatchReplace)
+            break;
+        case PatchType.Reorder:
+            reorderChildren(vpatch as PatchReorder);
+        case PatchType.Props:
+            updateProps(vpatch as PatchProps);
+            break;
+        default: {
+            console.warn('没有实现的patch类型:', type);
+        }
     }
 }
 
-function insertNode(parentNodeProxy: NodeProxy, vNode: VNode) {
-    let newNode = render(vNode);
-
-    if (parentNodeProxy) {
-        appendChild(parentNodeProxy, newNode)
-    }
-
-    return parentNodeProxy;
+function appendNode(vpatch: PatchAppend) {
+    let { parent, newNode } = vpatch
+    render(newNode, findNativeElementByVNode(parent))
 }
 
-function replaceNode(nodeProxy: NodeProxy, leftVNode: VNode, vNode: VNode) {
-    let parentNode = getParentNode(nodeProxy);
-    let newNode = render(vNode);
-
-    if (parentNode && newNode !== nodeProxy) {
-        replaceChild(parentNode, newNode, nodeProxy);
-    }
-
-    return newNode;
+function removedChild(vpatch: PatchRemove) {
+    let nativeElm = findNativeElementByVNode(vpatch.origin)
+    nativeElm.parentNode.removeChild(nativeElm);
 }
 
+function replaceNode(vpatch: PatchReplace) {
+    let originElm = findNativeElementByVNode(vpatch.origin)
+    let parent = originElm.parentNode as NativeElement;
+    let newNode = render(vpatch.newNode);
+    if (parent) {
+        if (newNode) {
+            parent.replaceChild(newNode, originElm);
+        } else {
+            parent.removeChild(originElm);
+        }
+    }
+}
 
-function reorderChildren(parentNodeProxy: NodeProxy, moves) {
+function reorderChildren(vpatch: PatchReorder) {
+    let { parent, moves } = vpatch;
 
-    let childNodes = getChildNodes(parentNodeProxy);
-    let keyMap: { [key: string]: NodeProxy } = {};
-    let node: NodeProxy;
+    let childNodes = parent.children;
+    let keyMap: { [key: string]: VNode } = {};
+    let node: VNode;
     let remove: { from: number, key?: string };
     let insert: { to: number, key: string };
 
@@ -199,72 +118,91 @@ function reorderChildren(parentNodeProxy: NodeProxy, moves) {
             keyMap[remove.key] = node;
             insertKeyMap[remove.key] && (reorderKeyMap[remove.key] = true);
         }
-        removedChildWithArg(parentNodeProxy, node, reorderKeyMap[remove.key])
+        removedChildWithArg(node, reorderKeyMap[remove.key])
     }
 
-    let length = childNodes.length;
     for (let j = 0; j < insertsLen; j++) {
         insert = inserts[j];
         node = keyMap[insert.key];
-        insertChildWithArg(parentNodeProxy, node, insert.to >= length++ ? null : childNodes[insert.to], reorderKeyMap[insert.key]);
+        insertChildWithArg(parent, node, insert.to, reorderKeyMap[insert.key]);
     }
 
 }
 
-//
+function removedChildWithArg(origin: VNode, recycle = false) {
+    let nativeElm = findNativeElementByVNode(origin);
+    (nativeElm.parentNode as NativeElement).removeChild(nativeElm);
+}
 
-export function applyNativeProps(proxy: NodeProxy, props: PropsType, previous?: PropsType) {
+function insertChildWithArg(parent: VNode, child: VNode, insertTo: number, recycle = false) {
+    let parentNode = findNativeElementByVNode(parent);
+    let childNodes = parentNode.childNodes
+    let index = insertTo;
+    let refChild: NativeElement = childNodes[index];
+    let childNode;
+    if (!recycle) {
+        childNode = render(child)
+    } else {
+        childNode = findNativeElementByVNode(child);
+    }
+    parentNode.insertBefore(childNode, refChild)
+}
 
-    for (let propName in props) {
-        let propValue = props[propName];
 
-        if (propValue === undefined) {
-            if (previous) {
-                proxy.removeAttrOfNative(propName, previous);
-            }
-        } else {
-            if (isObject(propValue)) {
-                patchNativeNodeObject(proxy, props, previous, propName, propValue);
-            } else {
-                proxy.setAttrOfNative(propName, propValue, previous);
-            }
+function updateProps(vpatch: PatchProps) {
+    let { origin, props } = vpatch;
+    if (origin.type & VNodeType.Node) {
+        if (origin.type & VNodeType.Element) {
+            updateElementProps(origin, props);
+        } else if (origin.type & VNodeType.Text) {
+            updateTextProps(origin, props);
+        }
+    } else if (origin.type & VNodeType.Component) {
+        if (origin.type & VNodeType.ComponentFunction) {
+            updateFunctionComponentProps(origin, props);
+        } else if (origin.type & VNodeType.ComponentClass) {
+            updateClassComponentProps(origin, props);
         }
     }
-
 }
 
-
-function patchNativeNodeObject(proxy: NodeProxy, props, previous, propName, propValue) {
-    let previousValue = previous ? previous[propName] : undefined;
-
-    if (previousValue && isObject(previousValue)
-        && getPrototype(previousValue) !== getPrototype(propValue)) {
-        proxy.setAttrOfNative(propName, propValue, previousValue);
-        return;
-    }
-
-    if (!isObject(proxy.getAttrOfNative(propName))) {
-        proxy.setAttrOfNative(propName, {}, undefined);
-    }
-
-    proxy.setObjAttrOfNative(propName, propValue, previousValue);
-}
-
-
-export function applyCommands(proxy: NodeProxy, cmdPatch: Cmds, previousCmds: Cmds, newCommands: Cmds) {
-    for (let cmdName in cmdPatch) {
-        let cmdValue = cmdPatch[cmdName];
-        if (cmdValue === undefined) {
-            if (previousCmds && (cmdName in previousCmds)) {
-                proxy.removeCmd(cmdName, previousCmds[cmdName]);
+function updateElementProps(origin: VNode, propsPatch: PropsType) {
+    let naviveElm = origin.instance as HTMLElement
+    for (let propName in propsPatch) {
+        let propValue = propsPatch[propName];
+        if (propName === 'style') {
+            if (typeof propValue === 'string') {
+                naviveElm.style.cssText = propValue || '';
+            } else if (typeof propValue === 'object') {
+                let previous = origin.props;
+                let stylePatch = shallowDiffProps(previous || previous['style'], propValue);
+                for (let styleName in stylePatch) {
+                    naviveElm.style[styleName] = stylePatch[styleName];
+                }
             }
         } else {
-            if (previousCmds && (cmdName in previousCmds)) {
-                proxy.updateCmd(cmdName, cmdValue, previousCmds[cmdName])
-            } else {
-                proxy.addCmd(cmdName, cmdValue);
-            }
+            naviveElm[propName] = propValue;
         }
     }
-    proxy.setCmds(newCommands);
+}
+
+
+function updateTextProps(origin: VNode, propsPatch: PropsType) {
+    (origin.instance as Text).nodeValue = propsPatch.value as string;
+}
+
+
+function updateFunctionComponentProps(origin: VNode, newProps: PropsType) {
+    let currResult = (origin.instance as Function)(newProps);
+    let patchTree = diff(origin.lastResult, currResult)
+    patch(patchTree)
+}
+
+
+function updateClassComponentProps(origin: VNode, newProps: PropsType) {
+    let instance = origin.instance as Component;
+    instance.setProps(newProps);
+    let currResult = instance.render();
+    let patchTree = diff(instance.$$lastResult, currResult)
+    patch(patchTree)
 }

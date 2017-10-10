@@ -1,14 +1,11 @@
-import { hasCommand } from "./commands";
-import { isString, isInvalid, toArray, ComponentHooks, isUndefined } from "./shared";
+import { isString, isInvalid, isUndefined } from "./shared";
 import { Component } from "./component";
-import { NodeProxy } from "./node-proxy";
 
 export interface NativeElement {
     appendChild?(...args): any
     removeChild?(...args): any
     replaceChild?(...args): any
     insertBefore?(...args): any
-    firstChild?: NativeElement | any;
     childNodes?: (NativeElement | any)[] | any;
     parentNode?: NativeElement | any;
     [x: string]: any;
@@ -36,7 +33,7 @@ function isStatefulComponent(o: any): boolean {
     return !isUndefined(o.prototype) && !isUndefined(o.prototype.render);
 }
 
-export function getVNodeType(type: any): VNodeType {
+function getVNodeType(type: any): VNodeType {
     if (isString(type)) {
         return VNodeType.Element;
     } else {
@@ -62,10 +59,6 @@ export enum VNodeType {
 
 export type Instance = Component | Function | NativeElement;
 
-let noChildren = [];
-if (Object.freeze) {
-    Object.freeze(noChildren)
-}
 export class VNode {
     count = 0;
 
@@ -76,12 +69,14 @@ export class VNode {
     children: VNode[]
     instance: Instance = null;
 
+    lastResult?: VNode;// 只有 type === ComponentClass 有效
+
     constructor(type: VNodeType, tag: TagName, props: PropsType, children: VNode[], key?: string) {
         this.key = key != null ? String(key) : null;
         this.tag = tag;
         this.type = type;
         this.props = props;
-        this.children = children || noChildren;
+        this.children = children;
 
         let count = (children && children.length) || 0;
         let descendants = 0;
@@ -95,7 +90,10 @@ export class VNode {
 }
 
 const stack: VNode[] = [];
-const EMPTY_CHILDREN = [];
+const noChildren = [];
+if (Object.freeze) {
+    Object.freeze(noChildren)
+}
 
 export function h(tag: TagName, props?: PropsType, ...args): VNode;
 export function h(tag: TagName, props?: PropsType): VNode {
@@ -131,7 +129,7 @@ export function h(tag: TagName, props?: PropsType): VNode {
             }
             let childType = typeof child;
             if (childType === 'string' || childType === 'number') {
-                child = new VNode(VNodeType.Text, null, { value: String(child) }, null);
+                child = new VNode(VNodeType.Text, null, { value: String(child) }, noChildren);
             }
             if (!children) {
                 children = [child];
@@ -140,14 +138,14 @@ export function h(tag: TagName, props?: PropsType): VNode {
             }
         }
     }
+    props = props || {};
     if (type & VNodeType.Component) {
         if (children) {
-            props = props || {}
             props.children = children;
         }
-        return new VNode(type, tag, props, null, key);
+        return new VNode(type, tag, props, noChildren, key);
     } else {
-        return new VNode(type, tag, props, children, key);
+        return new VNode(type, tag, props, children || noChildren, key);
     }
 }
 

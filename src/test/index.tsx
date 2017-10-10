@@ -1,23 +1,25 @@
 import { h, VNode, VNodeType } from "../vnode";
 import { render } from "../render";
 import { diff } from "../diff";
-import { patch } from "../patchs";
-
+import { patch } from "../patch";
 let body = document.body
 let log = console.log;
+function App(props) {
+    return (
+        <div>
+            {props.text}
+        </div>
+    )
+}
 let vnode1 = <div>
-    <span key='1'>1</span>
-    <span key='2'>2</span>
-    <span key='3'>3</span>
+    <App text="app first"></App>
 </div >
-let vnode2 = <div>
-    <span key='3'>3</span>
-    <span key='1'>1</span>
-    <span key='2'>2</span>
-    <span >?</span>
+let vnode2 = <div style={{ backgroundColor: 'red', height: '50px' }}>
+    <App text="app second" ></App>
 </div >
 
-render(vnode1, body)
+let ele = render(vnode1, body)
+log(ele)
 
 let patchTree = diff(vnode1, vnode2)
 patch(patchTree)
