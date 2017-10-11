@@ -1,4 +1,4 @@
-import { setCommand, getCommand } from "./commands";
+import { setCommand, getCommand } from "./command";
 import { h, VNode, cloneVNode } from "./vnode";
 import { Component } from "./component";
 import { diff, Patch } from "./diff";

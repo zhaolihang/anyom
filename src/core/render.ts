@@ -4,12 +4,18 @@ import { initElementProps } from "./patch";
 
 
 export function findNativeElementByVNode(vnode: VNode): NativeElement {
+    if (!vnode) {
+        return;
+    }
     if (vnode.type & VNodeType.Node) {
         return vnode.instance as NativeElement
     } else if (vnode.type & VNodeType.Component) {
         if (vnode.type & VNodeType.ComponentFunction) {
             return findNativeElementByVNode(vnode.lastResult)
         } else if (vnode.type & VNodeType.ComponentClass) {
+            if (!vnode.instance) {
+                return;
+            }
             return findNativeElementByVNode((vnode.instance as Component).$$lastResult)
         }
     }

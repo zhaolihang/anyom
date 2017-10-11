@@ -82,29 +82,40 @@ let vnode2 = <div >
 
 vnode1 = <div>
     <div key={'a'}>
+        a
     </div>
     <div key={'b'}>
+        b
     </div>
     <div key={'c'}>
+        c
     </div>
     <div key={'d'}>
+        d
     </div>
     <div key={'e'}>
+        e
     </div>
 </div>
 
 vnode2 = <div>
     <div key={'e'}>
+        e
     </div>
     <div key={'a'}>
+        a
     </div>
     <div key={'b'}>
+        b
     </div>
     <div key={'c'}>
+        c
     </div>
     <div key={'d'}>
+        d
     </div>
     <div key={'f'}>
+        f
     </div>
 </div>
 
@@ -112,9 +123,7 @@ let ele = render(vnode1, body)
 
 setTimeout(() => {
 
-    let patchTree = diff(vnode1, vnode2)
-    patch(patchTree)
-    log(patchTree)
+    diff(vnode1, vnode2)
     log(vnode2);
 
 }, 1000);

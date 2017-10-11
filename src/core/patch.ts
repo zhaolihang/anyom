@@ -24,7 +24,7 @@ function patchEach(patches: PatchTree) {
     }
 }
 
-function applyPatch(patchList) {
+export function applyPatch(patchList) {
     if (Array.isArray(patchList)) {
         for (let i = 0; i < patchList.length; i++) {
             patchOp(patchList[i]);
@@ -237,7 +237,6 @@ function updateTextProps(origin: VNode, propsPatch: PropsType) {
 function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: PropsType) {
     let currResult = (origin.instance as Function)(newProps);
     let patchTree = diff(origin.lastResult, currResult)
-    patch(patchTree)
     newNode.lastResult = currResult
 }
 
@@ -253,6 +252,5 @@ function updateClassComponentProps(origin: VNode, newProps: PropsType) {
     instance.setProps(newProps);
     let currResult = instance.render();
     let patchTree = diff(instance.$$lastResult, currResult)
-    patch(patchTree)
     instance.$$lastResult = currResult
 }

@@ -1,6 +1,8 @@
 import { VNode, TagName, PropsType, VNodeType } from "./vnode";
 import { getPrototype, deepEqual } from "./utils";
-import { isObject } from "./shared";
+import { isObject, isUndefined, isNull } from "./shared";
+import { applyPatch } from "./patch";
+import { findNativeElementByVNode, render } from "./render";
 //
 export enum PatchType {
     None = 0,
@@ -58,49 +60,36 @@ export type PatchTree = {
 }
 
 export function diff(a: VNode, b?: VNode) {
-    let patch: PatchTree = {} as any;
-    Object.defineProperty(patch, 'root', {
-        value: a,
-        writable: true,
-        configurable: true,
-        enumerable: false
-    });
-    walk(a, b, patch, 0, null);
-    return patch;
+    walk(a, b, null);
 };
 
-function walk(a: VNode, b: VNode, patch: PatchTree, index: number, parent: VNode) {
+function walk(a: VNode, b: VNode, parent: VNode) {
     if (a === b) {
         return;
     }
 
-    let apply = patch[index];
-
     if (b == null) {
-        apply = appendPatch(apply, new PatchRemove(a));
+        applyPatch(new PatchRemove(a))
     } else {
         if (a.tag === b.tag && a.key === b.key) {
             b.instance = a.instance;
             b.lastResult = a.lastResult;
             if (a.type & VNodeType.Component) {
                 if (!shallowEqualObject(a.props, b.props)) {
-                    apply = appendPatch(apply, new PatchProps(a, b, b.props));
+                    applyPatch(new PatchProps(a, b, b.props))
                 }
             } else {
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
-                    apply = appendPatch(apply, new PatchProps(a, b, propsPatch));
+                    applyPatch(new PatchProps(a, b, propsPatch))
                 }
             }
-            apply = diffChildren(a, b, patch, apply, index);
+            diffChildren(a, b);
         } else {
-            apply = appendPatch(apply, new PatchReplace(a, b));
+            applyPatch(new PatchReplace(a, b))
         }
     }
 
-    if (apply) {
-        patch[index] = apply;
-    }
 }
 
 
@@ -168,10 +157,297 @@ function shallowEqualObject(a = noPorps, b = noPorps) {
     return true;
 }
 
-function diffChildren(a: VNode, b: VNode, patch: PatchTree, apply: PatchResult, index: number) {
+
+function isAllKeyed(children: VNode[]) {
+    let length = children.length;
+    let child;
+    for (let i = 0; i < length; i++) {
+        child = children[i];
+        if (!child.key) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function diffChildren(a: VNode, b: VNode) {
+    if (a.children.length === 0 || !isAllKeyed(a.children)) {
+        // nokey
+        diffNoKeyedChildren(a, b);
+    } else {
+        if (b.children.length === 0 || !isAllKeyed(b.children)) {
+            // nokey
+            diffNoKeyedChildren(a, b);
+        } else {
+            //keyed
+            diffKeyedChildren(a, b);
+        }
+    }
+}
+
+
+function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
+    if (refNode) {
+        let newChild = findNativeElementByVNode(newNode);
+        if (!newChild) {
+            newChild = render(newNode);
+        }
+        let refChild = findNativeElementByVNode(refNode);
+        let parentNode = findNativeElementByVNode(parent);
+        parentNode.insertBefore(newChild, refChild)
+    } else {
+        applyPatch(new PatchAppend(parent, newNode));
+    }
+}
+
+function removeAllChildren(parent: VNode) {
+    for (let vnode of parent.children) {
+        applyPatch(new PatchRemove(vnode))
+    }
+}
+
+function diffKeyedChildren(aParent: VNode, bParent: VNode) {
+    let a = aParent.children;
+    let b = bParent.children;
+    let aLength = a.length;
+    let bLength = b.length;
+    let aEnd = aLength - 1;
+    let bEnd = bLength - 1;
+    let aStart = 0;
+    let bStart = 0;
+    let i;
+    let j;
+    let aNode;
+    let bNode;
+    let nextNode;
+    let nextPos;
+    let node;
+    let aStartNode = a[aStart];
+    let bStartNode = b[bStart];
+    let aEndNode = a[aEnd];
+    let bEndNode = b[bEnd];
+
+    // Step 1
+    outer: {
+        // Sync nodes with the same key at the beginning.
+        while (aStartNode.key === bStartNode.key) {
+            walk(aStartNode, bStartNode, aParent);
+            aStart++;
+            bStart++;
+            if (aStart > aEnd || bStart > bEnd) {
+                break outer;
+            }
+            aStartNode = a[aStart];
+            bStartNode = b[bStart];
+        }
+
+        // Sync nodes with the same key at the end.
+        while (aEndNode.key === bEndNode.key) {
+            walk(aEndNode, bEndNode, aParent);
+            aEnd--;
+            bEnd--;
+            if (aStart > aEnd || bStart > bEnd) {
+                break outer;
+            }
+            aEndNode = a[aEnd];
+            bEndNode = b[bEnd];
+        }
+    }
+
+    if (aStart > aEnd) {// a 中的所有key都匹配了所以 b都是应该插入的
+        if (bStart <= bEnd) {
+            nextPos = bEnd + 1;
+            nextNode = nextPos < bLength ? b[nextPos] : null;
+            while (bStart <= bEnd) {
+                node = b[bStart];
+                bStart++;
+                insertOrAppend(aParent, node, nextNode);
+            }
+        }
+    } else if (bStart > bEnd) {
+        while (aStart <= aEnd) {
+            applyPatch(new PatchRemove(a[aStart++]))
+        }
+    } else {
+        const aLeft = aEnd - aStart + 1;
+        const bLeft = bEnd - bStart + 1;
+        const sources = new Array(bLeft);
+
+        // Mark all nodes as inserted.
+        for (i = 0; i < bLeft; i++) {
+            sources[i] = -1;
+        }
+        let moved = false;
+        let pos = 0;
+        let patched = 0;
+
+        // When sizes are small, just loop them through
+        if (bLeft <= 4 || aLeft * bLeft <= 16) {
+            for (i = aStart; i <= aEnd; i++) {
+                aNode = a[i];
+                if (patched < bLeft) {
+                    for (j = bStart; j <= bEnd; j++) {
+                        bNode = b[j];
+                        if (aNode.key === bNode.key) {
+                            sources[j - bStart] = i;
+
+                            if (pos > j) {
+                                moved = true;
+                            } else {
+                                pos = j;
+                            }
+                            walk(aNode, bNode, aParent);
+                            patched++;
+                            a[i] = null as any;
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            const keyIndex = new Map();
+
+            // Map keys by their index in array
+            for (i = bStart; i <= bEnd; i++) {
+                keyIndex.set(b[i].key, i);
+            }
+
+            // Try to patch same keys
+            for (i = aStart; i <= aEnd; i++) {
+                aNode = a[i];
+
+                if (patched < bLeft) {
+                    j = keyIndex.get(aNode.key);
+
+                    if (!isUndefined(j)) {
+                        bNode = b[j];
+                        sources[j - bStart] = i;
+                        if (pos > j) {
+                            moved = true;
+                        } else {
+                            pos = j;
+                        }
+                        walk(aNode, bNode, aParent);
+                        patched++;
+                        a[i] = null as any;
+                    }
+                }
+            }
+        }
+        // fast-path: if nothing patched remove all old and add all new
+        if (aLeft === aLength && patched === 0) {
+            removeAllChildren(aParent)
+            while (bStart < bLeft) {
+                node = b[bStart];
+                bStart++;
+                applyPatch(new PatchAppend(aParent, node));
+            }
+        } else {
+            i = aLeft - patched;
+            while (i > 0) {
+                aNode = a[aStart++];
+                if (aNode) {
+                    applyPatch(new PatchRemove(aNode));
+                    i--;
+                }
+            }
+            if (moved) {
+                const seq = lis_algorithm(sources);
+                j = seq.length - 1;
+                for (i = bLeft - 1; i >= 0; i--) {
+                    if (sources[i] === -1) {
+                        pos = i + bStart;
+                        node = b[pos];
+                        nextPos = pos + 1;
+                        insertOrAppend(aParent, node, nextPos < bLength ? b[nextPos] : null);
+                    } else {
+                        if (j < 0 || i !== seq[j]) {
+                            pos = i + bStart;
+                            node = b[pos];
+                            nextPos = pos + 1;
+                            insertOrAppend(aParent, node, nextPos < bLength ? b[nextPos] : null);
+                        } else {
+                            j--;
+                        }
+                    }
+                }
+            } else if (patched !== bLeft) {
+                // when patched count doesn't match b length we need to insert those new ones
+                // loop backwards so we can use insertBefore
+                for (i = bLeft - 1; i >= 0; i--) {
+                    if (sources[i] === -1) {
+                        pos = i + bStart;
+                        node = b[pos];
+                        nextPos = pos + 1;
+                        insertOrAppend(aParent, node, nextPos < bLength ? b[nextPos] : null);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// // https://en.wikipedia.org/wiki/Longest_increasing_subsequence
+function lis_algorithm(arr: number[]): number[] {
+    const p = arr.slice(0);
+    const result: number[] = [0];
+    let i;
+    let j;
+    let u;
+    let v;
+    let c;
+    const len = arr.length;
+
+    for (i = 0; i < len; i++) {
+        const arrI = arr[i];
+
+        if (arrI !== -1) {
+            j = result[result.length - 1];
+            if (arr[j] < arrI) {
+                p[i] = j;
+                result.push(i);
+                continue;
+            }
+
+            u = 0;
+            v = result.length - 1;
+
+            while (u < v) {
+                c = ((u + v) / 2) | 0;
+                if (arr[result[c]] < arrI) {
+                    u = c + 1;
+                } else {
+                    v = c;
+                }
+            }
+
+            if (arrI < arr[result[u]]) {
+                if (u > 0) {
+                    p[i] = result[u - 1];
+                }
+                result[u] = i;
+            }
+        }
+    }
+
+    u = result.length;
+    v = result[u - 1];
+
+    while (u-- > 0) {
+        result[u] = v;
+        v = p[v];
+    }
+
+    return result;
+}
+
+
+
+
+
+function diffNoKeyedChildren(a: VNode, b: VNode) {
     let aChildren = a.children;
-    let orderedSet = reorder(aChildren, b.children);
-    let bChildren = orderedSet.children;
+    let bChildren = b.children;
 
     let aLen = aChildren.length;
     let bLen = bChildren.length;
@@ -181,234 +457,16 @@ function diffChildren(a: VNode, b: VNode, patch: PatchTree, apply: PatchResult, 
         let leftNode = aChildren[i];
         let rightNode = bChildren[i];
 
-        index += 1;
-
         if (!leftNode) {
             if (rightNode) {
                 // Excess nodes in b need to be added
-                apply = appendPatch(apply, new PatchAppend(a, rightNode));
+                applyPatch(new PatchAppend(a, rightNode))
             }
         } else {
-            walk(leftNode, rightNode, patch, index, a);
+            walk(leftNode, rightNode, a);
         }
-
-        if (leftNode && leftNode.count) {
-            index += leftNode.count;
-        }
-    }
-
-    if (orderedSet.moves) {
-        // Reorder nodes last
-        apply = appendPatch(apply, new PatchReorder(a, orderedSet.moves));
-    }
-
-    return apply;
-}
-
-// List diff, naive left to right reordering
-function reorder(aChildren: VNode[], bChildren: VNode[]) {
-    // O(M) time, O(M) memory
-    let bChildIndex = keyIndex(bChildren);
-    let bKeys = bChildIndex.keys;
-    let bFree = bChildIndex.free;
-
-    if (bFree.length === bChildren.length) {
-        return {
-            children: bChildren,
-            moves: null
-        };
-    }
-
-    // O(N) time, O(N) memory
-    let aChildIndex = keyIndex(aChildren);
-    let aKeys = aChildIndex.keys;
-    let aFree = aChildIndex.free;
-
-    if (aFree.length === aChildren.length) {
-        return {
-            children: bChildren,
-            moves: null
-        };
-    }
-
-    // O(MAX(N, M)) memory
-    let newChildrenFromB = [];// 与 aChildren 对号入座的bChildren 中的item
-
-    let freeIndexB = 0;
-    let freeCountB = bFree.length;
-    let deletedItems = 0;
-
-    // Iterate through a and match a node in b
-    // O(N) time,
-    for (let i = 0; i < aChildren.length; i++) {// 此行目的 是找到需要 删除 的和需要 移动 的
-        let aItem = aChildren[i];
-        let itemIndexB;
-
-        if (aItem.key) {
-            if (bKeys.hasOwnProperty(aItem.key)) {// 同时存在 某个 key  对号入座
-                // Match up the old keys
-                itemIndexB = bKeys[aItem.key];
-                newChildrenFromB.push(bChildren[itemIndexB]);
-
-            } else {// 新的节点列表中没有这个key 说明是需要删除的
-                // Remove old keyed items
-                itemIndexB = i - deletedItems++;
-                newChildrenFromB.push(null);
-            }
-        } else {//aItem 是没有key的那么也要在b列表的没有key 的item里面对号入座
-            // Match the item in a with the next free item in b
-            if (freeIndexB < freeCountB) {// b的 没有key的item 列表中有剩余
-                itemIndexB = bFree[freeIndexB++];
-                newChildrenFromB.push(bChildren[itemIndexB]);
-            } else {// aItem 是没有key b列表中没有剩余的可匹配项 那么这个item 就需要被删除了
-                // There are no free items in b to match with
-                // the free items in a, so the extra free nodes
-                // are deleted.
-                itemIndexB = i - deletedItems++;
-                newChildrenFromB.push(null);
-            }
-        }
-    }
-
-    // 剩余的没有匹配的没有key的 b列表的中item 的开始索引
-    let lastFreeIndex = freeIndexB >= bFree.length ? bChildren.length : bFree[freeIndexB];
-
-    // Iterate through b and append any new keys
-    // O(M) time
-    for (let j = 0; j < bChildren.length; j++) {// 此行目的 是找到需要 新添加的
-        let bItem = bChildren[j];
-
-        if (bItem.key) {
-            if (!aKeys.hasOwnProperty(bItem.key)) {// b的key 在a列表中没有  加到 新列表的后面
-                // Add any new keyed items
-                // We are adding new items to the end and then sorting them
-                // in place. In future we should insert new items in place.
-                newChildrenFromB.push(bItem);
-            }
-        } else if (j >= lastFreeIndex) {// 没有被记录下来的才是新的
-            // Add any leftover non-keyed items
-            newChildrenFromB.push(bItem);
-        }
-    }
-
-    let simulate = newChildrenFromB.slice();
-    let simulateIndex = 0;
-    let removes: { from: number; key: string }[] = [];
-    let inserts: { to: number; key: string }[] = [];
-    let simulateItem;
-
-    for (let k = 0; k < bChildren.length;) {
-        let wantedItem = bChildren[k];
-        simulateItem = simulate[simulateIndex];
-
-        // remove items
-        while (simulateItem === null && simulate.length) {
-            removes.push(remove(simulate, simulateIndex, null));
-            simulateItem = simulate[simulateIndex];
-        }
-
-        if (!simulateItem || simulateItem.key !== wantedItem.key) {
-            // if we need a key in this position...
-            if (wantedItem.key) {
-                if (simulateItem && simulateItem.key) {
-                    // if an insert doesn't put this key in place, it needs to move
-                    if (bKeys[simulateItem.key] !== k + 1) {
-                        removes.push(remove(simulate, simulateIndex, simulateItem.key));
-                        simulateItem = simulate[simulateIndex];
-                        // if the remove didn't put the wanted item in place, we need to insert it
-                        if (!simulateItem || simulateItem.key !== wantedItem.key) {
-                            inserts.push({ key: wantedItem.key, to: k });
-                        }
-                        // items are matching, so skip ahead
-                        else {
-                            simulateIndex++;
-                        }
-                    }
-                    else {
-                        inserts.push({ key: wantedItem.key, to: k });
-                    }
-                }
-                else {
-                    inserts.push({ key: wantedItem.key, to: k });
-                }
-                k++
-            }
-            // a key in simulate has no matching wanted key, remove it
-            else if (simulateItem && simulateItem.key) {
-                removes.push(remove(simulate, simulateIndex, simulateItem.key));
-            }
-        }
-        else {
-            simulateIndex++;
-            k++;
-        }
-    }
-
-    // remove all the remaining nodes from simulate
-    while (simulateIndex < simulate.length) {
-        simulateItem = simulate[simulateIndex];
-        removes.push(remove(simulate, simulateIndex, simulateItem && simulateItem.key));
-    }
-
-    // If the only moves we have are deletes then we can just
-    // let the delete patch remove these items.
-    if (removes.length === deletedItems && !inserts.length) {
-        return {
-            children: newChildrenFromB,
-            moves: null
-        };
-    }
-
-    return {
-        children: newChildrenFromB,
-        moves: {
-            removes: removes,
-            inserts: inserts
-        }
-    };
-}
-
-function remove(arr: any[], index, key) {
-    arr.splice(index, 1);
-
-    return {
-        from: index,
-        key: key
-    };
-}
-
-function keyIndex(children: VNode[]) {
-    let keys: { [key: string]: number } = {};
-    let free: number[] = [];
-    let length = children.length;
-
-    for (let i = 0; i < length; i++) {
-        let child = children[i];
-
-        if (child.key) {
-            keys[child.key] = i;
-        } else {
-            free.push(i);
-        }
-    }
-
-    return {
-        keys: keys,     // A hash of key name to index
-        free: free      // An array of unkeyed item indices
-    };
-}
-
-function appendPatch(apply: PatchResult, patch: Patch): PatchResult {
-
-    if (apply) {
-        if (Array.isArray(apply)) {
-            (<Patch[]>apply).push(patch);
-        } else {
-            apply = (<Patch[]>[apply, patch]);
-        }
-        return apply;
-    } else {
-        return patch;
     }
 
 }
+
+

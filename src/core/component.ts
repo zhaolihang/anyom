@@ -61,7 +61,6 @@ export class Component {
         let instance = this;
         let currResult = instance.render();
         let patchTree = diff(instance.$$lastResult, currResult)
-        patch(patchTree);
         instance.$$lastResult = currResult;
     }
 }

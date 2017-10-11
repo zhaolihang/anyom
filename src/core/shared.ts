@@ -1,3 +1,5 @@
+import { VNode } from "./vnode";
+
 export const ComponentHooks = new Set<string>();
 ComponentHooks.add("onComponentWillMount");
 ComponentHooks.add("onComponentDidMount");
