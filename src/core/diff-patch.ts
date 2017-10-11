@@ -180,11 +180,11 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
     let bStart = 0;
     let i;
     let j;
-    let aNode;
-    let bNode;
-    let nextNode;
-    let nextPos;
-    let node;
+    let aNode: VNode;
+    let bNode: VNode;
+    let nextNode: VNode;
+    let nextPos: number;
+    let node: VNode;
     let aStartNode = a[aStart];
     let bStartNode = b[bStart];
     let aEndNode = a[aEnd];
@@ -239,7 +239,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
 
         const aLeft = aEnd - aStart + 1;
         const bLeft = bEnd - bStart + 1;
-        const sources = new Array(bLeft);
+        const sources = new Array(bLeft);// 记录下b剩余的key 在a中的位置
 
         // Mark all nodes as inserted.
         for (i = 0; i < bLeft; i++) {
@@ -247,7 +247,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
         }
         let moved = false;
         let pos = 0;
-        let patched = 0;
+        let patched = 0;// 匹配到的数量
 
         // When sizes are small, just loop them through
         if (bLeft <= 4 || aLeft * bLeft <= 16) {
@@ -302,8 +302,9 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
                 }
             }
         }
+
         // fast-path: if nothing patched remove all old and add all new
-        if (aLeft === aLength && patched === 0) {
+        if (aLeft === aLength && patched === 0) {//没有发生匹配 为了性能优化// dom.textContent = ""; 高效的移除节点
             removeAllChildren(aParent)
             while (bStart < bLeft) {
                 node = b[bStart];
@@ -312,28 +313,29 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
             }
         } else {
             i = aLeft - patched;
-            while (i > 0) {
+            while (i > 0) {// 删除 没有匹配到的
                 aNode = a[aStart++];
                 if (aNode) {
                     patchOp(new PatchRemove(aNode));
                     i--;
                 }
             }
+
             if (moved) {
                 const seq = lis_algorithm(sources);
                 j = seq.length - 1;
                 for (i = bLeft - 1; i >= 0; i--) {
-                    if (sources[i] === -1) {
+                    if (sources[i] === -1) {//新插入
                         pos = i + bStart;
                         node = b[pos];
                         nextPos = pos + 1;
                         insertOrAppend(aParent, node, nextPos < bLength ? b[nextPos] : null);
                     } else {
-                        if (j < 0 || i !== seq[j]) {
+                        if (j < 0 || i !== seq[j]) {//位置被移动了
                             pos = i + bStart;
                             node = b[pos];
                             nextPos = pos + 1;
-                            insertOrAppend(aParent, node, nextPos < bLength ? b[nextPos] : null);
+                            insertOrAppendWithMoved(aParent, node, nextPos < bLength ? b[nextPos] : null);
                         } else {
                             j--;
                         }
@@ -342,7 +344,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
             } else if (patched !== bLeft) {
                 // when patched count doesn't match b length we need to insert those new ones
                 // loop backwards so we can use insertBefore
-                for (i = bLeft - 1; i >= 0; i--) {
+                for (i = bLeft - 1; i >= 0; i--) {//新插入
                     if (sources[i] === -1) {
                         pos = i + bStart;
                         node = b[pos];
@@ -600,10 +602,7 @@ function updateClassComponentProps(origin: VNode, newProps: PropsType) {
 
 function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
     if (refNode) {
-        let newChild = findNativeElementByVNode(newNode);
-        if (!newChild) {
-            newChild = render(newNode);
-        }
+        let newChild = render(newNode);
         let refChild = findNativeElementByVNode(refNode);
         let parentNode = findNativeElementByVNode(parent);
         parentNode.insertBefore(newChild, refChild)
@@ -612,8 +611,23 @@ function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
     }
 }
 
-function removeAllChildren(parent: VNode) {
-    for (let vnode of parent.children) {
-        patchOp(new PatchRemove(vnode))
+function insertOrAppendWithMoved(parent: VNode, movedNode: VNode, refNode: VNode | null) {
+    let movedChild = findNativeElementByVNode(movedNode);
+    let parentNode = movedChild.parentNode as NativeElement;
+    if (refNode) {
+        let refChild = findNativeElementByVNode(refNode);
+        // dom api : insertBefore  appendChild 如果插入或者添加的节点有父节点,浏览器内部会自行处理
+        parentNode.insertBefore(movedChild, refChild)// movedChild
+    } else {
+        parentNode.appendChild(movedChild)
     }
+}
+
+
+function removeAllChildren(parent: VNode) {
+    // for (let vnode of parent.children) {
+    //     patchOp(new PatchRemove(vnode))
+    // }
+    let parentNode = <HTMLElement>findNativeElementByVNode(parent);
+    parentNode.textContent = "";
 }
