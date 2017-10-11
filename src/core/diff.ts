@@ -264,11 +264,16 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
                 insertOrAppend(aParent, node, nextNode);
             }
         }
-    } else if (bStart > bEnd) {
+    } else if (bStart > bEnd) {// b 中的所有key都匹配了所以 a都是应该删除的
         while (aStart <= aEnd) {
             applyPatch(new PatchRemove(a[aStart++]))
         }
     } else {
+        // 没有一方是完全遍历完成的
+        //  a b c  e f g  c b a
+        //  a b c  g f e  c b a
+        // 如果中间区域 数量小 直接用for 遍历  不使用算法  如果中间的比较大 则使用算法
+
         const aLeft = aEnd - aStart + 1;
         const bLeft = bEnd - bStart + 1;
         const sources = new Array(bLeft);
