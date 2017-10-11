@@ -5,7 +5,7 @@ import { NativeElement } from "./vnode";
 import { Component } from "./component";
 import { isEventAttr, isArray } from "./shared";
 //
-export enum PatchType {
+enum PatchType {
     None = 0,
     Append,
     Remove,
@@ -14,28 +14,28 @@ export enum PatchType {
     Props,
 }
 
-export interface Patch {
+interface Patch {
     type: PatchType;
 }
 
-export class PatchRemove implements Patch {
+class PatchRemove implements Patch {
     type = PatchType.Remove;
     constructor(public origin: VNode) {
     }
 }
 
-export class PatchProps implements Patch {
+class PatchProps implements Patch {
     type = PatchType.Props;
     constructor(public origin: VNode, public newNode: VNode, public props: PropsType) {
     }
 }
-export class PatchReplace implements Patch {
+class PatchReplace implements Patch {
     type = PatchType.Replace;
     constructor(public origin: VNode, public newNode: VNode) {
     }
 }
 
-export class PatchAppend implements Patch {
+class PatchAppend implements Patch {
     type = PatchType.Append;
     constructor(public parent: VNode, public newNode: VNode) {
     }
@@ -52,31 +52,30 @@ function walk(a: VNode, b: VNode, parent: VNode) {
     }
 
     if (b == null) {
-        applyPatch(new PatchRemove(a))
+        patchOp(new PatchRemove(a))
     } else {
         if (a.tag === b.tag && a.key === b.key) {
             b.instance = a.instance;
             b.lastResult = a.lastResult;
             if (a.type & VNodeType.Component) {
-                if (!shallowEqualObject(a.props, b.props)) {
-                    applyPatch(new PatchProps(a, b, b.props))
+                if (!shallowEqual(a.props, b.props)) {
+                    patchOp(new PatchProps(a, b, b.props))
                 }
             } else {
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
-                    applyPatch(new PatchProps(a, b, propsPatch))
+                    patchOp(new PatchProps(a, b, propsPatch))
                 }
             }
             diffChildren(a, b);
         } else {
-            applyPatch(new PatchReplace(a, b))
+            patchOp(new PatchReplace(a, b))
         }
     }
 
 }
 
-
-let noPorps = {};
+const noPorps = {};
 export function shallowDiffProps(a: PropsType, b: PropsType) {
     a = a || noPorps;
     b = b || noPorps;
@@ -96,7 +95,7 @@ export function shallowDiffProps(a: PropsType, b: PropsType) {
                 diff = diff || {};
                 diff[aKey] = bValue;
             } else {
-                if (!shallowEqualObject(aValue, bValue)) {
+                if (!shallowEqual(aValue, bValue)) {
                     diff = diff || {};
                     diff[aKey] = bValue;
                 }
@@ -119,7 +118,9 @@ export function shallowDiffProps(a: PropsType, b: PropsType) {
 
 
 
-function shallowEqualObject(a = noPorps, b = noPorps) {
+function shallowEqual(a, b) {
+    a = a || noPorps;
+    b = b || noPorps;
     for (let aKey in a) {
         if (!(aKey in b)) {
             return false
@@ -141,7 +142,7 @@ function shallowEqualObject(a = noPorps, b = noPorps) {
 }
 
 
-function isAllKeyed(children: VNode[]) {
+function allKeyed(children: VNode[]) {
     let length = children.length;
     let child;
     for (let i = 0; i < length; i++) {
@@ -154,38 +155,17 @@ function isAllKeyed(children: VNode[]) {
 }
 
 function diffChildren(a: VNode, b: VNode) {
-    if (a.children.length === 0 || !isAllKeyed(a.children)) {
+    if (a.children.length === 0 || !allKeyed(a.children)) {
         // nokey
         diffNoKeyedChildren(a, b);
     } else {
-        if (b.children.length === 0 || !isAllKeyed(b.children)) {
+        if (b.children.length === 0 || !allKeyed(b.children)) {
             // nokey
             diffNoKeyedChildren(a, b);
         } else {
             //keyed
             diffKeyedChildren(a, b);
         }
-    }
-}
-
-
-function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
-    if (refNode) {
-        let newChild = findNativeElementByVNode(newNode);
-        if (!newChild) {
-            newChild = render(newNode);
-        }
-        let refChild = findNativeElementByVNode(refNode);
-        let parentNode = findNativeElementByVNode(parent);
-        parentNode.insertBefore(newChild, refChild)
-    } else {
-        applyPatch(new PatchAppend(parent, newNode));
-    }
-}
-
-function removeAllChildren(parent: VNode) {
-    for (let vnode of parent.children) {
-        applyPatch(new PatchRemove(vnode))
     }
 }
 
@@ -249,7 +229,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
         }
     } else if (bStart > bEnd) {// b 中的所有key都匹配了所以 a都是应该删除的
         while (aStart <= aEnd) {
-            applyPatch(new PatchRemove(a[aStart++]))
+            patchOp(new PatchRemove(a[aStart++]))
         }
     } else {
         // 没有一方是完全遍历完成的
@@ -328,14 +308,14 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
             while (bStart < bLeft) {
                 node = b[bStart];
                 bStart++;
-                applyPatch(new PatchAppend(aParent, node));
+                patchOp(new PatchAppend(aParent, node));
             }
         } else {
             i = aLeft - patched;
             while (i > 0) {
                 aNode = a[aStart++];
                 if (aNode) {
-                    applyPatch(new PatchRemove(aNode));
+                    patchOp(new PatchRemove(aNode));
                     i--;
                 }
             }
@@ -430,9 +410,6 @@ function lis_algorithm(arr: number[]): number[] {
 }
 
 
-
-
-
 function diffNoKeyedChildren(a: VNode, b: VNode) {
     let aChildren = a.children;
     let bChildren = b.children;
@@ -448,7 +425,7 @@ function diffNoKeyedChildren(a: VNode, b: VNode) {
         if (!leftNode) {
             if (rightNode) {
                 // Excess nodes in b need to be added
-                applyPatch(new PatchAppend(a, rightNode))
+                patchOp(new PatchAppend(a, rightNode))
             }
         } else {
             walk(leftNode, rightNode, a);
@@ -456,150 +433,6 @@ function diffNoKeyedChildren(a: VNode, b: VNode) {
     }
 
 }
-
-
-
-
-export function noop(...x: any[]): any;
-export function noop() { };
-
-export function getPrototype(value) {
-    if (Object.getPrototypeOf) {
-        return Object.getPrototypeOf(value);
-    } else if (value.__proto__) {
-        return value.__proto__;
-    } else if (value.constructor) {
-        return value.constructor.prototype;
-    }
-}
-
-export function overwrite(target, src) {
-    for (let i in src) {
-        target[i] = src[i];
-    }
-    return target;
-}
-
-export function deepEqual(a, b) {
-    if (a === b) return true;
-
-    let arrA = isArray(a);
-    let arrB = isArray(b);
-    let i;
-
-    if (arrA && arrB) {
-        if (a.length != b.length) return false;
-        for (i = 0; i < a.length; i++)
-            if (!deepEqual(a[i], b[i])) return false;
-        return true;
-    }
-
-    if (arrA != arrB) return false;
-
-    if (a && b && typeof a === 'object' && typeof b === 'object') {
-        let keys = Object.keys(a);
-        if (keys.length !== Object.keys(b).length) return false;
-
-        let dateA = a instanceof Date;
-        let dateB = b instanceof Date;
-        if (dateA && dateB) return a.getTime() == b.getTime();
-        if (dateA != dateB) return false;
-
-        let regexpA = a instanceof RegExp;
-        let regexpB = b instanceof RegExp;
-        if (regexpA && regexpB) return a.toString() == b.toString();
-        if (regexpA != regexpB) return false;
-
-        for (i = 0; i < keys.length; i++)
-            if (!Object.prototype.hasOwnProperty.call(b, keys[i])) return false;
-
-        for (i = 0; i < keys.length; i++)
-            if (!deepEqual(a[keys[i]], b[keys[i]])) return false;
-
-        return true;
-    }
-
-    return false;
-}
-
-
-export function ascending(a, b) {// 升序
-    return a > b ? 1 : -1;
-}
-
-
-// Binary search for an index in the interval [left, right]
-export function indexInRange(indices, left, right) {
-    if (indices.length === 0) {
-        return false;
-    }
-
-    let minIndex = 0;
-    let maxIndex = indices.length - 1;
-    let currentIndex;
-    let currentItem;
-
-    while (minIndex <= maxIndex) {
-        currentIndex = ((maxIndex + minIndex) / 2) >> 0;
-        currentItem = indices[currentIndex];
-
-        if (minIndex === maxIndex) {
-            return currentItem >= left && currentItem <= right;
-        } else if (currentItem < left) {
-            minIndex = currentIndex + 1;
-        } else if (currentItem > right) {
-            maxIndex = currentIndex - 1;
-        } else {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-const sharedPropertyDefinition = {
-    enumerable: true,
-    configurable: true,
-    get: noop,
-    set: noop,
-}
-export function proxy(target: any, source: any, key: string) {
-    if (target[key]) {
-        console.warn('proxy prop [' + key + '] already exists')
-        return;
-    }
-    sharedPropertyDefinition.get = function proxyGetter() {
-        return source[key];
-    }
-    sharedPropertyDefinition.set = function proxySetter(val) {
-        source[key] = val;
-    }
-    Object.defineProperty(target, key, sharedPropertyDefinition)
-}
-
-
-
-
-
-
-export function applyPatch(patchList) {
-    if (isArray(patchList)) {
-        for (let i = 0; i < patchList.length; i++) {
-            patchOp(patchList[i]);
-        }
-    } else {
-        patchOp(patchList);
-    }
-}
-
-
-// Maps a virtual om tree onto a om proxy tree in an efficient manner.
-// We don't want to read all of the om nodes in the tree so we use
-// the in-order tree indexing to eliminate recursion down certain branches.
-// We only recurse into a om node if we know that it contains a child of
-// interest.
-
-let noChild = {};
 
 
 ////////////
@@ -623,6 +456,7 @@ function patchOp(vpatch: Patch) {
         }
     }
 }
+
 
 function appendNode(vpatch: PatchAppend) {
     let { parent, newNode } = vpatch
@@ -762,4 +596,24 @@ function updateClassComponentProps(origin: VNode, newProps: PropsType) {
     let currResult = instance.render();
     let patchTree = diff(instance.$$lastResult, currResult)
     instance.$$lastResult = currResult
+}
+
+function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
+    if (refNode) {
+        let newChild = findNativeElementByVNode(newNode);
+        if (!newChild) {
+            newChild = render(newNode);
+        }
+        let refChild = findNativeElementByVNode(refNode);
+        let parentNode = findNativeElementByVNode(parent);
+        parentNode.insertBefore(newChild, refChild)
+    } else {
+        patchOp(new PatchAppend(parent, newNode));
+    }
+}
+
+function removeAllChildren(parent: VNode) {
+    for (let vnode of parent.children) {
+        patchOp(new PatchRemove(vnode))
+    }
 }
