@@ -1,6 +1,6 @@
 import { VNode, VNodeType, Instance, NativeElement } from "./vnode";
 import { Component } from "./component";
-import { initElementProps } from "./patch";
+import { initElementProps } from "./diff-patch";
 
 
 export function findNativeElementByVNode(vnode: VNode): NativeElement {

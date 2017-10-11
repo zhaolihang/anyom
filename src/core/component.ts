@@ -1,6 +1,6 @@
 import { VNode } from "./vnode";
 import { queueComponent } from "./scheduler";
-import { diff } from "./diff";
+import { diff } from "./diff-patch";
 
 export const LifeCycleType = {
     Created: 'created',
