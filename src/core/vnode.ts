@@ -41,10 +41,6 @@ function getVNodeType(type: any): VNodeType {
     }
 }
 
-export function isVNode(o: VNode): boolean {
-    return !!o.type;
-}
-
 export enum VNodeType {
     Text = 1,
     Element = 1 << 1,
@@ -60,6 +56,8 @@ export enum VNodeType {
 export type Instance = Component | Function | NativeElement;
 
 export class VNode {
+    __observe_forbidden__: boolean;
+
     count = 0;
 
     key: string;
@@ -88,6 +86,7 @@ export class VNode {
     }
 
 }
+VNode.prototype.__observe_forbidden__ = true;
 
 const stack: VNode[] = [];
 const noChildren = [];
@@ -100,8 +99,10 @@ export function h(tag: TagName, props?: PropsType): VNode {
     let type = getVNodeType(tag);
     let key;
     if (props) {
-        key = props.key;
-        delete props.key;
+        if (props.key) {
+            key = props.key;
+            delete props.key;
+        }
         if (!isInvalid(props.children)) {
             stack.push(props.children as any);
             delete props.children;

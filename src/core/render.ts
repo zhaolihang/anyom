@@ -21,6 +21,7 @@ export function findNativeElementByVNode(vnode: VNode): NativeElement {
     }
 }
 
+
 export function render(vnode: VNode, parentNode?: NativeElement): NativeElement {
     let newParentNode = createInstanceByVNode(vnode, parentNode);
     let children = vnode.children;
@@ -33,8 +34,6 @@ export function render(vnode: VNode, parentNode?: NativeElement): NativeElement 
 
     return findNativeElementByVNode(vnode);
 }
-
-
 
 
 
@@ -65,6 +64,7 @@ function createElement(vnode: VNode, parentNode: NativeElement): NativeElement {
     return vnode.instance
 }
 
+
 function createTextNode(vnode: VNode, parentNode: NativeElement): NativeElement {
     vnode.instance = document.createTextNode(vnode.props.value);
     if (parentNode) {
@@ -72,6 +72,7 @@ function createTextNode(vnode: VNode, parentNode: NativeElement): NativeElement 
     }
     return vnode.instance
 }
+
 
 function createFunctionComponent(vnode: VNode, parentNode: NativeElement) {
     let doRender = vnode.tag as Function
@@ -83,6 +84,7 @@ function createFunctionComponent(vnode: VNode, parentNode: NativeElement) {
     }
     return nativeEle
 }
+
 function createClassComponent(vnode: VNode, parentNode: NativeElement) {
     let instance = new (vnode.tag as typeof Component)(vnode.props);
     vnode.instance = instance;

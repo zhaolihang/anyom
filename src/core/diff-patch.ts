@@ -1,9 +1,9 @@
 import { VNode, TagName, PropsType, VNodeType } from "./vnode";
-import { isObject, isUndefined, isNull } from "./shared";
+import { isObject, isUndefined } from "./shared";
 import { findNativeElementByVNode, render } from "./render";
 import { NativeElement } from "./vnode";
 import { Component } from "./component";
-import { eventAttr } from "./shared";
+import { isEventAttr, isArray } from "./shared";
 //
 export enum PatchType {
     None = 0,
@@ -483,8 +483,8 @@ export function overwrite(target, src) {
 export function deepEqual(a, b) {
     if (a === b) return true;
 
-    let arrA = Array.isArray(a);
-    let arrB = Array.isArray(b);
+    let arrA = isArray(a);
+    let arrB = isArray(b);
     let i;
 
     if (arrA && arrB) {
@@ -583,7 +583,7 @@ export function proxy(target: any, source: any, key: string) {
 
 
 export function applyPatch(patchList) {
-    if (Array.isArray(patchList)) {
+    if (isArray(patchList)) {
         for (let i = 0; i < patchList.length; i++) {
             patchOp(patchList[i]);
         }
@@ -703,14 +703,9 @@ function updateElementProps(origin: VNode, propsPatch: PropsType) {
                 }
             }
         } else {
-            let eventName = eventAttr(propName);
-            if (eventName) {
-                naviveElm.addEventListener(eventName, propValue);
-                let previous = origin.props;
-                naviveElm.removeEventListener(eventName, previous || previous[propName]);
-                if (propValue) {
-                    naviveElm.addEventListener(eventName, propValue);
-                }
+            if (isEventAttr(propName)) {
+                let eventName = propName.toLowerCase()
+                naviveElm[eventName] = propValue;
             } else {
                 naviveElm[propName] = propValue;
             }
@@ -733,9 +728,9 @@ export function initElementProps(origin: VNode) {
                 }
             }
         } else {
-            let eventName = eventAttr(propName);
-            if (eventName) {
-                naviveElm.addEventListener(eventName, propValue);
+            if (isEventAttr(propName)) {
+                let eventName = propName.toLowerCase()
+                naviveElm[eventName] = propValue;
             } else {
                 naviveElm[propName] = propValue;
             }
@@ -757,8 +752,8 @@ function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: P
 
 function updateClassComponentProps(origin: VNode, newProps: PropsType) {
     let instance = origin.instance as Component;
-    if (instance['shouldComponentUpdate']) {
-        if (!instance['shouldComponentUpdate'](newProps, instance.state)) {
+    if (instance.shouldComponentUpdate) {
+        if (!instance.shouldComponentUpdate(newProps, instance.state)) {
             instance.setProps(newProps);
             return;
         }

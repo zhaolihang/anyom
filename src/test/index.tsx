@@ -1,7 +1,6 @@
 import { h, VNode, VNodeType } from "../core/vnode";
 import { render } from "../core/render";
-import { diff } from "../core/diff";
-import { patch } from "../core/patch";
+import { diff } from "../core/diff-patch";
 import { Component } from "../core/component";
 let body = document.body
 let log = console.log;

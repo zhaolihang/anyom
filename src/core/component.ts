@@ -19,37 +19,38 @@ export enum RenderMode {
 
 let GID = 0;
 export class Component {
+    __observe_forbidden__: boolean;
+    public shouldComponentUpdate?(nextProps, nextState): boolean;
+
     $$id: number;
     $$lastResult: VNode;
 
     props: any;
     state: any;
 
+    getInitialState() {
+        return {}
+    }
+
+    constructor(props) {
+        this.$$id = ++GID;
+        this.props = props;
+        this.state = this.getInitialState();
+    }
+
     setProps(props) {
         this.props = props;
     }
 
     setState(state) {
-        if (this['shouldComponentUpdate']) {
-            if (!this['shouldComponentUpdate'](this.props, state)) {
+        if (this.shouldComponentUpdate) {
+            if (!this.shouldComponentUpdate(this.props, state)) {
                 this.state = Object.assign({}, this.state, state);
                 return;
             }
         }
         this.state = Object.assign({}, this.state, state);
         queueComponent(this)
-    }
-
-    getInitialState() {
-        return {}
-    }
-
-    // shouldComponentUpdate(nextProps, nextState): boolean;
-
-    constructor(props) {
-        this.$$id = ++GID;
-        this.props = props;
-        this.state = this.getInitialState();
     }
 
     render(): VNode {
@@ -64,5 +65,5 @@ export class Component {
     }
 }
 
-(Component.prototype as any).__observe_forbidden__ = true;
+Component.prototype.__observe_forbidden__ = true;
 
