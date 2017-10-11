@@ -483,25 +483,6 @@ function replaceNode(vpatch: PatchReplace) {
     }
 }
 
-function removedChildWithArg(origin: VNode, recycle = false) {
-    let nativeElm = findNativeElementByVNode(origin);
-    (nativeElm.parentNode as NativeElement).removeChild(nativeElm);
-}
-
-function insertChildWithArg(parent: VNode, child: VNode, insertTo: number, recycle = false) {
-    let parentNode = findNativeElementByVNode(parent);
-    let childNodes = parentNode.childNodes
-    let index = insertTo;
-    let refChild: NativeElement = childNodes[index];
-    let childNode;
-    if (!recycle) {
-        childNode = render(child)
-    } else {
-        childNode = findNativeElementByVNode(child);
-    }
-    parentNode.insertBefore(childNode, refChild)
-}
-
 
 function updateProps(vpatch: PatchProps) {
     let { origin, props, newNode } = vpatch;
@@ -604,7 +585,7 @@ function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
     if (refNode) {
         let newChild = render(newNode);
         let refChild = findNativeElementByVNode(refNode);
-        let parentNode = findNativeElementByVNode(parent);
+        let parentNode = refChild.parentNode;
         parentNode.insertBefore(newChild, refChild)
     } else {
         patchOp(new PatchAppend(parent, newNode));
