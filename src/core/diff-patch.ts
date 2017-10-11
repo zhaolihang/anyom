@@ -561,8 +561,13 @@ function updateTextProps(origin: VNode, propsPatch: PropsType) {
 
 
 function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: PropsType) {
+    if (origin.props.onComponentShouldUpdate) {
+        if (!origin.props.onComponentShouldUpdate(origin.props, newProps)) {
+            return;
+        }
+    }
     let currResult = (origin.instance as Function)(newProps);
-    let patchTree = diff(origin.lastResult, currResult)
+    diff(origin.lastResult, currResult)
     newNode.lastResult = currResult
 }
 
@@ -577,7 +582,7 @@ function updateClassComponentProps(origin: VNode, newProps: PropsType) {
     }
     instance.setProps(newProps);
     let currResult = instance.render();
-    let patchTree = diff(instance.$$lastResult, currResult)
+    diff(instance.$$lastResult, currResult)
     instance.$$lastResult = currResult
 }
 
