@@ -79,6 +79,35 @@ let vnode2 = <div >
     <TestCom></TestCom>
 </div >
 
+
+vnode1 = <div>
+    <div key={1}>
+    </div>
+    <div key={2}>
+    </div>
+    <div key={3}>
+    </div>
+    <div key={4}>
+    </div>
+    <div key={5}>
+    </div>
+</div>
+
+vnode2 = <div>
+    <div key={5}>
+    </div>
+    <div key={1}>
+    </div>
+    <div key={2}>
+    </div>
+    <div key={3}>
+    </div>
+    <div key={4}>
+    </div>
+    
+    
+</div>
+
 let ele = render(vnode1, body)
 
 setTimeout(() => {

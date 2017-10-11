@@ -312,6 +312,11 @@ function reorder(aChildren: VNode[], bChildren: VNode[]) {
             if (wantedItem.key) {
                 if (simulateItem && simulateItem.key) {
                     // if an insert doesn't put this key in place, it needs to move
+                    // new  :  b c d e a
+                    // ori  :  a b c d e 
+
+                    
+                    // need to move
                     if (bKeys[simulateItem.key] !== k + 1) {
                         removes.push(remove(simulate, simulateIndex, simulateItem.key));
                         simulateItem = simulate[simulateIndex];
@@ -325,6 +330,9 @@ function reorder(aChildren: VNode[], bChildren: VNode[]) {
                         }
                     }
                     else {
+                        // new  :  f a b c d
+                        // ori  :  a b c d e 
+                        // need to insert
                         inserts.push({ key: wantedItem.key, to: k });
                     }
                 }
