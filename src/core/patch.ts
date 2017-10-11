@@ -1,28 +1,8 @@
-import { ascending } from "./utils";
 import { VNode, NativeElement, VNodeType, PropsType } from "./vnode";
 import { PatchTree, Patch, PatchType, PatchAppend, PatchRemove, PatchReplace, PatchReorder, PatchProps, shallowDiffProps, diff } from "./diff";
 import { render, findNativeElementByVNode } from "./render";
 import { Component } from "./component";
 import { eventAttr } from "./shared";
-
-export function patch(patches: PatchTree) {
-    patchEach(patches);
-}
-
-function patchEach(patches: PatchTree) {
-    let indices: number[] = [];
-    for (let key in patches) {
-        indices.push(Number(key));
-    }
-    indices.sort(ascending);
-    if (indices.length === 0) {
-        return;
-    }
-
-    for (let i = 0; i < indices.length; i++) {
-        applyPatch(patches[indices[i]]);
-    }
-}
 
 export function applyPatch(patchList) {
     if (Array.isArray(patchList)) {
