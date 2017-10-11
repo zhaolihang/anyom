@@ -3,7 +3,7 @@ import { isObject, isUndefined } from "./shared";
 import { findNativeElementByVNode, render } from "./render";
 import { NativeElement } from "./vnode";
 import { Component } from "./component";
-import { isEventAttr, isArray } from "./shared";
+import { isEventAttr, isArray, isFunction, isNullOrUndef } from "./shared";
 //
 enum PatchType {
     None = 0,
@@ -521,8 +521,7 @@ function updateElementProps(origin: VNode, propsPatch: PropsType) {
             }
         } else {
             if (isEventAttr(propName)) {
-                let eventName = propName.toLowerCase()
-                naviveElm[eventName] = propValue;
+                hanleEvent(naviveElm, propName, propValue)
             } else {
                 naviveElm[propName] = propValue;
             }
@@ -546,12 +545,25 @@ export function initElementProps(origin: VNode) {
             }
         } else {
             if (isEventAttr(propName)) {
-                let eventName = propName.toLowerCase()
-                naviveElm[eventName] = propValue;
+                hanleEvent(naviveElm, propName, propValue)
             } else {
                 naviveElm[propName] = propValue;
             }
         }
+    }
+}
+
+function hanleEvent(naviveElm: NativeElement, eventName, eventValue) {
+    eventName = eventName.toLowerCase();
+    if (!isFunction(eventValue) && !isNullOrUndef(eventValue)) {
+        const linkEvent = eventValue.event;
+        if (linkEvent && isFunction(linkEvent)) {
+            naviveElm[eventName] = function (e) {
+                linkEvent(eventValue.data, e);
+            };
+        }
+    } else {
+        naviveElm[eventName] = eventValue;
     }
 }
 

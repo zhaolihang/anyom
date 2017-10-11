@@ -1,6 +1,7 @@
 import { VNode } from "./vnode";
 import { queueComponent } from "./scheduler";
 import { diff } from "./diff-patch";
+import { isFunction } from "./shared";
 
 export const LifeCycleType = {
     Created: 'created',
@@ -15,6 +16,13 @@ export enum RenderMode {
     None = 0,
     SYNC,
     ASYNC,
+}
+
+export function linkEvent(data, event) {
+    if (isFunction(event)) {
+        return { data, event };
+    }
+    return null;
 }
 
 let GID = 0;

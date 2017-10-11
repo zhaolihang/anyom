@@ -30,8 +30,16 @@ export function isUndefined(o: any): o is undefined {
   return o === void 0;
 }
 
+export function isNullOrUndef(o: any): o is undefined {
+  return isNull(o) || isUndefined(o);
+}
+
 export function isObject(x) {
   return typeof x === "object" && x !== null;
+}
+
+export function isFunction(x) {
+  return typeof x === "function";
 }
 
 export function isEventAttr(name: string) {
