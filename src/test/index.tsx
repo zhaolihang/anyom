@@ -81,31 +81,31 @@ let vnode2 = <div >
 
 
 vnode1 = <div>
-    <div key={1}>
+    <div key={'a'}>
     </div>
-    <div key={2}>
+    <div key={'b'}>
     </div>
-    <div key={3}>
+    <div key={'c'}>
     </div>
-    <div key={4}>
+    <div key={'d'}>
     </div>
-    <div key={5}>
+    <div key={'e'}>
     </div>
 </div>
 
 vnode2 = <div>
-    <div key={5}>
+    <div key={'e'}>
     </div>
-    <div key={1}>
+    <div key={'a'}>
     </div>
-    <div key={2}>
+    <div key={'b'}>
     </div>
-    <div key={3}>
+    <div key={'c'}>
     </div>
-    <div key={4}>
+    <div key={'d'}>
     </div>
-    
-    
+    <div key={'f'}>
+    </div>
 </div>
 
 let ele = render(vnode1, body)
