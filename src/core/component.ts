@@ -27,7 +27,7 @@ export function linkEvent(data, event) {
 
 let GID = 0;
 export class Component {
-    __observe_forbidden__: boolean;
+    $$observe_forbidden: boolean;
     public shouldComponentUpdate?(nextProps, nextState): boolean;
 
 
@@ -75,5 +75,5 @@ export class Component {
     }
 }
 
-Component.prototype.__observe_forbidden__ = true;
+Component.prototype.$$observe_forbidden = true;
 

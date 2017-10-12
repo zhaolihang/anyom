@@ -217,7 +217,7 @@ function traverse(val: any) {
 }
 
 function _traverse(val: any, seen: ISet) {
-    if (!val || val.__observe_forbidden__) {
+    if (!val || val.$$observe_forbidden) {
         return
     }
     let i, keys;

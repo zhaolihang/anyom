@@ -57,7 +57,7 @@ export enum VNodeType {
 export type Instance = Component | Function | NativeElement;
 
 export class VNode {
-    __observe_forbidden__: boolean;
+    $$observe_forbidden: boolean;
 
     key: string;
     tag: TagName;
@@ -86,7 +86,7 @@ export class VNode {
     }
 
 }
-VNode.prototype.__observe_forbidden__ = true;
+VNode.prototype.$$observe_forbidden = true;
 
 
 const stack: VNode[] = [];

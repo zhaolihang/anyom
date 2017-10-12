@@ -103,7 +103,7 @@ export function observe(value: any): Observer | void {
     if (hasOwn(value, '__observer__') && value.__observer__ instanceof Observer) {
         return value.__observer__ as Observer;
     } else if (observerState.shouldConvert && (Array.isArray(value)
-        || isPlainObject(value)) && Object.isExtensible(value) && !value.__observe_forbidden__) {
+        || isPlainObject(value)) && Object.isExtensible(value) && !value.$$observe_forbidden) {
         return new Observer(value);
     }
 }
@@ -186,7 +186,7 @@ export function set(target: Array<any> | Object, key: any, val: any): any {
     }
 
     const ob: Observer = (target as any).__observer__;
-    if ((target as any).__observe_forbidden__) {
+    if ((target as any).$$observe_forbidden) {
         return val;
     }
     if (!ob) {
@@ -211,7 +211,7 @@ export function del(target: Array<any> | Object, key: any) {
     }
 
     const ob: Observer = (target as any).__observer__;
-    if ((target as any).__observe_forbidden__) {
+    if ((target as any).$$observe_forbidden) {
         return;
     }
     if (!hasOwn(target, key)) {
