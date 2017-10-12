@@ -15,30 +15,26 @@ enum PatchType {
 }
 
 interface Patch {
-    type: PatchType;
 }
 
-class PatchRemove implements Patch {
-    type = PatchType.Remove;
-    constructor(public origin: VNode) {
-    }
+interface PatchRemove extends Patch {
+    origin: VNode;
 }
 
-class PatchProps implements Patch {
-    type = PatchType.Props;
-    constructor(public origin: VNode, public newNode: VNode, public props: PropsType) {
-    }
+interface PatchProps extends Patch {
+    origin: VNode;
+    newNode: VNode;
+    props: PropsType;
+
 }
-class PatchReplace implements Patch {
-    type = PatchType.Replace;
-    constructor(public origin: VNode, public newNode: VNode) {
-    }
+interface PatchReplace extends Patch {
+    origin: VNode;
+    newNode: VNode;
 }
 
-class PatchAppend implements Patch {
-    type = PatchType.Append;
-    constructor(public parent: VNode, public newNode: VNode) {
-    }
+interface PatchAppend extends Patch {
+    parent: VNode;
+    newNode: VNode;
 }
 
 
@@ -52,24 +48,24 @@ function walk(a: VNode, b: VNode, parent: VNode) {
     }
 
     if (b == null) {
-        patchOp(new PatchRemove(a))
+        removeChild(a);
     } else {
         if (a.tag === b.tag && a.key === b.key) {
             b.instance = a.instance;
             b.lastResult = a.lastResult;
             if (a.type & VNodeType.Component) {
                 if (!shallowEqual(a.props, b.props)) {
-                    patchOp(new PatchProps(a, b, b.props))
+                    updateProps(a, b, b.props);
                 }
             } else {
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
-                    patchOp(new PatchProps(a, b, propsPatch))
+                    updateProps(a, b, propsPatch);
                 }
             }
             diffChildren(a, b);
         } else {
-            patchOp(new PatchReplace(a, b))
+            replaceNode(a, b);
         }
     }
 
@@ -229,7 +225,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
         }
     } else if (bStart > bEnd) {// b 中的所有key都匹配了所以 a都是应该删除的
         while (aStart <= aEnd) {
-            patchOp(new PatchRemove(a[aStart++]))
+            removeChild(a[aStart++]);
         }
     } else {
         // 没有一方是完全遍历完成的
@@ -309,14 +305,14 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
             while (bStart < bLeft) {
                 node = b[bStart];
                 bStart++;
-                patchOp(new PatchAppend(aParent, node));
+                appendNode(aParent, node)
             }
         } else {
             i = aLeft - patched;
             while (i > 0) {// 删除 没有匹配到的
                 aNode = a[aStart++];
                 if (aNode) {
-                    patchOp(new PatchRemove(aNode));
+                    removeChild(aNode);
                     i--;
                 }
             }
@@ -335,6 +331,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
                             pos = i + bStart;
                             node = b[pos];
                             nextPos = pos + 1;
+                            // 此时 应该先移除 node 在把它放在 b[nextPos] 之前  原位置在sources[i]保存
                             insertOrAppendWithMoved(aParent, node, nextPos < bLength ? b[nextPos] : null);
                         } else {
                             j--;
@@ -427,7 +424,7 @@ function diffNoKeyedChildren(a: VNode, b: VNode) {
         if (!leftNode) {
             if (rightNode) {
                 // Excess nodes in b need to be added
-                patchOp(new PatchAppend(a, rightNode))
+                appendNode(a, rightNode);
             }
         } else {
             walk(leftNode, rightNode, a);
@@ -437,46 +434,23 @@ function diffNoKeyedChildren(a: VNode, b: VNode) {
 }
 
 
-////////////
-function patchOp(vpatch: Patch) {
-    let { type } = vpatch
-    switch (type) {
-        case PatchType.Append:
-            appendNode(vpatch as PatchAppend);
-            break;
-        case PatchType.Remove:
-            removedChild(vpatch as PatchRemove)
-            break;
-        case PatchType.Replace:
-            replaceNode(vpatch as PatchReplace)
-            break;
-        case PatchType.Props:
-            updateProps(vpatch as PatchProps);
-            break;
-        default: {
-            console.warn('没有实现的patch类型:', type);
-        }
-    }
-}
-
-
-function appendNode(vpatch: PatchAppend) {
-    let { parent, newNode } = vpatch
+// patch op
+function appendNode(parent: VNode, newNode: VNode) {
     render(newNode, findNativeElementByVNode(parent))
 }
 
-function removedChild(vpatch: PatchRemove) {
-    let nativeElm = findNativeElementByVNode(vpatch.origin)
+function removeChild(origin: VNode) {
+    let nativeElm = findNativeElementByVNode(origin)
     nativeElm.parentNode.removeChild(nativeElm);
 }
 
-function replaceNode(vpatch: PatchReplace) {
-    let originElm = findNativeElementByVNode(vpatch.origin)
+function replaceNode(origin: VNode, newNode: VNode) {
+    let originElm = findNativeElementByVNode(origin)
     let parent = originElm.parentNode as NativeElement;
-    let newNode = render(vpatch.newNode);
+    let newChild = render(newNode);
     if (parent) {
-        if (newNode) {
-            parent.replaceChild(newNode, originElm);
+        if (newChild) {
+            parent.replaceChild(newChild, originElm);
         } else {
             parent.removeChild(originElm);
         }
@@ -484,19 +458,18 @@ function replaceNode(vpatch: PatchReplace) {
 }
 
 
-function updateProps(vpatch: PatchProps) {
-    let { origin, props, newNode } = vpatch;
+function updateProps(origin: VNode, newNode: VNode, propsPatch: PropsType) {
     if (origin.type & VNodeType.Node) {
         if (origin.type & VNodeType.Element) {
-            updateElementProps(origin, props);
+            updateElementProps(origin, propsPatch);
         } else if (origin.type & VNodeType.Text) {
-            updateTextProps(origin, props);
+            updateTextProps(origin, propsPatch);
         }
     } else if (origin.type & VNodeType.Component) {
         if (origin.type & VNodeType.ComponentFunction) {
-            updateFunctionComponentProps(origin, newNode, props);
+            updateFunctionComponentProps(origin, newNode, propsPatch);
         } else if (origin.type & VNodeType.ComponentClass) {
-            updateClassComponentProps(origin, props);
+            updateClassComponentProps(origin, propsPatch);
         }
     }
 }
@@ -605,7 +578,7 @@ function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
         let parentNode = refChild.parentNode;
         parentNode.insertBefore(newChild, refChild)
     } else {
-        patchOp(new PatchAppend(parent, newNode));
+        appendNode(parent, newNode);
     }
 }
 
