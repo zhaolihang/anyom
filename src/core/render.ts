@@ -1,6 +1,7 @@
-import { VNode, VNodeType, Instance, NativeElement, createVoidNode } from "./vnode";
+import { VNode, VNodeType, Instance, NativeElement, createVoidNode, PropsType } from "./vnode";
 import { Component } from "./component";
-import { initElementProps } from "./diff-patch";
+import { shallowDiffProps } from "./diff-patch";
+import { isEventAttr, isFunction, isNullOrUndef } from "./shared";
 
 
 export function findNativeElementByVNode(vnode: VNode): NativeElement {
@@ -37,7 +38,6 @@ export function render(vnode: VNode, parentNode?: NativeElement): NativeElement 
 
     return newParentNode;
 }
-
 
 
 // 生命周期
@@ -108,3 +108,107 @@ function createClassComponent(vnode: VNode, parentNode: NativeElement) {
     }
     return nativeEle;
 }
+
+
+
+export function removeSelf(oriNode: NativeElement) {
+    oriNode.parentNode.removeChild(oriNode);
+}
+
+export function replaceSelf(oriNode: NativeElement, newNode: NativeElement) {
+    (oriNode.parentNode as NativeElement).replaceChild(newNode, oriNode);
+}
+
+export function insertBeforeSelf(oriNode: NativeElement, newNode: NativeElement) {
+    (oriNode.parentNode as NativeElement).insertBefore(newNode, oriNode);
+}
+
+export function insertBeforeMoved(movedNode: NativeElement, refNode: NativeElement) {
+    // dom api : insertBefore  appendChild 如果插入或者添加的节点有父节点,浏览器内部会自行处理
+    (movedNode.parentNode as NativeElement).insertBefore(movedNode, refNode);
+}
+
+export function appendMoved(movedNode: NativeElement) {
+    // dom api : insertBefore  appendChild 如果插入或者添加的节点有父节点,浏览器内部会自行处理
+    (movedNode.parentNode as NativeElement).appendChild(movedNode);
+}
+
+
+
+export function initElementProps(origin: VNode) {
+    let naviveElm = origin.instance as HTMLElement
+    let props = origin.props;
+    for (let propName in props) {
+        let propValue = props[propName];
+        if (propName === 'style') {
+            if (typeof propValue === 'string') {
+                naviveElm.style.cssText = propValue || '';
+            } else if (typeof propValue === 'object') {
+                let style = naviveElm.style
+                for (let styleName in propValue) {
+                    style[styleName] = propValue[styleName];
+                }
+            }
+        } else {
+            if (isEventAttr(propName)) {
+                hanleEvent(naviveElm, propName, propValue)
+            } else {
+                naviveElm[propName] = propValue;
+            }
+        }
+    }
+}
+
+
+
+export function updateElementProps(origin: VNode, propsPatch: PropsType) {
+
+    let naviveElm = origin.instance as HTMLElement
+    for (let propName in propsPatch) {
+        let propValue = propsPatch[propName];
+        if (propName === 'style') {
+            if (propValue === undefined) {//remove
+                naviveElm.style.cssText = '';
+            } else {// update
+                if (typeof propValue === 'string') {
+                    naviveElm.style.cssText = propValue || '';
+                } else if (typeof propValue === 'object') {
+                    let previous = origin.props;
+                    let stylePatch = shallowDiffProps(previous || previous['style'], propValue);
+                    for (let styleName in stylePatch) {
+                        naviveElm.style[styleName] = stylePatch[styleName];
+                    }
+                }
+            }
+        } else {
+            if (isEventAttr(propName)) {
+                hanleEvent(naviveElm, propName, propValue)
+            } else {
+                naviveElm[propName] = propValue;
+            }
+        }
+    }
+}
+
+export function updateTextProps(origin: VNode, propsPatch: PropsType) {
+    (origin.instance as Text).nodeValue = propsPatch.value as string;
+}
+
+
+
+export function hanleEvent(naviveElm: NativeElement, eventName, eventValue) {
+    eventName = eventName.toLowerCase();
+    if (!isFunction(eventValue) && !isNullOrUndef(eventValue)) {
+        const linkEvent = eventValue.event;
+        if (linkEvent && isFunction(linkEvent)) {
+            naviveElm[eventName] = function (e) {
+                linkEvent(eventValue.data, e);
+            };
+        }
+    } else {
+        naviveElm[eventName] = eventValue;
+    }
+}
+
+
+

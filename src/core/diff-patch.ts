@@ -1,6 +1,6 @@
 import { VNode, TagName, PropsType, VNodeType } from "./vnode";
 import { isObject, isUndefined } from "./shared";
-import { findNativeElementByVNode, render } from "./render";
+import { findNativeElementByVNode, render, removeSelf, replaceSelf, insertBeforeSelf, insertBeforeMoved, hanleEvent, appendMoved, updateElementProps, updateTextProps } from "./render";
 import { NativeElement, createVoidNode } from "./vnode";
 import { Component } from "./component";
 import { isEventAttr, isArray, isFunction, isNullOrUndef } from "./shared";
@@ -14,7 +14,7 @@ function walk(a: VNode, b: VNode, parent: VNode) {
         return;
     }
 
-    if (b == null) {
+    if (!b) {
         removeChild(a);
     } else {
         if (a.type & VNodeType.Void && a.type === b.type) {
@@ -25,9 +25,13 @@ function walk(a: VNode, b: VNode, parent: VNode) {
             b.instance = a.instance;
 
             if (a.type & VNodeType.Component) {
+
                 if (!shallowEqual(a.props, b.props)) {
                     updateProps(a, b, b.props);
+                } else {
+                    b.lastResult = a.lastResult;
                 }
+                return;// 组件无需比较children
             } else {
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
@@ -411,22 +415,44 @@ function appendNode(parent: VNode, newNode: VNode) {
 }
 
 function removeChild(origin: VNode) {
-    let nativeElm = findNativeElementByVNode(origin)
-    nativeElm.parentNode.removeChild(nativeElm);
+    removeSelf(findNativeElementByVNode(origin));
 }
 
 function replaceNode(origin: VNode, newNode: VNode) {
-    let originElm = findNativeElementByVNode(origin)
-    let parent = originElm.parentNode as NativeElement;
     let newChild = render(newNode);
-    if (parent) {
-        if (newChild) {
-            parent.replaceChild(newChild, originElm);
-        } else {
-            parent.removeChild(originElm);
-        }
+    replaceSelf(findNativeElementByVNode(origin), newChild);
+}
+
+function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
+    if (refNode) {
+        let newChild = render(newNode);
+        let refChild = findNativeElementByVNode(refNode);
+        insertBeforeSelf(refChild, newChild)
+    } else {
+        render(newNode, findNativeElementByVNode(parent))
     }
 }
+
+function insertOrAppendWithMoved(parent: VNode, movedNode: VNode, refNode: VNode | null) {
+    let movedChild = findNativeElementByVNode(movedNode);
+    if (refNode) {
+        let refChild = findNativeElementByVNode(refNode);
+        insertBeforeMoved(movedChild, refChild)
+    } else {
+        appendMoved(movedChild)
+    }
+}
+
+
+function removeAllChildren(parent: VNode) {
+    for (let vnode of parent.children) {
+        removeSelf(findNativeElementByVNode(vnode));
+    }
+    // let parentNode = <HTMLElement>findNativeElementByVNode(parent);
+    // parentNode.textContent = "";
+}
+
+
 
 
 function updateProps(origin: VNode, newNode: VNode, propsPatch: PropsType) {
@@ -443,76 +469,6 @@ function updateProps(origin: VNode, newNode: VNode, propsPatch: PropsType) {
             updateClassComponentProps(origin, propsPatch);
         }
     }
-}
-
-function updateElementProps(origin: VNode, propsPatch: PropsType) {
-    let naviveElm = origin.instance as HTMLElement
-    for (let propName in propsPatch) {
-        let propValue = propsPatch[propName];
-        if (propName === 'style') {
-            if (propValue === undefined) {//remove
-                naviveElm.style.cssText = '';
-            } else {// update
-                if (typeof propValue === 'string') {
-                    naviveElm.style.cssText = propValue || '';
-                } else if (typeof propValue === 'object') {
-                    let previous = origin.props;
-                    let stylePatch = shallowDiffProps(previous || previous['style'], propValue);
-                    for (let styleName in stylePatch) {
-                        naviveElm.style[styleName] = stylePatch[styleName];
-                    }
-                }
-            }
-        } else {
-            if (isEventAttr(propName)) {
-                hanleEvent(naviveElm, propName, propValue)
-            } else {
-                naviveElm[propName] = propValue;
-            }
-        }
-    }
-}
-
-export function initElementProps(origin: VNode) {
-    let naviveElm = origin.instance as HTMLElement
-    let props = origin.props;
-    for (let propName in props) {
-        let propValue = props[propName];
-        if (propName === 'style') {
-            if (typeof propValue === 'string') {
-                naviveElm.style.cssText = propValue || '';
-            } else if (typeof propValue === 'object') {
-                let style = naviveElm.style
-                for (let styleName in propValue) {
-                    style[styleName] = propValue[styleName];
-                }
-            }
-        } else {
-            if (isEventAttr(propName)) {
-                hanleEvent(naviveElm, propName, propValue)
-            } else {
-                naviveElm[propName] = propValue;
-            }
-        }
-    }
-}
-
-function hanleEvent(naviveElm: NativeElement, eventName, eventValue) {
-    eventName = eventName.toLowerCase();
-    if (!isFunction(eventValue) && !isNullOrUndef(eventValue)) {
-        const linkEvent = eventValue.event;
-        if (linkEvent && isFunction(linkEvent)) {
-            naviveElm[eventName] = function (e) {
-                linkEvent(eventValue.data, e);
-            };
-        }
-    } else {
-        naviveElm[eventName] = eventValue;
-    }
-}
-
-function updateTextProps(origin: VNode, propsPatch: PropsType) {
-    (origin.instance as Text).nodeValue = propsPatch.value as string;
 }
 
 
@@ -540,34 +496,3 @@ function updateClassComponentProps(origin: VNode, newProps: PropsType) {
     instance.$$updateComponent();
 }
 
-function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
-    if (refNode) {
-        let newChild = render(newNode);
-        let refChild = findNativeElementByVNode(refNode);
-        let parentNode = refChild.parentNode;
-        parentNode.insertBefore(newChild, refChild)
-    } else {
-        appendNode(parent, newNode);
-    }
-}
-
-function insertOrAppendWithMoved(parent: VNode, movedNode: VNode, refNode: VNode | null) {
-    let movedChild = findNativeElementByVNode(movedNode);
-    let parentNode = movedChild.parentNode as NativeElement;
-    if (refNode) {
-        let refChild = findNativeElementByVNode(refNode);
-        // dom api : insertBefore  appendChild 如果插入或者添加的节点有父节点,浏览器内部会自行处理
-        parentNode.insertBefore(movedChild, refChild)// movedChild
-    } else {
-        parentNode.appendChild(movedChild)
-    }
-}
-
-
-function removeAllChildren(parent: VNode) {
-    // for (let vnode of parent.children) {
-    //     patchOp(new PatchRemove(vnode))
-    // }
-    let parentNode = <HTMLElement>findNativeElementByVNode(parent);
-    parentNode.textContent = "";
-}
