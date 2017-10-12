@@ -35,7 +35,7 @@ export function render(vnode: VNode, parentNode?: NativeElement): NativeElement 
         }
     }
 
-    return findNativeElementByVNode(vnode);
+    return newParentNode;
 }
 
 
