@@ -95,7 +95,7 @@ function createFunctionComponent(vnode: VNode, parentNode: NativeElement) {
     if (parentNode && nativeEle) {
         parentNode.appendChild(nativeEle)
     }
-    return nativeEle
+    return nativeEle;
 }
 
 function createClassComponent(vnode: VNode, parentNode: NativeElement) {
@@ -106,5 +106,5 @@ function createClassComponent(vnode: VNode, parentNode: NativeElement) {
     if (parentNode && nativeEle) {
         parentNode.appendChild(nativeEle)
     }
-    return nativeEle
+    return nativeEle;
 }

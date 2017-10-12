@@ -30,6 +30,9 @@ export class Component {
     __observe_forbidden__: boolean;
     public shouldComponentUpdate?(nextProps, nextState): boolean;
 
+
+    $$vnode: VNode;
+
     $$id: number;
     $$lastResult: VNode;
 
@@ -66,10 +69,9 @@ export class Component {
     }
 
     $$updateComponent() {
-        let instance = this;
-        let currResult = instance.render() || createVoidNode();
-        diff(instance.$$lastResult, currResult)
-        instance.$$lastResult = currResult;
+        let currResult = this.render() || createVoidNode();
+        diff(this.$$lastResult, currResult)
+        this.$$lastResult = currResult;
     }
 }
 

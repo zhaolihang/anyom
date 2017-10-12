@@ -64,9 +64,19 @@ export class VNode {
     type: VNodeType;
     props: PropsType
     children: VNode[]
-    instance: Instance = null;
+    _instance: Instance = null;
+    get instance() {
+        return this._instance
+    };
+    set instance(v) {
+        if (v && this.type & VNodeType.ComponentClass) {
+            (v as Component).$$vnode = this;
+        }
+        this._instance = v
+    }
 
     lastResult?: VNode;// 只有 type === ComponentClass 有效
+    rootElement?: NativeElement = null;// 只有 type & Component 有效
 
     constructor(type: VNodeType, tag: TagName, props: PropsType, children: VNode[], key?: string) {
         this.key = key != null ? String(key) : null;

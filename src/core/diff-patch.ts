@@ -51,8 +51,10 @@ function walk(a: VNode, b: VNode, parent: VNode) {
         removeChild(a);
     } else {
         if (a.tag === b.tag && a.key === b.key) {
+
             b.instance = a.instance;
             b.lastResult = a.lastResult;
+
             if (a.type & VNodeType.Component) {
                 if (!shallowEqual(a.props, b.props)) {
                     updateProps(a, b, b.props);
@@ -551,7 +553,7 @@ function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: P
             return;
         }
     }
-    let currResult = (origin.instance as Function)(newProps) || createVoidNode();
+    let currResult: VNode = (origin.instance as Function)(newProps) || createVoidNode();
     diff(origin.lastResult, currResult)
     newNode.lastResult = currResult
 }
@@ -566,9 +568,7 @@ function updateClassComponentProps(origin: VNode, newProps: PropsType) {
         }
     }
     instance.setProps(newProps);
-    let currResult = instance.render() || createVoidNode();
-    diff(instance.$$lastResult, currResult)
-    instance.$$lastResult = currResult
+    instance.$$updateComponent();
 }
 
 function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
