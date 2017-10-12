@@ -50,6 +50,9 @@ function walk(a: VNode, b: VNode, parent: VNode) {
     if (b == null) {
         removeChild(a);
     } else {
+        if (a.type & VNodeType.Void && a.type === b.type) {
+            return;
+        }
         if (a.tag === b.tag && a.key === b.key) {
 
             b.instance = a.instance;
