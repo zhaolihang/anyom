@@ -4,39 +4,6 @@ import { findNativeElementByVNode, render } from "./render";
 import { NativeElement, createVoidNode } from "./vnode";
 import { Component } from "./component";
 import { isEventAttr, isArray, isFunction, isNullOrUndef } from "./shared";
-//
-enum PatchType {
-    None = 0,
-    Append,
-    Remove,
-    Replace,
-    Reorder,
-    Props,
-}
-
-interface Patch {
-}
-
-interface PatchRemove extends Patch {
-    origin: VNode;
-}
-
-interface PatchProps extends Patch {
-    origin: VNode;
-    newNode: VNode;
-    props: PropsType;
-
-}
-interface PatchReplace extends Patch {
-    origin: VNode;
-    newNode: VNode;
-}
-
-interface PatchAppend extends Patch {
-    parent: VNode;
-    newNode: VNode;
-}
-
 
 export function diff(a: VNode, b?: VNode) {
     walk(a, b, null);
@@ -56,7 +23,6 @@ function walk(a: VNode, b: VNode, parent: VNode) {
         if (a.tag === b.tag && a.key === b.key) {
 
             b.instance = a.instance;
-            b.lastResult = a.lastResult;
 
             if (a.type & VNodeType.Component) {
                 if (!shallowEqual(a.props, b.props)) {

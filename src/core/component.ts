@@ -25,7 +25,7 @@ export function linkEvent(data, event) {
     return null;
 }
 
-let GID = 0;
+let gid = 0;
 export class Component {
     $$observe_forbidden: boolean;
     public shouldComponentUpdate?(nextProps, nextState): boolean;
@@ -44,7 +44,7 @@ export class Component {
     }
 
     constructor(props) {
-        this.$$id = ++GID;
+        this.$$id = ++gid;
         this.props = props;
         this.state = this.getInitialState();
     }

@@ -2,15 +2,16 @@ import { isString, isInvalid, isUndefined } from "./shared";
 import { Component } from "./component";
 
 export interface NativeElement {
-    appendChild?(...args): any
-    removeChild?(...args): any
-    replaceChild?(...args): any
-    insertBefore?(...args): any
-    childNodes?: (NativeElement | any)[] | any;
+    appendChild?(newNode: NativeElement): any
+    removeChild?(oriNode: NativeElement): any
+    replaceChild?(newNode: NativeElement, refNode: NativeElement): any
+    insertBefore?(newNode: NativeElement, refNode: NativeElement): any
     parentNode?: NativeElement | any;
     [x: string]: any;
 }
+
 export type TagName = Function | string;
+
 export type PropsType = {
     key?: string | number;
     children?: VNode[];
@@ -19,6 +20,7 @@ export type PropsType = {
 };
 
 export type Ref = (node?: NativeElement | null) => void;
+
 export interface Refs {
     onComponentDidMount?: (domNode: NativeElement) => void;
     onComponentWillMount?(): void;
