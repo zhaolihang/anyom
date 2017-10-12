@@ -36,7 +36,7 @@ const td = <td className="col-md-6" ></td>;
 
 function Row({ d, id, selected, deleteFunc, selectFunc }) {
     return (
-        <tr className={id === selected ? 'danger' : ''} >
+        <tr className={selected ? 'danger' : ''} >
             <td className="col-md-1" >{id + ''}</td>
             <td className="col-md-4" >
                 <a onClick={linkEvent(id, selectFunc)} >{d.label}</a>
@@ -48,7 +48,7 @@ function Row({ d, id, selected, deleteFunc, selectFunc }) {
 }
 
 function onComponentShouldUpdate(lastProps, nextProps) {
-    return nextProps.d !== lastProps.d || nextProps.selected !== lastProps.selected;
+    return nextProps.d.label !== lastProps.d.label || nextProps.selected !== lastProps.selected;
 }
 
 function createRows(store, deleteFunc, selectFunc) {
@@ -61,7 +61,7 @@ function createRows(store, deleteFunc, selectFunc) {
         const id = d.id;
 
         rows.push(
-            <Row key={id} d={d} id={id} selected={selected} deleteFunc={deleteFunc} selectFunc={selectFunc} onComponentShouldUpdate={onComponentShouldUpdate} />
+            <Row key={id} d={d} id={id} selected={selected === id} deleteFunc={deleteFunc} selectFunc={selectFunc} onComponentShouldUpdate={onComponentShouldUpdate} />
         );
     }
     return <tbody>{rows}</tbody>;

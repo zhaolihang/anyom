@@ -24,7 +24,7 @@ function walk(a: VNode, b: VNode, parent: VNode) {
                 if (!shallowEqual(a.props, b.props)) {
                     updateProps(a, b, b.props);
                 } else {
-                    b.lastResult = a.lastResult;
+                    b.lastResult = a.lastResult;// sync lastResult
                 }
                 return;// 组件无需比较children
             } else if (a.type & VNodeType.Void && a.type === b.type) {// Void 无需比较
@@ -471,8 +471,9 @@ function updateProps(origin: VNode, newNode: VNode, propsPatch: PropsType) {
 
 
 function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: PropsType) {
-    if (origin.props.onComponentShouldUpdate) {
-        if (!origin.props.onComponentShouldUpdate(origin.props, newProps)) {
+    if (newNode.refs && newNode.refs.onComponentShouldUpdate) {// 应用新节点的 hook
+        if (!newNode.refs.onComponentShouldUpdate(origin.props, newProps)) {
+            newNode.lastResult = origin.lastResult;// sync lastResult
             return;
         }
     }
