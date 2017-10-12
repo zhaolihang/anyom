@@ -1,5 +1,6 @@
-import { isString, isInvalid, isUndefined } from "./shared";
+import { isString, isInvalid, isUndefined, FunCompHooks } from "./shared";
 import { Component } from "./component";
+import { Commands } from "./command";
 
 export interface NativeElement {
     appendChild?(newNode: NativeElement): any
@@ -19,16 +20,19 @@ export type PropsType = {
     [x: string]: any
 };
 
-export type Ref = (node?: NativeElement | null) => void;
+export type Ref = (node: NativeElement | Component) => void;
 
 export interface Refs {
-    onComponentDidMount?: (domNode: NativeElement) => void;
     onComponentWillMount?(): void;
+    onComponentDidMount?(domNode: NativeElement): void;
     onComponentShouldUpdate?(lastProps, nextProps): boolean;
     onComponentWillUpdate?(lastProps, nextProps): void;
     onComponentDidUpdate?(lastProps, nextProps): void;
     onComponentWillUnmount?(domNode: NativeElement): void;
 }
+
+export type Cmd = any;
+export type Cmds = { [cmdName: string]: Cmd };
 
 
 function isStatefulComponent(o: any): boolean {
@@ -78,6 +82,9 @@ export class VNode {
     }
 
     lastResult?: VNode;// 只有 type === ComponentFunction 有效
+    refs?: Refs;// 只有 type === ComponentFunction 有效
+    ref?: Ref;// 只有 type === ComponentClass  or  type === Node 有效
+    cmds?: Cmds;// 只有 type === ComponentClass  or  type === Node 有效
 
     constructor(type: VNodeType, tag: TagName, props: PropsType, children: VNode[], key?: string) {
         this.key = key != null ? String(key) : null;
@@ -101,20 +108,34 @@ export function h(tag: TagName, props?: PropsType, ...args): VNode;
 export function h(tag: TagName, props?: PropsType): VNode {
     let type = getVNodeType(tag);
     let key;
+    let ref;
+    let refs;
+    let cmds;
+    let tmp;
+    let newProps: any = {};
     if (props) {
-        if (props.key) {
-            key = props.key;
-            delete props.key;
-        }
-        if (!isInvalid(props.children)) {
-            stack.push(props.children as any);
-            delete props.children;
+        for (tmp in props) {
+            if (tmp === 'key') {
+                key = props.key;
+            } else if (tmp === 'ref') {
+                ref = props.ref;
+            } else if (!isInvalid(props.children)) {
+                stack.push(props.children as any);
+            } else if (FunCompHooks.has(tmp)) {
+                if (!refs) { refs = {}; }
+                refs[tmp] = props[tmp];
+            } else if (Commands.has(tmp)) {
+                if (!cmds) { cmds = {}; }
+                cmds[tmp] = cmds[tmp];
+            } else {
+                newProps[tmp] = props[tmp];
+            }
         }
     }
-    let i;
+
     if (!stack.length) {
-        for (i = arguments.length; i-- > 2;) {
-            stack.push(arguments[i]);
+        for (tmp = arguments.length; tmp-- > 2;) {
+            stack.push(arguments[tmp]);
         }
     }
     ////////////////////////////////////////////////////
@@ -124,8 +145,8 @@ export function h(tag: TagName, props?: PropsType): VNode {
     while (stack.length) {
 
         if ((child = stack.pop()) && Array.isArray(child)) {
-            for (i = child.length; i--;) {
-                stack.push(child[i]);
+            for (tmp = child.length; tmp--;) {
+                stack.push(child[tmp]);
             }
         } else {
             if (isInvalid(child)) {
@@ -142,23 +163,23 @@ export function h(tag: TagName, props?: PropsType): VNode {
             }
         }
     }
-    props = props || {};
+    let node: VNode;
     if (type & VNodeType.Component) {
-        if (children) {
-            props.children = children;
-        }
-        return new VNode(type, tag, props, noChildren, key);
+        newProps.children = children || noChildren;
+        node = new VNode(type, tag, newProps, null, key);
     } else {
-        return new VNode(type, tag, props, children || noChildren, key);
+        node = new VNode(type, tag, newProps, children || noChildren, key);
     }
+    node.ref = ref;
+    node.refs = refs;
+    node.cmds = cmds;
+    return node;
 }
 
 export function cloneVNode(vNode: VNode): VNode {
     return vNode;
 }
 
-
-
 export function createVoidNode() {
-    return new VNode(VNodeType.Void, null, null, noChildren);
+    return new VNode(VNodeType.Void, null, null, null);
 }

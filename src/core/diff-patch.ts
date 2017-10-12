@@ -21,7 +21,6 @@ function walk(a: VNode, b: VNode, parent: VNode) {
             b.instance = a.instance;
 
             if (a.type & VNodeType.Component) {
-
                 if (!shallowEqual(a.props, b.props)) {
                     updateProps(a, b, b.props);
                 } else {
@@ -36,6 +35,7 @@ function walk(a: VNode, b: VNode, parent: VNode) {
                     updateProps(a, b, propsPatch);
                 }
             }
+
             diffChildren(a, b);
         } else {
             replaceNode(a, b);

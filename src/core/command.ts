@@ -1,5 +1,5 @@
 
-const Commands = new Map<string, any>();
+export const Commands = new Map<string, any>();
 
 export type ICommandObjType = {
     bind?: (node, newValue) => any,

@@ -1,10 +1,10 @@
-export const ComponentHooks = new Set<string>();
-ComponentHooks.add("onComponentWillMount");
-ComponentHooks.add("onComponentDidMount");
-ComponentHooks.add("onComponentWillUnmount");
-ComponentHooks.add("onComponentShouldUpdate");
-ComponentHooks.add("onComponentWillUpdate");
-ComponentHooks.add("onComponentDidUpdate");
+export const FunCompHooks = new Set<string>();
+FunCompHooks.add("onComponentWillMount");
+FunCompHooks.add("onComponentDidMount");
+FunCompHooks.add("onComponentWillUnmount");
+FunCompHooks.add("onComponentShouldUpdate");
+FunCompHooks.add("onComponentWillUpdate");
+FunCompHooks.add("onComponentDidUpdate");
 
 export const isBrowser = !!(typeof window !== "undefined" && window.document);
 
