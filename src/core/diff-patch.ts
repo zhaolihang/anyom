@@ -1,7 +1,7 @@
 import { VNode, TagName, PropsType, VNodeType } from "./vnode";
 import { isObject, isUndefined } from "./shared";
 import { findNativeElementByVNode, render } from "./render";
-import { NativeElement } from "./vnode";
+import { NativeElement, createVoidNode } from "./vnode";
 import { Component } from "./component";
 import { isEventAttr, isArray, isFunction, isNullOrUndef } from "./shared";
 //
@@ -551,7 +551,7 @@ function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: P
             return;
         }
     }
-    let currResult = (origin.instance as Function)(newProps);
+    let currResult = (origin.instance as Function)(newProps) || createVoidNode();
     diff(origin.lastResult, currResult)
     newNode.lastResult = currResult
 }
@@ -566,7 +566,7 @@ function updateClassComponentProps(origin: VNode, newProps: PropsType) {
         }
     }
     instance.setProps(newProps);
-    let currResult = instance.render();
+    let currResult = instance.render() || createVoidNode();
     diff(instance.$$lastResult, currResult)
     instance.$$lastResult = currResult
 }

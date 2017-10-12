@@ -1,4 +1,4 @@
-import { VNode } from "./vnode";
+import { VNode, createVoidNode } from "./vnode";
 import { queueComponent } from "./scheduler";
 import { diff } from "./diff-patch";
 import { isFunction } from "./shared";
@@ -67,8 +67,8 @@ export class Component {
 
     $$updateComponent() {
         let instance = this;
-        let currResult = instance.render();
-        let patchTree = diff(instance.$$lastResult, currResult)
+        let currResult = instance.render() || createVoidNode();
+        diff(instance.$$lastResult, currResult)
         instance.$$lastResult = currResult;
     }
 }

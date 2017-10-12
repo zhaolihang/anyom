@@ -44,21 +44,20 @@ function getVNodeType(type: any): VNodeType {
 export enum VNodeType {
     Text = 1,
     Element = 1 << 1,
-    Node = Element | Text,
 
     ComponentClass = 1 << 2,
     ComponentFunction = 1 << 3,
     Component = ComponentFunction | ComponentClass,
 
-    Void = 1 << 10,
+    Void = 1 << 32,
+
+    Node = Element | Text | Void,
 }
 
 export type Instance = Component | Function | NativeElement;
 
 export class VNode {
     __observe_forbidden__: boolean;
-
-    count = 0;
 
     key: string;
     tag: TagName;
@@ -75,18 +74,11 @@ export class VNode {
         this.type = type;
         this.props = props;
         this.children = children;
-
-        let count = (children && children.length) || 0;
-        let descendants = 0;
-        for (let i = 0; i < count; i++) {
-            let child = children[i];
-            descendants += child.count;
-        }
-        this.count = count + descendants;
     }
 
 }
 VNode.prototype.__observe_forbidden__ = true;
+
 
 const stack: VNode[] = [];
 const noChildren = [];
@@ -152,4 +144,10 @@ export function h(tag: TagName, props?: PropsType): VNode {
 
 export function cloneVNode(vNode: VNode): VNode {
     return vNode;
+}
+
+
+
+export function createVoidNode() {
+    return new VNode(VNodeType.Void, null, null, noChildren);
 }
