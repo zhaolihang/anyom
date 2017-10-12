@@ -17,11 +17,7 @@ function walk(a: VNode, b: VNode, parent: VNode) {
     if (!b) {
         removeChild(a);
     } else {
-        if (a.type & VNodeType.Void && a.type === b.type) {
-            return;
-        }
         if (a.tag === b.tag && a.key === b.key) {
-
             b.instance = a.instance;
 
             if (a.type & VNodeType.Component) {
@@ -32,6 +28,8 @@ function walk(a: VNode, b: VNode, parent: VNode) {
                     b.lastResult = a.lastResult;
                 }
                 return;// 组件无需比较children
+            } else if (a.type & VNodeType.Void && a.type === b.type) {// Void 无需比较
+                return;
             } else {
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
