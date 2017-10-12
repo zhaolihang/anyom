@@ -49,7 +49,7 @@ export enum VNodeType {
     ComponentFunction = 1 << 3,
     Component = ComponentFunction | ComponentClass,
 
-    Void = 1 << 32,
+    Void = 1 << 30,
 
     Node = Element | Text | Void,
 }
