@@ -4,6 +4,7 @@ import { findNativeElementByVNode, render, removeSelf, replaceSelf, insertBefore
 import { NativeElement, createVoidNode } from "./vnode";
 import { Component } from "./component";
 import { isEventAttr, isArray, isFunction, isNullOrUndef } from "./shared";
+import { CommandsTriggerMap } from "./command";
 
 export function diff(a: VNode, b: VNode, context) {
     walk(a, b, null, context);
@@ -413,6 +414,11 @@ function appendNode(parent: VNode, newNode: VNode, context) {
 }
 
 function removeChild(origin: VNode) {
+    let trigger = CommandsTriggerMap.get(origin.instance as NativeElement);
+    if (trigger) {
+        trigger.remove();
+        CommandsTriggerMap.delete(origin.instance as NativeElement);
+    }
     unmountHooks(origin);
     removeSelf(findNativeElementByVNode(origin));
 }

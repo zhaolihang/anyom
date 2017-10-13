@@ -1,7 +1,8 @@
-import { VNode, VNodeType, Instance, NativeElement, createVoidNode, PropsType } from "./vnode";
+import { VNode, VNodeType, Instance, NativeElement, createVoidNode, PropsType, Cmds } from "./vnode";
 import { Component } from "./component";
 import { shallowDiffProps } from "./diff-patch";
 import { isEventAttr, isFunction, isNullOrUndef, combineFrom, EMPTY_OBJ } from "./shared";
+import { CommandsTrigger, CommandsTriggerMap } from "./command";
 
 
 export function findNativeElementByVNode(vnode: VNode): NativeElement {
@@ -23,6 +24,7 @@ export function findNativeElementByVNode(vnode: VNode): NativeElement {
 }
 
 
+let cmdsStack: Cmds[] = [];
 export function render(vnode: VNode, parentNode: NativeElement, context: object | null): NativeElement {
     if (!vnode) {
         return;
@@ -30,7 +32,12 @@ export function render(vnode: VNode, parentNode: NativeElement, context: object 
     if (!context) {
         context = EMPTY_OBJ;
     }
+
+    if (vnode.cmds) {
+        cmdsStack.push(vnode.cmds);
+    }
     let newParentNode = createInstanceByVNode(vnode, parentNode, context);
+
     let children = vnode.children;
     if (children) {
         let len = children.length
@@ -46,13 +53,20 @@ export function render(vnode: VNode, parentNode: NativeElement, context: object 
 // 生命周期
 function createInstanceByVNode(vnode: VNode, parentNode: NativeElement, context): NativeElement {
     if ((vnode.type & VNodeType.Node) > 0) {
+        let nativeElmment: NativeElement;
         if ((vnode.type & VNodeType.Element) > 0) {
-            return createElement(vnode, parentNode)
+            nativeElmment = createElement(vnode, parentNode)
         } else if ((vnode.type & VNodeType.Text) > 0) {
-            return createText(vnode, parentNode);
+            nativeElmment = createText(vnode, parentNode);
         } else if ((vnode.type & VNodeType.Void) > 0) {
-            return createVoid(vnode, parentNode, context);
+            nativeElmment = createVoid(vnode, parentNode, context);
         }
+        if (cmdsStack.length > 0) {
+            let cmdsTrigger = new CommandsTrigger(nativeElmment, cmdsStack.splice(0));
+            CommandsTriggerMap.set(nativeElmment, cmdsTrigger);
+            cmdsTrigger.inserted();
+        }
+        return nativeElmment;
     } else if ((vnode.type & VNodeType.Component) > 0) {
         if ((vnode.type & VNodeType.ComponentFunction) > 0) {
             return createFunctionComponent(vnode, parentNode, context)
