@@ -24,11 +24,11 @@ export type Ref = (node: NativeElement | Component) => void;
 
 export interface Refs {
     onComponentWillMount?(): void;
-    onComponentDidMount?(domNode: NativeElement): void;
+    onComponentDidMount?(node: NativeElement): void;
     onComponentShouldUpdate?(lastProps, nextProps): boolean;
     onComponentWillUpdate?(lastProps, nextProps): void;
     onComponentDidUpdate?(lastProps, nextProps): void;
-    onComponentWillUnmount?(domNode: NativeElement): void;
+    onComponentWillUnmount?(node: NativeElement): void;
 }
 
 export type Cmd = any;
@@ -76,7 +76,7 @@ export class VNode {
     };
     set instance(v) {
         this.$$instance = v;
-        if (v && this.type & VNodeType.ComponentClass) {
+        if (v && (this.type & VNodeType.ComponentClass) > 0) {
             (v as Component).$$vnode = this;
         }
     }

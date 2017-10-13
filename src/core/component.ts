@@ -1,7 +1,7 @@
 import { VNode, createVoidNode } from "./vnode";
 import { queueComponent } from "./scheduler";
 import { diff } from "./diff-patch";
-import { isFunction, combineFrom } from "./shared";
+import { isFunction, combineFrom, isNullOrUndef } from "./shared";
 
 export const LifeCycleType = {
     Created: 'created',
@@ -28,8 +28,16 @@ export function linkEvent(data, event) {
 let gid = 0;
 export class Component {
     $$observe_forbidden: boolean;
-    public shouldComponentUpdate?(nextProps, nextState): boolean;
+    public shouldComponentUpdate?(nextProps, nextState, context): boolean;
     public getChildContext?(): { [x: string]: any };
+
+    // LifeCycle methods
+    public componentWillMount?(): void;
+    public componentDidMount?(): void;
+    public componentWillReceiveProps?(nextProps, nextContext): void;
+    public componentWillUpdate?(nextProps, nextState, nextContext): void;
+    public componentDidUpdate?(prevProps, prevState, prevContext): void;
+    public componentWillUnmount?(): void;
 
     $$vnode: VNode;
 
@@ -47,7 +55,7 @@ export class Component {
 
     setState(state, cb?: Function) {
         if (this.shouldComponentUpdate) {
-            if (!this.shouldComponentUpdate(this.props, state)) {
+            if (!this.shouldComponentUpdate(this.props, state, this.context)) {
                 this.state = Object.assign({}, this.state, state);
                 if (typeof cb === 'function') {
                     cb();
@@ -63,11 +71,15 @@ export class Component {
         throw new Error('请重写本方法');
     }
 
-    $$setProps(props) {
-        this.props = props;
+    $$setPropsAndContext(nextProps, nextContext) {
+        if (!isNullOrUndef(this.componentWillReceiveProps)) {
+            this.componentWillReceiveProps(nextProps, nextContext);
+        }
+        this.props = nextProps;
+        this.context = nextContext;
     }
 
-    $$setContext(context) {
+    $$initContext(context) {
         this.context = context;
     }
 
@@ -76,9 +88,19 @@ export class Component {
         if (this.getChildContext) {
             context = combineFrom(this.context, this.getChildContext())
         }
+
+        if (!isNullOrUndef(this.componentWillUpdate)) {
+            this.componentWillUpdate(this.props, this.state, this.context);
+        }
+
         let currResult = this.render() || createVoidNode();
         diff(this.$$lastResult, currResult, context)
         this.$$lastResult = currResult;
+
+        if (!isNullOrUndef(this.componentDidUpdate)) {
+            this.componentDidUpdate(this.props, this.state, this.context);
+        }
+
         if (typeof cb === 'function') {
             cb();
         }

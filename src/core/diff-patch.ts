@@ -20,14 +20,14 @@ function walk(a: VNode, b: VNode, parent: VNode, context) {
         if (a.tag === b.tag && a.key === b.key) {
             b.instance = a.instance;
 
-            if (a.type & VNodeType.Component) {
+            if ((a.type & VNodeType.Component) > 0) {
                 if (!shallowEqual(a.props, b.props)) {
                     updateProps(a, b, b.props, context);
                 } else {
                     b.lastResult = a.lastResult;// sync lastResult
                 }
                 return;// 组件无需比较children
-            } else if (a.type & VNodeType.Void && a.type === b.type) {// Void 无需比较
+            } else if ((a.type & VNodeType.Void) > 0 && a.type === b.type) {// Void 无需比较
                 return;
             } else {
                 let propsPatch = shallowDiffProps(a.props, b.props);
@@ -413,10 +413,12 @@ function appendNode(parent: VNode, newNode: VNode, context) {
 }
 
 function removeChild(origin: VNode) {
+    unmountHooks(origin);
     removeSelf(findNativeElementByVNode(origin));
 }
 
 function replaceNode(origin: VNode, newNode: VNode, context) {
+    unmountHooks(origin);
     let newChild = render(newNode, null, context);
     replaceSelf(findNativeElementByVNode(origin), newChild);
 }
@@ -444,26 +446,24 @@ function insertOrAppendWithMoved(parent: VNode, movedNode: VNode, refNode: VNode
 
 function removeAllChildren(parent: VNode) {
     for (let vnode of parent.children) {
-        removeSelf(findNativeElementByVNode(vnode));
+        removeChild(vnode)
     }
-    // let parentNode = <HTMLElement>findNativeElementByVNode(parent);
-    // parentNode.textContent = "";
 }
 
 
 
 
 function updateProps(origin: VNode, newNode: VNode, propsPatch: PropsType, context) {
-    if (origin.type & VNodeType.Node) {
-        if (origin.type & VNodeType.Element) {
+    if ((origin.type & VNodeType.Node) > 0) {
+        if ((origin.type & VNodeType.Element) > 0) {
             updateElementProps(origin, propsPatch);
-        } else if (origin.type & VNodeType.Text) {
+        } else if ((origin.type & VNodeType.Text) > 0) {
             updateTextProps(origin, propsPatch);
         }
-    } else if (origin.type & VNodeType.Component) {
-        if (origin.type & VNodeType.ComponentFunction) {
+    } else if ((origin.type & VNodeType.Component) > 0) {
+        if ((origin.type & VNodeType.ComponentFunction) > 0) {
             updateFunctionComponentProps(origin, newNode, propsPatch, context);
-        } else if (origin.type & VNodeType.ComponentClass) {
+        } else if ((origin.type & VNodeType.ComponentClass) > 0) {
             updateClassComponentProps(origin, propsPatch, context);
         }
     }
@@ -477,21 +477,56 @@ function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: P
             return;
         }
     }
+
+    if (newNode.refs && newNode.refs.onComponentWillUpdate) {// 应用新节点的 hook
+        newNode.refs.onComponentWillUpdate(origin.props, newProps);
+    }
+
     let currResult: VNode = (origin.instance as Function)(newProps, context) || createVoidNode();
     diff(origin.lastResult, currResult, context)
     newNode.lastResult = currResult
+
+    if (newNode.refs && newNode.refs.onComponentDidUpdate) {// 应用新节点的 hook
+        newNode.refs.onComponentDidUpdate(origin.props, newProps);
+    }
+
 }
 
 
 function updateClassComponentProps(origin: VNode, newProps: PropsType, context) {
     let instance = origin.instance as Component;
     if (instance.shouldComponentUpdate) {
-        if (!instance.shouldComponentUpdate(newProps, instance.state)) {
-            instance.$$setProps(newProps);
+        if (!instance.shouldComponentUpdate(newProps, instance.state, context)) {
+            instance.$$setPropsAndContext(newProps, context);
             return;
         }
     }
-    instance.$$setProps(newProps);
+    instance.$$setPropsAndContext(newProps, context);
     instance.$$updateComponent(null);
 }
 
+
+
+function unmountHooks(vnode: VNode) {
+    if ((vnode.type & VNodeType.Node) > 0) {
+        if (vnode.ref) {
+            vnode.ref(null);
+        }
+    } else if ((vnode.type & VNodeType.Component) > 0) {
+        if ((vnode.type & VNodeType.ComponentFunction) > 0) {
+            if (vnode.refs && vnode.refs.onComponentWillUnmount) {
+                vnode.refs.onComponentWillUnmount(findNativeElementByVNode(vnode));
+            }
+            unmountHooks(vnode.lastResult);
+        } else if ((vnode.type & VNodeType.ComponentClass) > 0) {
+            let instance = vnode.instance as Component;
+            if (vnode.ref) {
+                vnode.ref(null);
+            }
+            if (!isUndefined(instance.componentWillUnmount)) {
+                instance.componentWillUnmount();
+            }
+            unmountHooks(instance.$$lastResult);
+        }
+    }
+}

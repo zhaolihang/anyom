@@ -15,10 +15,10 @@ export function setCommand(name: string, cmdObj: ICommandObjType) {
     return cmdObj;
 }
 
-export function hasCommand(name: string): boolean {
-    return Commands.has(name);
-}
-
 export function getCommand(name: string): ICommandObjType {
     return Commands.get(name);
+}
+
+export function hasCommand(name: string): boolean {
+    return Commands.has(name);
 }

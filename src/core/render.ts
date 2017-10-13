@@ -8,12 +8,12 @@ export function findNativeElementByVNode(vnode: VNode): NativeElement {
     if (!vnode) {
         return;
     }
-    if (vnode.type & VNodeType.Node) {
+    if ((vnode.type & VNodeType.Node) > 0) {
         return vnode.instance as NativeElement
-    } else if (vnode.type & VNodeType.Component) {
-        if (vnode.type & VNodeType.ComponentFunction) {
+    } else if ((vnode.type & VNodeType.Component) > 0) {
+        if ((vnode.type & VNodeType.ComponentFunction) > 0) {
             return findNativeElementByVNode(vnode.lastResult)
-        } else if (vnode.type & VNodeType.ComponentClass) {
+        } else if ((vnode.type & VNodeType.ComponentClass) > 0) {
             if (!vnode.instance) {
                 return;
             }
@@ -45,18 +45,18 @@ export function render(vnode: VNode, parentNode: NativeElement, context: object 
 
 // 生命周期
 function createInstanceByVNode(vnode: VNode, parentNode: NativeElement, context): NativeElement {
-    if (vnode.type & VNodeType.Node) {
-        if (vnode.type & VNodeType.Element) {
+    if ((vnode.type & VNodeType.Node) > 0) {
+        if ((vnode.type & VNodeType.Element) > 0) {
             return createElement(vnode, parentNode)
-        } else if (vnode.type & VNodeType.Text) {
+        } else if ((vnode.type & VNodeType.Text) > 0) {
             return createText(vnode, parentNode);
-        } else if (vnode.type & VNodeType.Void) {
+        } else if ((vnode.type & VNodeType.Void) > 0) {
             return createVoid(vnode, parentNode, context);
         }
-    } else if (vnode.type & VNodeType.Component) {
-        if (vnode.type & VNodeType.ComponentFunction) {
+    } else if ((vnode.type & VNodeType.Component) > 0) {
+        if ((vnode.type & VNodeType.ComponentFunction) > 0) {
             return createFunctionComponent(vnode, parentNode, context)
-        } else if (vnode.type & VNodeType.ComponentClass) {
+        } else if ((vnode.type & VNodeType.ComponentClass) > 0) {
             return createClassComponent(vnode, parentNode, context)
         }
     }
@@ -93,18 +93,33 @@ function createVoid(vnode: VNode, parentNode: NativeElement, context): NativeEle
 function createFunctionComponent(vnode: VNode, parentNode: NativeElement, context) {
     let doRender = vnode.tag as Function
     vnode.instance = doRender;
+
+    if (vnode.refs && vnode.refs.onComponentWillMount) {
+        vnode.refs.onComponentWillMount();
+    }
+
     vnode.lastResult = doRender(vnode.props, context) || createVoidNode();
     let nativeEle = render(vnode.lastResult, parentNode, context);
     if (parentNode && nativeEle) {
         parentNode.appendChild(nativeEle)
     }
+
+    if (vnode.refs && vnode.refs.onComponentDidMount) {
+        vnode.refs.onComponentDidMount(nativeEle);
+    }
+
     return nativeEle;
 }
 
 function createClassComponent(vnode: VNode, parentNode: NativeElement, context) {
     let instance = new (vnode.tag as typeof Component)(vnode.props);
     vnode.instance = instance;
-    instance.$$setContext(context);
+    instance.$$initContext(context);
+
+    if (!isNullOrUndef(instance.componentWillMount)) {
+        instance.componentWillMount();
+    }
+
     if (instance.getChildContext) {
         context = combineFrom(context, instance.getChildContext())
     }
@@ -113,6 +128,11 @@ function createClassComponent(vnode: VNode, parentNode: NativeElement, context) 
     if (parentNode && nativeEle) {
         parentNode.appendChild(nativeEle)
     }
+
+    if (!isNullOrUndef(instance.componentDidMount)) {
+        instance.componentDidMount();
+    }
+
     return nativeEle;
 }
 
