@@ -34,6 +34,9 @@ function walk(a: VNode, b: VNode, parent: VNode, context) {
                 if (propsPatch) {
                     updateNodeProps(a, b, propsPatch, context);
                 }
+                if ((a.type & VNodeType.Text) > 0) {
+                    return;// VNodeType.Text 无需比较children
+                }
                 diffChildren(a, b, context);
             }// VNodeType.Void 无需比较
         } else {
