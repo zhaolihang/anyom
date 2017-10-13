@@ -49,6 +49,9 @@ export class Component {
         if (this.shouldComponentUpdate) {
             if (!this.shouldComponentUpdate(this.props, state)) {
                 this.state = Object.assign({}, this.state, state);
+                if (typeof cb === 'function') {
+                    cb();
+                }
                 return;
             }
         }
