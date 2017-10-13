@@ -19,7 +19,7 @@ class Button extends Component {
     }
 
     render() {
-        log(this.context)
+        log('Button ctx', this.context)
         return (
             <button onClick={this.onClick}>
                 button
@@ -29,7 +29,7 @@ class Button extends Component {
 }
 
 function App(props, ctx) {
-    log(ctx)
+    log('App ctx', ctx)
     return (
         <div>
             {props.text}
@@ -59,6 +59,8 @@ class TestCom extends Component {
     onClick() {
         this.setState({
             appText: 'appText' + this.num++
+        }, () => {
+            log('TestCom updated')
         });
     }
 
