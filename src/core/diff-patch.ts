@@ -5,11 +5,11 @@ import { NativeElement, createVoidNode } from "./vnode";
 import { Component } from "./component";
 import { isEventAttr, isArray, isFunction, isNullOrUndef } from "./shared";
 
-export function diff(a: VNode, b?: VNode) {
-    walk(a, b, null);
+export function diff(a: VNode, b: VNode, context) {
+    walk(a, b, null, context);
 };
 
-function walk(a: VNode, b: VNode, parent: VNode) {
+function walk(a: VNode, b: VNode, parent: VNode, context) {
     if (a === b) {
         return;
     }
@@ -22,7 +22,7 @@ function walk(a: VNode, b: VNode, parent: VNode) {
 
             if (a.type & VNodeType.Component) {
                 if (!shallowEqual(a.props, b.props)) {
-                    updateProps(a, b, b.props);
+                    updateProps(a, b, b.props, context);
                 } else {
                     b.lastResult = a.lastResult;// sync lastResult
                 }
@@ -32,13 +32,13 @@ function walk(a: VNode, b: VNode, parent: VNode) {
             } else {
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
-                    updateProps(a, b, propsPatch);
+                    updateProps(a, b, propsPatch, context);
                 }
             }
 
-            diffChildren(a, b);
+            diffChildren(a, b, context);
         } else {
-            replaceNode(a, b);
+            replaceNode(a, b, context);
         }
     }
 
@@ -123,22 +123,22 @@ function allKeyed(children: VNode[]) {
     return true;
 }
 
-function diffChildren(a: VNode, b: VNode) {
+function diffChildren(a: VNode, b: VNode, context) {
     if (a.children.length === 0 || !allKeyed(a.children)) {
         // nokey
-        diffNoKeyedChildren(a, b);
+        diffNoKeyedChildren(a, b, context);
     } else {
         if (b.children.length === 0 || !allKeyed(b.children)) {
             // nokey
-            diffNoKeyedChildren(a, b);
+            diffNoKeyedChildren(a, b, context);
         } else {
             //keyed
-            diffKeyedChildren(a, b);
+            diffKeyedChildren(a, b, context);
         }
     }
 }
 
-function diffKeyedChildren(aParent: VNode, bParent: VNode) {
+function diffKeyedChildren(aParent: VNode, bParent: VNode, context) {
     let a = aParent.children;
     let b = bParent.children;
     let aLength = a.length;
@@ -163,7 +163,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
     outer: {
         // Sync nodes with the same key at the beginning.
         while (aStartNode.key === bStartNode.key) {
-            walk(aStartNode, bStartNode, aParent);
+            walk(aStartNode, bStartNode, aParent, context);
             aStart++;
             bStart++;
             if (aStart > aEnd || bStart > bEnd) {
@@ -175,7 +175,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
 
         // Sync nodes with the same key at the end.
         while (aEndNode.key === bEndNode.key) {
-            walk(aEndNode, bEndNode, aParent);
+            walk(aEndNode, bEndNode, aParent, context);
             aEnd--;
             bEnd--;
             if (aStart > aEnd || bStart > bEnd) {
@@ -193,7 +193,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
             while (bStart <= bEnd) {
                 node = b[bStart];
                 bStart++;
-                insertOrAppend(aParent, node, nextNode);
+                insertOrAppend(aParent, node, nextNode, context);
             }
         }
     } else if (bStart > bEnd) {// b 中的所有key都匹配了所以 a都是应该删除的
@@ -233,7 +233,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
                             } else {
                                 pos = j;
                             }
-                            walk(aNode, bNode, aParent);
+                            walk(aNode, bNode, aParent, context);
                             patched++;
                             a[i] = null as any;
                             break;
@@ -264,7 +264,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
                         } else {
                             pos = j;
                         }
-                        walk(aNode, bNode, aParent);
+                        walk(aNode, bNode, aParent, context);
                         patched++;
                         a[i] = null as any;
                     }
@@ -278,7 +278,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
             while (bStart < bLeft) {
                 node = b[bStart];
                 bStart++;
-                appendNode(aParent, node)
+                appendNode(aParent, node, context)
             }
         } else {
             i = aLeft - patched;
@@ -298,7 +298,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
                         pos = i + bStart;
                         node = b[pos];
                         nextPos = pos + 1;
-                        insertOrAppend(aParent, node, nextPos < bLength ? b[nextPos] : null);
+                        insertOrAppend(aParent, node, nextPos < bLength ? b[nextPos] : null, context);
                     } else {
                         if (j < 0 || i !== seq[j]) {//位置被移动了
                             pos = i + bStart;
@@ -319,7 +319,7 @@ function diffKeyedChildren(aParent: VNode, bParent: VNode) {
                         pos = i + bStart;
                         node = b[pos];
                         nextPos = pos + 1;
-                        insertOrAppend(aParent, node, nextPos < bLength ? b[nextPos] : null);
+                        insertOrAppend(aParent, node, nextPos < bLength ? b[nextPos] : null, context);
                     }
                 }
             }
@@ -382,7 +382,7 @@ function lis_algorithm(arr: number[]): number[] {
 }
 
 
-function diffNoKeyedChildren(a: VNode, b: VNode) {
+function diffNoKeyedChildren(a: VNode, b: VNode, context) {
     let aChildren = a.children;
     let bChildren = b.children;
 
@@ -397,10 +397,10 @@ function diffNoKeyedChildren(a: VNode, b: VNode) {
         if (!leftNode) {
             if (rightNode) {
                 // Excess nodes in b need to be added
-                appendNode(a, rightNode);
+                appendNode(a, rightNode, context);
             }
         } else {
-            walk(leftNode, rightNode, a);
+            walk(leftNode, rightNode, a, context);
         }
     }
 
@@ -408,26 +408,26 @@ function diffNoKeyedChildren(a: VNode, b: VNode) {
 
 
 // patch op
-function appendNode(parent: VNode, newNode: VNode) {
-    render(newNode, findNativeElementByVNode(parent))
+function appendNode(parent: VNode, newNode: VNode, context) {
+    render(newNode, findNativeElementByVNode(parent), context)
 }
 
 function removeChild(origin: VNode) {
     removeSelf(findNativeElementByVNode(origin));
 }
 
-function replaceNode(origin: VNode, newNode: VNode) {
-    let newChild = render(newNode);
+function replaceNode(origin: VNode, newNode: VNode, context) {
+    let newChild = render(newNode, null, context);
     replaceSelf(findNativeElementByVNode(origin), newChild);
 }
 
-function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null) {
+function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null, context) {
     if (refNode) {
-        let newChild = render(newNode);
+        let newChild = render(newNode, null, context);
         let refChild = findNativeElementByVNode(refNode);
         insertBeforeSelf(refChild, newChild)
     } else {
-        render(newNode, findNativeElementByVNode(parent))
+        render(newNode, findNativeElementByVNode(parent), context)
     }
 }
 
@@ -453,7 +453,7 @@ function removeAllChildren(parent: VNode) {
 
 
 
-function updateProps(origin: VNode, newNode: VNode, propsPatch: PropsType) {
+function updateProps(origin: VNode, newNode: VNode, propsPatch: PropsType, context) {
     if (origin.type & VNodeType.Node) {
         if (origin.type & VNodeType.Element) {
             updateElementProps(origin, propsPatch);
@@ -462,36 +462,36 @@ function updateProps(origin: VNode, newNode: VNode, propsPatch: PropsType) {
         }
     } else if (origin.type & VNodeType.Component) {
         if (origin.type & VNodeType.ComponentFunction) {
-            updateFunctionComponentProps(origin, newNode, propsPatch);
+            updateFunctionComponentProps(origin, newNode, propsPatch, context);
         } else if (origin.type & VNodeType.ComponentClass) {
-            updateClassComponentProps(origin, propsPatch);
+            updateClassComponentProps(origin, propsPatch, context);
         }
     }
 }
 
 
-function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: PropsType) {
+function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: PropsType, context) {
     if (newNode.refs && newNode.refs.onComponentShouldUpdate) {// 应用新节点的 hook
         if (!newNode.refs.onComponentShouldUpdate(origin.props, newProps)) {
             newNode.lastResult = origin.lastResult;// sync lastResult
             return;
         }
     }
-    let currResult: VNode = (origin.instance as Function)(newProps) || createVoidNode();
-    diff(origin.lastResult, currResult)
+    let currResult: VNode = (origin.instance as Function)(newProps, context) || createVoidNode();
+    diff(origin.lastResult, currResult, context)
     newNode.lastResult = currResult
 }
 
 
-function updateClassComponentProps(origin: VNode, newProps: PropsType) {
+function updateClassComponentProps(origin: VNode, newProps: PropsType, context) {
     let instance = origin.instance as Component;
     if (instance.shouldComponentUpdate) {
         if (!instance.shouldComponentUpdate(newProps, instance.state)) {
-            instance.setProps(newProps);
+            instance.$$setProps(newProps);
             return;
         }
     }
-    instance.setProps(newProps);
-    instance.$$updateComponent();
+    instance.$$setProps(newProps);
+    instance.$$updateComponent(null);
 }
 

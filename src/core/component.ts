@@ -1,7 +1,7 @@
 import { VNode, createVoidNode } from "./vnode";
 import { queueComponent } from "./scheduler";
 import { diff } from "./diff-patch";
-import { isFunction } from "./shared";
+import { isFunction, combineFrom } from "./shared";
 
 export const LifeCycleType = {
     Created: 'created',
@@ -29,7 +29,7 @@ let gid = 0;
 export class Component {
     $$observe_forbidden: boolean;
     public shouldComponentUpdate?(nextProps, nextState): boolean;
-
+    public getChildContext?(): { [x: string]: any };
 
     $$vnode: VNode;
 
@@ -38,22 +38,14 @@ export class Component {
 
     props: any;
     state: any;
-
-    getInitialState() {
-        return {}
-    }
+    context: any;
 
     constructor(props) {
         this.$$id = ++gid;
         this.props = props;
-        this.state = this.getInitialState();
     }
 
-    setProps(props) {
-        this.props = props;
-    }
-
-    setState(state) {
+    setState(state, cb?: Function) {
         if (this.shouldComponentUpdate) {
             if (!this.shouldComponentUpdate(this.props, state)) {
                 this.state = Object.assign({}, this.state, state);
@@ -61,17 +53,32 @@ export class Component {
             }
         }
         this.state = Object.assign({}, this.state, state);
-        queueComponent(this)
+        queueComponent(this, cb)
     }
 
     render(): VNode {
         throw new Error('请重写本方法');
     }
 
-    $$updateComponent() {
+    $$setProps(props) {
+        this.props = props;
+    }
+
+    $$setContext(context) {
+        this.context = context;
+    }
+
+    $$updateComponent(cb: Function | null) {
+        let context = this.context;
+        if (this.getChildContext) {
+            context = combineFrom(this.context, this.getChildContext())
+        }
         let currResult = this.render() || createVoidNode();
-        diff(this.$$lastResult, currResult)
+        diff(this.$$lastResult, currResult, context)
         this.$$lastResult = currResult;
+        if (typeof cb === 'function') {
+            cb();
+        }
     }
 }
 

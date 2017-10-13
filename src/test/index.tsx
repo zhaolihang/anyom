@@ -19,6 +19,7 @@ class Button extends Component {
     }
 
     render() {
+        log(this.context)
         return (
             <button onClick={this.onClick}>
                 button
@@ -27,7 +28,8 @@ class Button extends Component {
     }
 }
 
-function App(props) {
+function App(props, ctx) {
+    log(ctx)
     return (
         <div>
             {props.text}
@@ -43,6 +45,15 @@ class TestCom extends Component {
     constructor(props) {
         super(props)
         this.onClick = this.onClick.bind(this);
+        this.state = {
+            appText: 'appText'
+        }
+    }
+
+    getChildContext() {
+        return {
+            TestCom: this
+        }
     }
 
     onClick() {
@@ -50,13 +61,6 @@ class TestCom extends Component {
             appText: 'appText' + this.num++
         });
     }
-
-    getInitialState() {
-        return {
-            appText: 'appText'
-        }
-    }
-
 
     render() {
         return (
@@ -79,50 +83,50 @@ let vnode2 = <div >
 </div >
 
 
-vnode1 = <div>
-    <div key={'a'}>
-        a
-    </div>
-    <div key={'b'}>
-        b
-    </div>
-    <div key={'c'}>
-        c
-    </div>
-    <div key={'d'}>
-        d
-    </div>
-    <div key={'e'}>
-        e
-    </div>
-</div>
+// vnode1 = <div>
+//     <div key={'a'}>
+//         a
+//     </div>
+//     <div key={'b'}>
+//         b
+//     </div>
+//     <div key={'c'}>
+//         c
+//     </div>
+//     <div key={'d'}>
+//         d
+//     </div>
+//     <div key={'e'}>
+//         e
+//     </div>
+// </div>
 
-vnode2 = <div>
-    <div key={'e'}>
-        e
-    </div>
-    <div key={'a'}>
-        a
-    </div>
-    <div key={'b'}>
-        b
-    </div>
-    <div key={'c'}>
-        c
-    </div>
-    <div key={'d'}>
-        d
-    </div>
-    <div key={'f'}>
-        f
-    </div>
-</div>
+// vnode2 = <div>
+//     <div key={'e'}>
+//         e
+//     </div>
+//     <div key={'a'}>
+//         a
+//     </div>
+//     <div key={'b'}>
+//         b
+//     </div>
+//     <div key={'c'}>
+//         c
+//     </div>
+//     <div key={'d'}>
+//         d
+//     </div>
+//     <div key={'f'}>
+//         f
+//     </div>
+// </div>
 
-let ele = render(vnode1, body)
+let ele = render(vnode1, body, null)
 
 setTimeout(() => {
 
-    diff(vnode1, vnode2)
+    diff(vnode1, vnode2, null)
     log(vnode2);
 
 }, 1000);

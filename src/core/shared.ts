@@ -46,6 +46,10 @@ export function isEventAttr(name: string) {
   return name[0] === 'o' && name[1] === 'n'
 }
 
+export const EMPTY_OBJ = {};
+if (Object.freeze) {
+  Object.freeze(EMPTY_OBJ);
+}
 
 export function deepEqual(a, b) {
   if (a === b) return true;
@@ -116,3 +120,37 @@ export function proxy(target: any, source: any, key: string) {
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+
+export class Lifecycle {
+  private listeners = [];
+  addListener(callback: Function) {
+    this.listeners.push(callback);
+  }
+
+  trigger() {
+    const listeners = this.listeners;
+
+    let listener;
+    // We need to remove current listener from array when calling it, because more listeners might be added
+    while ((listener = listeners.shift())) {
+      listener();
+    }
+  }
+
+}
+
+
+export function combineFrom(first?: {} | null, second?: {} | null): object {
+  const out = {};
+  if (first) {
+    for (const key in first) {
+      out[key] = first[key];
+    }
+  }
+  if (second) {
+    for (const key in second) {
+      out[key] = second[key];
+    }
+  }
+  return out;
+}

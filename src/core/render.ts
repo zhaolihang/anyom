@@ -1,7 +1,7 @@
 import { VNode, VNodeType, Instance, NativeElement, createVoidNode, PropsType } from "./vnode";
 import { Component } from "./component";
 import { shallowDiffProps } from "./diff-patch";
-import { isEventAttr, isFunction, isNullOrUndef } from "./shared";
+import { isEventAttr, isFunction, isNullOrUndef, combineFrom, EMPTY_OBJ } from "./shared";
 
 
 export function findNativeElementByVNode(vnode: VNode): NativeElement {
@@ -23,16 +23,19 @@ export function findNativeElementByVNode(vnode: VNode): NativeElement {
 }
 
 
-export function render(vnode: VNode, parentNode?: NativeElement): NativeElement {
+export function render(vnode: VNode, parentNode: NativeElement, context: object | null): NativeElement {
     if (!vnode) {
         return;
     }
-    let newParentNode = createInstanceByVNode(vnode, parentNode);
+    if (!context) {
+        context = EMPTY_OBJ;
+    }
+    let newParentNode = createInstanceByVNode(vnode, parentNode, context);
     let children = vnode.children;
     if (children) {
         let len = children.length
         for (let i = 0; i < len; i++) {
-            render(children[i], newParentNode || parentNode);
+            render(children[i], newParentNode || parentNode, context);
         }
     }
 
@@ -41,20 +44,20 @@ export function render(vnode: VNode, parentNode?: NativeElement): NativeElement 
 
 
 // 生命周期
-function createInstanceByVNode(vnode: VNode, parentNode: NativeElement): NativeElement {
+function createInstanceByVNode(vnode: VNode, parentNode: NativeElement, context): NativeElement {
     if (vnode.type & VNodeType.Node) {
         if (vnode.type & VNodeType.Element) {
             return createElement(vnode, parentNode)
         } else if (vnode.type & VNodeType.Text) {
             return createText(vnode, parentNode);
         } else if (vnode.type & VNodeType.Void) {
-            return createVoid(vnode, parentNode);
+            return createVoid(vnode, parentNode, context);
         }
     } else if (vnode.type & VNodeType.Component) {
         if (vnode.type & VNodeType.ComponentFunction) {
-            return createFunctionComponent(vnode, parentNode)
+            return createFunctionComponent(vnode, parentNode, context)
         } else if (vnode.type & VNodeType.ComponentClass) {
-            return createClassComponent(vnode, parentNode)
+            return createClassComponent(vnode, parentNode, context)
         }
     }
 }
@@ -79,7 +82,7 @@ function createText(vnode: VNode, parentNode: NativeElement): NativeElement {
 }
 
 
-function createVoid(vnode: VNode, parentNode: NativeElement): NativeElement {
+function createVoid(vnode: VNode, parentNode: NativeElement, context): NativeElement {
     vnode.instance = document.createTextNode('');
     if (parentNode) {
         parentNode.appendChild(vnode.instance)
@@ -87,22 +90,26 @@ function createVoid(vnode: VNode, parentNode: NativeElement): NativeElement {
     return vnode.instance
 }
 
-function createFunctionComponent(vnode: VNode, parentNode: NativeElement) {
+function createFunctionComponent(vnode: VNode, parentNode: NativeElement, context) {
     let doRender = vnode.tag as Function
     vnode.instance = doRender;
-    vnode.lastResult = doRender(vnode.props) || createVoidNode();
-    let nativeEle = render(vnode.lastResult, parentNode);
+    vnode.lastResult = doRender(vnode.props, context) || createVoidNode();
+    let nativeEle = render(vnode.lastResult, parentNode, context);
     if (parentNode && nativeEle) {
         parentNode.appendChild(nativeEle)
     }
     return nativeEle;
 }
 
-function createClassComponent(vnode: VNode, parentNode: NativeElement) {
+function createClassComponent(vnode: VNode, parentNode: NativeElement, context) {
     let instance = new (vnode.tag as typeof Component)(vnode.props);
     vnode.instance = instance;
+    instance.$$setContext(context);
+    if (instance.getChildContext) {
+        context = combineFrom(context, instance.getChildContext())
+    }
     instance.$$lastResult = instance.render() || createVoidNode();
-    let nativeEle = render(instance.$$lastResult, parentNode)
+    let nativeEle = render(instance.$$lastResult, parentNode, context)
     if (parentNode && nativeEle) {
         parentNode.appendChild(nativeEle)
     }
@@ -110,7 +117,7 @@ function createClassComponent(vnode: VNode, parentNode: NativeElement) {
 }
 
 
-
+//  native op
 export function removeSelf(oriNode: NativeElement) {
     oriNode.parentNode.removeChild(oriNode);
 }
