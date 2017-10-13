@@ -1,10 +1,10 @@
 import { VNode, TagName, PropsType, VNodeType } from "./vnode";
 import { isObject, isUndefined } from "./shared";
-import { findNativeElementByVNode, render, removeSelf, replaceSelf, insertBeforeSelf, insertBeforeMoved, hanleEvent, appendMoved, updateElementProps, updateTextProps } from "./render";
+import { findNativeElementByVNode, render, removeSelf, replaceSelf, insertBeforeSelf, insertBeforeMoved, hanleEvent, appendMoved, applyElementPropsPatch, updateTextProps } from "./render";
 import { NativeElement, createVoidNode } from "./vnode";
 import { Component } from "./component";
 import { isEventAttr, isArray, isFunction, isNullOrUndef } from "./shared";
-import { CommandsTriggerMap } from "./command";
+import { CommandTriggerMap } from "./command";
 
 export function diff(a: VNode, b: VNode, context) {
     walk(a, b, null, context);
@@ -23,7 +23,7 @@ function walk(a: VNode, b: VNode, parent: VNode, context) {
 
             if ((a.type & VNodeType.Component) > 0) {
                 if (!shallowEqual(a.props, b.props)) {
-                    updateProps(a, b, b.props, context);
+                    updateComponentProps(a, b, b.props, context);
                 } else {
                     b.lastResult = a.lastResult;// sync lastResult
                 }
@@ -33,11 +33,10 @@ function walk(a: VNode, b: VNode, parent: VNode, context) {
             } else {
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
-                    updateProps(a, b, propsPatch, context);
+                    updateNodeProps(a, b, propsPatch, context);
                 }
+                diffChildren(a, b, context);
             }
-
-            diffChildren(a, b, context);
         } else {
             replaceNode(a, b, context);
         }
@@ -45,15 +44,24 @@ function walk(a: VNode, b: VNode, parent: VNode, context) {
 
 }
 
+
+export type PropsPatch = {
+    removed?: PropsType,
+    update?: PropsType,
+    added?: PropsType,
+}
+
 const noPorps = {};
-export function shallowDiffProps(a: PropsType, b: PropsType) {
+export function shallowDiffProps(a: PropsType, b: PropsType): PropsPatch {
     a = a || noPorps;
     b = b || noPorps;
-    let diff;
+    let removed: PropsType;
+    let update: PropsType;
+    let added: PropsType;
     for (let aKey in a) {
         if (!(aKey in b)) {
-            diff = diff || {};
-            diff[aKey] = undefined;
+            removed = removed || {};
+            removed[aKey] = true;
         }
         let aValue = a[aKey];
         let bValue = b[aKey];
@@ -62,28 +70,34 @@ export function shallowDiffProps(a: PropsType, b: PropsType) {
             continue;
         } else if (isObject(aValue) && isObject(bValue)) {
             if (aValue.__proto__ !== aValue.__proto__) {
-                diff = diff || {};
-                diff[aKey] = bValue;
+                update = update || {};
+                update[aKey] = bValue;
             } else {
                 if (!shallowEqual(aValue, bValue)) {
-                    diff = diff || {};
-                    diff[aKey] = bValue;
+                    update = update || {};
+                    update[aKey] = bValue;
                 }
             }
         } else {
-            diff = diff || {};
-            diff[aKey] = bValue;
+            update = update || {};
+            update[aKey] = bValue;
         }
     }
 
     for (let bKey in b) {
         if (!(bKey in a)) {
-            diff = diff || {};
-            diff[bKey] = b[bKey];
+            added = added || {};
+            added[bKey] = b[bKey];
         }
     }
 
-    return diff;
+    if (removed || update || added) {
+        return {
+            removed,
+            update,
+            added,
+        };
+    }
 }
 
 
@@ -414,11 +428,11 @@ function appendNode(parent: VNode, newNode: VNode, context) {
 }
 
 function removeChild(origin: VNode) {
-    let trigger = CommandsTriggerMap.get(origin.instance as NativeElement);
-    if (trigger) {
-        trigger.remove();
-        CommandsTriggerMap.delete(origin.instance as NativeElement);
-    }
+    // let trigger = CommandTriggerMap.get(origin.instance as NativeElement);
+    // if (trigger) {
+    //     trigger.remove();
+    //     CommandTriggerMap.delete(origin.instance as NativeElement);
+    // }
     unmountHooks(origin);
     removeSelf(findNativeElementByVNode(origin));
 }
@@ -457,21 +471,20 @@ function removeAllChildren(parent: VNode) {
 }
 
 
+function updateNodeProps(origin: VNode, newNode: VNode, propsPatch: PropsPatch, context) {
+    if ((origin.type & VNodeType.Element) > 0) {
+        applyElementPropsPatch(origin, propsPatch);
+    } else if ((origin.type & VNodeType.Text) > 0) {
+        updateTextProps(origin, propsPatch);
+    }
+}
 
 
-function updateProps(origin: VNode, newNode: VNode, propsPatch: PropsType, context) {
-    if ((origin.type & VNodeType.Node) > 0) {
-        if ((origin.type & VNodeType.Element) > 0) {
-            updateElementProps(origin, propsPatch);
-        } else if ((origin.type & VNodeType.Text) > 0) {
-            updateTextProps(origin, propsPatch);
-        }
-    } else if ((origin.type & VNodeType.Component) > 0) {
-        if ((origin.type & VNodeType.ComponentFunction) > 0) {
-            updateFunctionComponentProps(origin, newNode, propsPatch, context);
-        } else if ((origin.type & VNodeType.ComponentClass) > 0) {
-            updateClassComponentProps(origin, propsPatch, context);
-        }
+function updateComponentProps(origin: VNode, newNode: VNode, propsPatch: PropsType, context) {
+    if ((origin.type & VNodeType.ComponentFunction) > 0) {
+        updateFunctionComponentProps(origin, newNode, propsPatch, context);
+    } else if ((origin.type & VNodeType.ComponentClass) > 0) {
+        updateClassComponentProps(origin, propsPatch, context);
     }
 }
 

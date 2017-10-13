@@ -25,55 +25,58 @@ export function hasCommand(name: string): boolean {
     return Commands.has(name);
 }
 
-export const CommandsTriggerMap = new Map<NativeElement, CommandsTrigger>();
+export const CommandTriggerMap = new Map<NativeElement, CommandTrigger>();
 
-export class CommandsTrigger {
+export class CommandTrigger {
+    cmdMap = new Map<string, any>()
+    constructor(public nativeElement: NativeElement, cmdsArr: ReadonlyArray<Cmds>) {
+        let len = cmdsArr.length
+        let cmdMap = this.cmdMap;
+        let cmdName;
+        let cmds;
+        for (let i = 0; i < len; i++) {
+            cmds = cmdsArr[i];
+            for (cmdName in cmds) {
+                cmdMap.set(cmdName, cmds[cmdName]);
+            }
+        }
+    }
 
-    constructor(public nativeElement: NativeElement, public cmdsArr: Cmds[]) {
+    updateCmd(cmds: Cmds) {
+        let cmdMap = this.cmdMap;
+        let cmdName;
+        for (cmdName in cmds) {
+            cmdMap.set(cmdName, cmds[cmdName]);
+        }
     }
 
     inserted() {
-        let arr = this.cmdsArr
-        let len = arr.length
-
-        for (let i = 0; i < len; i++) {
-            let cmds = arr[i];
-            for (let cmdName in cmds) {
-                let cmd = Commands.get(cmdName);
-                if (cmd.inserted) {
-                    cmd.inserted(this.nativeElement, cmds[cmdName]);
-                }
+        let cmdMap = this.cmdMap;
+        cmdMap.forEach((cmdValue, cmdName) => {
+            let cmd = Commands.get(cmdName);
+            if (cmd.inserted) {
+                cmd.inserted(this.nativeElement, cmdValue);
             }
-        }
+        });
     }
 
     update() {
-        let arr = this.cmdsArr
-        let len = arr.length
-
-        for (let i = 0; i < len; i++) {
-            let cmds = arr[i];
-            for (let cmdName in cmds) {
-                let cmd = Commands.get(cmdName);
-                if (cmd.update) {
-                    // cmd.update(this.nativeElement, cmds[cmdName]);
-                }
-            }
-        }
+        // let cmdMap = this.cmdMap;
+        // cmdMap.forEach((cmdValue, cmdName) => {
+        //     let cmd = Commands.get(cmdName);
+        //     if (cmd.inserted) {
+        //         cmd.inserted(this.nativeElement, cmdValue);
+        //     }
+        // });
     }
 
     remove() {
-        let arr = this.cmdsArr
-        let len = arr.length
-
-        for (let i = 0; i < len; i++) {
-            let cmds = arr[i];
-            for (let cmdName in cmds) {
-                let cmd = Commands.get(cmdName);
-                if (cmd.remove) {
-                    cmd.remove(this.nativeElement, cmds[cmdName]);
-                }
+        let cmdMap = this.cmdMap;
+        cmdMap.forEach((cmdValue, cmdName) => {
+            let cmd = Commands.get(cmdName);
+            if (cmd.remove) {
+                cmd.remove(this.nativeElement, cmdValue);
             }
-        }
+        });
     }
 }

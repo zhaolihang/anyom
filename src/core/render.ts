@@ -1,8 +1,8 @@
 import { VNode, VNodeType, Instance, NativeElement, createVoidNode, PropsType, Cmds } from "./vnode";
 import { Component } from "./component";
-import { shallowDiffProps } from "./diff-patch";
+import { shallowDiffProps, PropsPatch } from "./diff-patch";
 import { isEventAttr, isFunction, isNullOrUndef, combineFrom, EMPTY_OBJ } from "./shared";
-import { CommandsTrigger, CommandsTriggerMap } from "./command";
+import { CommandTrigger, CommandTriggerMap } from "./command";
 
 
 export function findNativeElementByVNode(vnode: VNode): NativeElement {
@@ -62,9 +62,10 @@ function createInstanceByVNode(vnode: VNode, parentNode: NativeElement, context)
             nativeElmment = createVoid(vnode, parentNode, context);
         }
         if (cmdsStack.length > 0) {
-            let cmdsTrigger = new CommandsTrigger(nativeElmment, cmdsStack.splice(0));
-            CommandsTriggerMap.set(nativeElmment, cmdsTrigger);
+            let cmdsTrigger = new CommandTrigger(nativeElmment, cmdsStack);
+            CommandTriggerMap.set(nativeElmment, cmdsTrigger);
             cmdsTrigger.inserted();
+            cmdsStack.length = 0
         }
         return nativeElmment;
     } else if ((vnode.type & VNodeType.Component) > 0) {
@@ -177,13 +178,19 @@ export function appendMoved(movedNode: NativeElement) {
 
 
 export function initElementProps(origin: VNode) {
+    addElementProps(origin, origin.props);
+}
+
+
+function addElementProps(origin: VNode, props: PropsType) {
     let naviveElm = origin.instance as HTMLElement
-    let props = origin.props;
     for (let propName in props) {
         let propValue = props[propName];
         if (propName === 'style') {
-            if (typeof propValue === 'string') {
-                naviveElm.style.cssText = propValue || '';
+            if (!propValue) {
+                naviveElm.style.cssText = '';
+            } else if (typeof propValue === 'string') {
+                naviveElm.style.cssText = propValue;
             } else if (typeof propValue === 'object') {
                 let style = naviveElm.style
                 for (let styleName in propValue) {
@@ -200,19 +207,34 @@ export function initElementProps(origin: VNode) {
     }
 }
 
-
-
-export function updateElementProps(origin: VNode, propsPatch: PropsType) {
-
+function removeElementProps(origin, props: PropsType) {
     let naviveElm = origin.instance as HTMLElement
-    for (let propName in propsPatch) {
-        let propValue = propsPatch[propName];
+    for (let propName in props) {
+        let propValue = props[propName];
         if (propName === 'style') {
-            if (propValue === undefined) {//remove
+            naviveElm.style.cssText = '';
+        } else {
+            if (isEventAttr(propName)) {
+                naviveElm[propName.toLowerCase()] = undefined;
+            } else {
+                naviveElm[propName] = undefined;
+            }
+        }
+    }
+}
+
+
+function updateElementProps(origin, props: PropsType) {
+    let naviveElm = origin.instance as HTMLElement
+
+    for (let propName in props) {
+        let propValue = props[propName];
+        if (propName === 'style') {
+            if (!propValue) {
                 naviveElm.style.cssText = '';
-            } else {// update
+            } else {
                 if (typeof propValue === 'string') {
-                    naviveElm.style.cssText = propValue || '';
+                    naviveElm.style.cssText = propValue;
                 } else if (typeof propValue === 'object') {
                     let previous = origin.props;
                     let stylePatch = shallowDiffProps(previous || previous['style'], propValue);
@@ -231,10 +253,23 @@ export function updateElementProps(origin: VNode, propsPatch: PropsType) {
     }
 }
 
-export function updateTextProps(origin: VNode, propsPatch: PropsType) {
-    (origin.instance as Text).nodeValue = propsPatch.value as string;
+export function applyElementPropsPatch(origin: VNode, propsPatch: PropsPatch) {
+    if (propsPatch.added) {
+        addElementProps(origin, propsPatch.added);
+    }
+    if (propsPatch.removed) {
+        removeElementProps(origin, propsPatch.removed);
+    }
+    if (propsPatch.update) {
+        updateElementProps(origin, propsPatch.update);
+    }
 }
 
+export function updateTextProps(origin: VNode, propsPatch: PropsPatch) {
+    if (propsPatch.update) {
+        (origin.instance as Text).nodeValue = propsPatch.update.value as string;
+    }
+}
 
 
 export function hanleEvent(naviveElm: NativeElement, eventName, eventValue) {
