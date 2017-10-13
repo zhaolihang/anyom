@@ -33,9 +33,9 @@ export function render(vnode: VNode, parentNode: NativeElement, context: object 
         context = EMPTY_OBJ;
     }
 
-    if (vnode.cmds) {
-        cmdsStack.push(vnode.cmds);
-    }
+    // if (vnode.cmds) {
+    //     cmdsStack.push(vnode.cmds);
+    // }
     let newParentNode = createInstanceByVNode(vnode, parentNode, context);
 
     let children = vnode.children;
@@ -61,12 +61,12 @@ function createInstanceByVNode(vnode: VNode, parentNode: NativeElement, context)
         } else if ((vnode.type & VNodeType.Void) > 0) {
             nativeElmment = createVoid(vnode, parentNode, context);
         }
-        if (cmdsStack.length > 0) {
-            let cmdsTrigger = new CommandTrigger(nativeElmment, cmdsStack);
-            CommandTriggerMap.set(nativeElmment, cmdsTrigger);
-            cmdsTrigger.inserted();
-            cmdsStack.length = 0
-        }
+        // if (cmdsStack.length > 0) {
+        //     let cmdsTrigger = new CommandTrigger(nativeElmment, cmdsStack);
+        //     CommandTriggerMap.set(nativeElmment, cmdsTrigger);
+        //     cmdsTrigger.inserted();
+        //     cmdsStack.length = 0
+        // }
         return nativeElmment;
     } else if ((vnode.type & VNodeType.Component) > 0) {
         if ((vnode.type & VNodeType.ComponentFunction) > 0) {

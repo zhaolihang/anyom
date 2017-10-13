@@ -28,15 +28,14 @@ function walk(a: VNode, b: VNode, parent: VNode, context) {
                     b.lastResult = a.lastResult;// sync lastResult
                 }
                 return;// 组件无需比较children
-            } else if ((a.type & VNodeType.Void) > 0 && a.type === b.type) {// Void 无需比较
-                return;
-            } else {
+
+            } else if ((a.type & VNodeType.NotVoidNode) > 0) {
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
                     updateNodeProps(a, b, propsPatch, context);
                 }
                 diffChildren(a, b, context);
-            }
+            }// VNodeType.Void 无需比较
         } else {
             replaceNode(a, b, context);
         }

@@ -51,10 +51,9 @@ export class CommandTrigger {
     }
 
     inserted() {
-        let cmdMap = this.cmdMap;
-        cmdMap.forEach((cmdValue, cmdName) => {
+        this.cmdMap.forEach((cmdValue, cmdName) => {
             let cmd = Commands.get(cmdName);
-            if (cmd.inserted) {
+            if (cmd && cmd.inserted) {
                 cmd.inserted(this.nativeElement, cmdValue);
             }
         });
@@ -71,10 +70,9 @@ export class CommandTrigger {
     }
 
     remove() {
-        let cmdMap = this.cmdMap;
-        cmdMap.forEach((cmdValue, cmdName) => {
+        this.cmdMap.forEach((cmdValue, cmdName) => {
             let cmd = Commands.get(cmdName);
-            if (cmd.remove) {
+            if (cmd && cmd.remove) {
                 cmd.remove(this.nativeElement, cmdValue);
             }
         });

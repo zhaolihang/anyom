@@ -58,6 +58,7 @@ export enum VNodeType {
     Void = 1 << 30,
 
     Node = Element | Text | Void,
+    NotVoidNode = Element | Text,
 }
 
 export type Instance = Component | Function | NativeElement;
