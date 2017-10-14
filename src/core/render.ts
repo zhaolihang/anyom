@@ -1,8 +1,8 @@
 import { VNode, VNodeType, Instance, NativeElement, createVoidNode, PropsType, Cmds } from "./vnode";
 import { Component } from "./component";
-import { shallowDiffProps, PropsPatch } from "./diff-patch";
+import { shallowDiffProps, PropsPatch, CommandPatch } from "./diff-patch";
 import { isEventAttr, isFunction, isNullOrUndef, combineFrom, EMPTY_OBJ } from "./shared";
-import { CommandTrigger, CommandTriggerMap } from "./command";
+import { getCommand } from "./command";
 
 
 export function findNativeElementByVNode(vnode: VNode): NativeElement {
@@ -24,7 +24,6 @@ export function findNativeElementByVNode(vnode: VNode): NativeElement {
 }
 
 
-let cmdsStack: Cmds[] = [];
 export function render(vnode: VNode, parentNode: NativeElement, context: object | null): NativeElement {
     if (!vnode) {
         return;
@@ -33,16 +32,16 @@ export function render(vnode: VNode, parentNode: NativeElement, context: object 
         context = EMPTY_OBJ;
     }
 
-    // if (vnode.cmds) {
-    //     cmdsStack.push(vnode.cmds);
-    // }
-    let newParentNode = createInstanceByVNode(vnode, parentNode, context);
+    let newParentNode = createInstanceByVNode(vnode, parentNode, context);// newParentNode 必然是有值的
+    if (vnode.cmds) {
+        applyCmdInserted(newParentNode, vnode.cmds);
+    }
 
     let children = vnode.children;
-    if (children) {
+    if (children && children.length > 0) {
         let len = children.length
         for (let i = 0; i < len; i++) {
-            render(children[i], newParentNode || parentNode, context);
+            render(children[i], newParentNode, context);
         }
     }
 
@@ -61,12 +60,6 @@ function createInstanceByVNode(vnode: VNode, parentNode: NativeElement, context)
         } else if ((vnode.type & VNodeType.Void) > 0) {
             nativeElmment = createVoid(vnode, parentNode, context);
         }
-        // if (cmdsStack.length > 0) {
-        //     let cmdsTrigger = new CommandTrigger(nativeElmment, cmdsStack);
-        //     CommandTriggerMap.set(nativeElmment, cmdsTrigger);
-        //     cmdsTrigger.inserted();
-        //     cmdsStack.length = 0
-        // }
         return nativeElmment;
     } else if ((vnode.type & VNodeType.Component) > 0) {
         if ((vnode.type & VNodeType.ComponentFunction) > 0) {
@@ -287,4 +280,30 @@ export function hanleEvent(naviveElm: NativeElement, eventName, eventValue) {
 }
 
 
+// command
+export function applyCmdInserted(naviveElm: NativeElement, cmds: Cmds) {
+    for (let cmdName in cmds) {
+        let cmd = getCommand(cmdName);
+        if (cmd && cmd.inserted) {
+            cmd.inserted(naviveElm, cmds[cmdName]);
+        }
+    }
+}
 
+export function applyCmdUpdate(naviveElm: NativeElement, cmdPatch: CommandPatch) {
+    for (let cmdName in cmdPatch) {
+        let cmd = getCommand(cmdName);
+        if (cmd && cmd.update) {
+            cmd.update(naviveElm, cmdPatch[cmdName].newV, cmdPatch[cmdName].oldV);
+        }
+    }
+}
+
+export function applyCmdRemove(naviveElm: NativeElement, cmds: Cmds) {
+    for (let cmdName in cmds) {
+        let cmd = getCommand(cmdName);
+        if (cmd && cmd.remove) {
+            cmd.remove(naviveElm, cmds[cmdName]);
+        }
+    }
+}

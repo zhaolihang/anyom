@@ -27,7 +27,9 @@ export function linkEvent(data, event) {
 
 let gid = 0;
 export class Component {
-    $$observe_forbidden: boolean;
+    get $$observe_forbidden() {
+        return true;
+    };
     public shouldComponentUpdate?(nextProps, nextState, context): boolean;
     public getChildContext?(): { [x: string]: any };
 
@@ -39,10 +41,21 @@ export class Component {
     public componentDidUpdate?(prevProps, prevState, prevContext): void;
     public componentWillUnmount?(): void;
 
-    $$vnode: VNode;
+    $$owner: VNode;
 
     $$id: number;
-    $$lastResult: VNode;
+
+    private __$$lastResult: VNode;
+
+    get $$lastResult() {
+        return this.__$$lastResult
+    };
+    set $$lastResult(v) {
+        this.__$$lastResult = v;
+        if (v) {
+            v.parentVNode = this.$$owner;
+        }
+    }
 
     props: any;
     state: any;
@@ -106,6 +119,3 @@ export class Component {
         }
     }
 }
-
-Component.prototype.$$observe_forbidden = true;
-

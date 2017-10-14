@@ -64,28 +64,44 @@ export enum VNodeType {
 export type Instance = Component | Function | NativeElement;
 
 export class VNode {
-    $$observe_forbidden: boolean;
+    get $$observe_forbidden() {
+        return true;
+    };
 
     key: string;
     tag: TagName;
     type: VNodeType;
     props: PropsType
     children: VNode[]
-    private $$instance: Instance;
+    private __instance: Instance;
     get instance() {
-        return this.$$instance
+        return this.__instance
     };
     set instance(v) {
-        this.$$instance = v;
+        this.__instance = v;
         if (v && (this.type & VNodeType.ComponentClass) > 0) {
-            (v as Component).$$vnode = this;
+            (v as Component).$$owner = this;
         }
     }
 
-    lastResult?: VNode;// 只有 type === ComponentFunction 有效
+    private __lastResult?: VNode;// 只有 type === ComponentFunction 有效
+    get lastResult() {
+        return this.__lastResult
+    };
+    set lastResult(v) {
+        this.__lastResult = v;
+        if (v && (this.type & VNodeType.ComponentFunction) > 0) {
+            v.parentVNode = this;
+        }
+    }
+
+
+    parentVNode?: VNode;// 只有 type & Component 有效// 指向 instance的拥有者
+
     refs?: Refs;// 只有 type === ComponentFunction 有效
     ref?: Ref;// 只有 type === ComponentClass  or  type === Node 有效
     cmds?: Cmds;// 只有 type === ComponentClass  or  type === Node 有效
+
 
     constructor(type: VNodeType, tag: TagName, props: PropsType, children: VNode[], key?: string) {
         this.key = key != null ? String(key) : null;
@@ -96,7 +112,6 @@ export class VNode {
     }
 
 }
-VNode.prototype.$$observe_forbidden = true;
 
 
 const stack: VNode[] = [];
@@ -127,7 +142,7 @@ export function h(tag: TagName, props?: PropsType): VNode {
                 refs[tmp] = props[tmp];
             } else if (Commands.has(tmp)) {
                 if (!cmds) { cmds = {}; }
-                cmds[tmp] = cmds[tmp];
+                cmds[tmp] = props[tmp];
             } else {
                 newProps[tmp] = props[tmp];
             }

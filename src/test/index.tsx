@@ -2,134 +2,65 @@ import { h, VNode, VNodeType } from "../core/vnode";
 import { render } from "../core/render";
 import { diff } from "../core/diff-patch";
 import { Component } from "../core/component";
+import { setCommand } from "../core/command";
 let body = document.body
 let log = console.log;
+let vnode1, vnode2;
 
+setCommand('cmd-tester', {
+    inserted(node, newV) {
+        log('cmd-tester  inserted', node, newV);
+    },
 
-class Button extends Component {
-    constructor(props) {
-        super(props);
-        this.onClick = this.onClick.bind(this);
-    }
+    update(node, newV, oldV) {
+        log('cmd-tester  update', node, newV, oldV);
+    },
 
-    onClick(e) {
-        if (this.props.onClick) {
-            this.props.onClick(e)
-        }
-    }
+    remove(node, oldV) {
+        log('cmd-tester  remove', node, oldV);
+    },
 
+});
+
+class AbstructCom0 extends Component {
     render() {
-        log('Button ctx', this.context)
-        return (
-            <button onClick={this.onClick}>
-                button
-            </button>
-        )
+        // log(this)
+        return <div>AbstructCom0</div>
     }
 }
 
-function App(props, ctx) {
-    log('App ctx', ctx)
-    return (
-        <div>
-            {props.text}
-        </div>
-    )
-}
-
-
-class TestCom extends Component {
-
-    num = 0;
-
-    constructor(props) {
-        super(props)
-        this.onClick = this.onClick.bind(this);
-        this.state = {
-            appText: 'appText'
-        }
-    }
-
-    getChildContext() {
-        return {
-            TestCom: this
-        }
-    }
-
-    onClick() {
-        this.setState({
-            appText: 'appText' + this.num++
-        }, () => {
-            log('TestCom updated')
-        });
-    }
-
+class AbstructCom1 extends Component {
     render() {
-        return (
-            <div>
-                <Button onClick={this.onClick}>
-                </Button>
-                <App text={this.state.appText}>
-                </App>
-            </div>
-
-        )
+        // log(this)
+        return <div>AbstructCom1</div>
     }
 }
 
-let vnode1 = <div style={{ backgroundColor: 'red', height: '50px' }}>
-    <TestCom></TestCom>
-</div >
-let vnode2 = <div >
-    <TestCom></TestCom>
-</div >
+class AbstructCom2 extends Component {
+    render() {
+        if (this.props.nouse) {
+            return <AbstructCom1 nouse={this.props.nouse}></AbstructCom1>
+        } else {
+            return <AbstructCom0 nouse={this.props.nouse}></AbstructCom0>
+        }
+    }
+}
 
+function AbstructCom3(props) {
+    return <AbstructCom2 nouse={props.nouse} cmd-tester={props.nouse}></AbstructCom2>
+}
 
-// vnode1 = <div>
-//     <div key={'a'}>
-//         a
-//     </div>
-//     <div key={'b'}>
-//         b
-//     </div>
-//     <div key={'c'}>
-//         c
-//     </div>
-//     <div key={'d'}>
-//         d
-//     </div>
-//     <div key={'e'}>
-//         e
-//     </div>
-// </div>
-
-// vnode2 = <div>
-//     <div key={'e'}>
-//         e
-//     </div>
-//     <div key={'a'}>
-//         a
-//     </div>
-//     <div key={'b'}>
-//         b
-//     </div>
-//     <div key={'c'}>
-//         c
-//     </div>
-//     <div key={'d'}>
-//         d
-//     </div>
-//     <div key={'f'}>
-//         f
-//     </div>
-// </div>
+vnode1 = <div><AbstructCom3 nouse={0}></AbstructCom3></div>
+vnode2 = <div><AbstructCom3 nouse={1}></AbstructCom3></div>
 
 let ele = render(vnode1, body, null)
+// log(vnode1)
 
+let debug = 0;
 setTimeout(() => {
 
     diff(vnode1, vnode2, null)
-    log(vnode2);
+    // log(vnode2);
 
 }, 1000);
 

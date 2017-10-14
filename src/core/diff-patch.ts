@@ -1,12 +1,14 @@
 import { VNode, TagName, PropsType, VNodeType } from "./vnode";
 import { isObject, isUndefined } from "./shared";
-import { findNativeElementByVNode, render, removeSelf, replaceSelf, insertBeforeSelf, insertBeforeMoved, hanleEvent, appendMoved, applyElementPropsPatch, updateTextProps } from "./render";
-import { NativeElement, createVoidNode } from "./vnode";
+import { findNativeElementByVNode, render, removeSelf, replaceSelf, insertBeforeSelf, insertBeforeMoved, hanleEvent, appendMoved, applyElementPropsPatch, updateTextProps, applyCmdUpdate, applyCmdRemove, applyCmdInserted } from "./render";
+import { NativeElement, createVoidNode, Cmds } from "./vnode";
 import { Component } from "./component";
-import { isEventAttr, isArray, isFunction, isNullOrUndef } from "./shared";
-import { CommandTriggerMap } from "./command";
+import { isEventAttr, isArray, isFunction, isNullOrUndef, EMPTY_OBJ } from "./shared";
 
 export function diff(a: VNode, b: VNode, context) {
+    if (!context) {
+        context = EMPTY_OBJ;
+    }
     walk(a, b, null, context);
 };
 
@@ -22,23 +24,41 @@ function walk(a: VNode, b: VNode, parent: VNode, context) {
             b.instance = a.instance;
 
             if ((a.type & VNodeType.Component) > 0) {
+
                 if (!shallowEqual(a.props, b.props)) {
                     updateComponentProps(a, b, b.props, context);
                 } else {
-                    b.lastResult = a.lastResult;// sync lastResult
+                    if ((a.type & VNodeType.ComponentFunction) > 0) {
+                        b.lastResult = a.lastResult;//ComponentFunction sync lastResult
+                    }
                 }
-                return;// 组件无需比较children
 
+                let cmdsPatch = diffCommand(a.cmds, b.cmds);
+                if (cmdsPatch) {
+                    // 当 updateComponentProps 的时候可能发生了节点替换
+                    // 如果发生了节点替换  aNativeElm!==bNativeElm  必然调用 jointParentCmd(origin, newChild);
+                    //   bNativeElm 应用了 老的cmd 此时进行纠正 
+                    // 所以 无论那种情况 都应该传入 bNativeElm
+                    applyCmdUpdate(findNativeElementByVNode(b), cmdsPatch);
+                }
+
+                return;// 组件无需比较children
             } else if ((a.type & VNodeType.NotVoidNode) > 0) {
+
                 let propsPatch = shallowDiffProps(a.props, b.props);
                 if (propsPatch) {
                     updateNodeProps(a, b, propsPatch, context);
                 }
-                if ((a.type & VNodeType.Text) > 0) {
-                    return;// VNodeType.Text 无需比较children
+
+                if ((a.type & VNodeType.Element) > 0) {
+                    diffChildren(a, b, context);
+                }//else  {  // VNodeType.Text 无需比较children  }
+
+                let cmdsPatch = diffCommand(a.cmds, b.cmds);
+                if (cmdsPatch) {
+                    applyCmdUpdate(b.instance as NativeElement, cmdsPatch);
                 }
-                diffChildren(a, b, context);
-            }// VNodeType.Void 无需比较
+            }//else { // VNodeType.Void 无需比较 }
         } else {
             replaceNode(a, b, context);
         }
@@ -102,6 +122,32 @@ export function shallowDiffProps(a: PropsType, b: PropsType): PropsPatch {
     }
 }
 
+export type CommandPatch = {
+    [cmdName: string]: {
+        oldV: any,
+        newV: any
+    }
+}
+function diffCommand(aCmds: Cmds, bCmds: Cmds): CommandPatch {
+
+    if (aCmds === bCmds) {
+        return;
+    }
+    aCmds = aCmds || noPorps;
+    bCmds = bCmds || noPorps;
+    let diff;
+    for (let aKey in aCmds) {
+        if ((aKey in bCmds)) {
+            if (aCmds[aKey] !== bCmds[aKey]) {
+                if (!diff) {
+                    diff = {};
+                }
+                diff[aKey] = { oldV: aCmds[aKey], newV: bCmds[aKey] }
+            }
+        }
+    }
+    return diff;
+}
 
 
 function shallowEqual(a, b) {
@@ -430,19 +476,67 @@ function appendNode(parent: VNode, newNode: VNode, context) {
 }
 
 function removeChild(origin: VNode) {
-    // let trigger = CommandTriggerMap.get(origin.instance as NativeElement);
-    // if (trigger) {
-    //     trigger.remove();
-    //     CommandTriggerMap.delete(origin.instance as NativeElement);
-    // }
+    removeCmdHooks(origin, true);
     unmountHooks(origin);
     removeSelf(findNativeElementByVNode(origin));
 }
 
+function removeCmdHooks(origin: VNode, starter: boolean) {
+    // fist   remove children cmd
+    if ((origin.type & VNodeType.Node) > 0) {
+        let children = origin.children;
+        if (children && children.length > 0) {
+            let len = children.length;
+            for (let i = 0; i < len; i++) {
+                removeCmdHooks(children[i], false);
+            }
+        }
+    } else {// Component
+        if ((origin.type & VNodeType.ComponentFunction) > 0) {
+            removeCmdHooks(origin.lastResult, false);
+        } else if ((origin.type & VNodeType.ComponentClass) > 0) {
+            let instance = origin.instance as Component;
+            removeCmdHooks(instance.$$lastResult, false);
+        }
+    }
+
+    // second remove self cmd
+    let nativeElm = findNativeElementByVNode(origin);
+    if (origin.cmds) {
+        applyCmdRemove(nativeElm, origin.cmds);
+    }
+
+    // third  remove parent Component cmd if necessary
+    if (starter) {
+        // loop up
+        let parent: VNode = origin;
+        while (parent = parent.parentVNode) {
+            if (parent.cmds) {
+                applyCmdRemove(nativeElm, parent.cmds);
+            }
+        }
+    }
+
+}
+
+function jointParentCmd(newNode: VNode, newChild: NativeElement) {
+    let parent: VNode = newNode;
+    while (parent = parent.parentVNode) {
+        if (parent.cmds) {
+            // op
+            applyCmdInserted(newChild, parent.cmds);
+        }
+    }
+}
+
 function replaceNode(origin: VNode, newNode: VNode, context) {
+    removeCmdHooks(origin, true);
     unmountHooks(origin);
     let newChild = render(newNode, null, context);
     replaceSelf(findNativeElementByVNode(origin), newChild);
+    // joint parentComponent cmds
+    // at the time newNode certainly have not parentVNode chain  so we use oldVNode`s cmds first
+    jointParentCmd(origin, newChild);
 }
 
 function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null, context) {
@@ -505,7 +599,7 @@ function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: P
 
     let currResult: VNode = (origin.instance as Function)(newProps, context) || createVoidNode();
     diff(origin.lastResult, currResult, context)
-    newNode.lastResult = currResult
+    newNode.lastResult = currResult;
 
     if (newNode.refs && newNode.refs.onComponentDidUpdate) {// 应用新节点的 hook
         newNode.refs.onComponentDidUpdate(origin.props, newProps);
@@ -530,24 +624,38 @@ function updateClassComponentProps(origin: VNode, newProps: PropsType, context) 
 
 function unmountHooks(vnode: VNode) {
     if ((vnode.type & VNodeType.Node) > 0) {
+        // first hook children
+        let children = vnode.children;
+        if (children && children.length > 0) {
+            let len = children.length;
+            for (let i = 0; i < len; i++) {
+                unmountHooks(children[i]);
+            }
+        }
+        //second self
         if (vnode.ref) {
             vnode.ref(null);
         }
-    } else if ((vnode.type & VNodeType.Component) > 0) {
+    } else {
         if ((vnode.type & VNodeType.ComponentFunction) > 0) {
+            // first hook children
+            unmountHooks(vnode.lastResult);
+            //second self
             if (vnode.refs && vnode.refs.onComponentWillUnmount) {
                 vnode.refs.onComponentWillUnmount(findNativeElementByVNode(vnode));
             }
-            unmountHooks(vnode.lastResult);
         } else if ((vnode.type & VNodeType.ComponentClass) > 0) {
             let instance = vnode.instance as Component;
+
+            // first hook children
+            unmountHooks(instance.$$lastResult);
+            //second self
             if (vnode.ref) {
                 vnode.ref(null);
             }
             if (!isUndefined(instance.componentWillUnmount)) {
                 instance.componentWillUnmount();
             }
-            unmountHooks(instance.$$lastResult);
         }
     }
 }
