@@ -1,13 +1,13 @@
-import { isString, isInvalid, isUndefined, FunCompHooks } from "./shared";
+import { isString, isInvalid, isUndefined } from "./shared";
 import { Component } from "./component";
 import { Commands } from "./command";
 
-export interface NativeElement {
-    appendChild?(newNode: NativeElement): any
-    removeChild?(oriNode: NativeElement): any
-    replaceChild?(newNode: NativeElement, refNode: NativeElement): any
-    insertBefore?(newNode: NativeElement, refNode: NativeElement): any
-    parentNode?: NativeElement | any;
+export interface NativeNode {
+    appendChild?(newNode: NativeNode): any
+    removeChild?(oriNode: NativeNode): any
+    replaceChild?(newNode: NativeNode, refNode: NativeNode): any
+    insertBefore?(newNode: NativeNode, refNode: NativeNode): any
+    parentNode?: NativeNode | any;
     [x: string]: any;
 }
 
@@ -20,15 +20,24 @@ export type PropsType = {
     [x: string]: any
 };
 
-export type Ref = (node: NativeElement | Component) => void;
+export type Ref = (node: NativeNode | Component) => void;
+
+
+const FunCompHooks = new Set<string>();
+FunCompHooks.add("onComponentWillMount");
+FunCompHooks.add("onComponentDidMount");
+FunCompHooks.add("onComponentWillUnmount");
+FunCompHooks.add("onComponentShouldUpdate");
+FunCompHooks.add("onComponentWillUpdate");
+FunCompHooks.add("onComponentDidUpdate");
 
 export interface Refs {
     onComponentWillMount?(): void;
-    onComponentDidMount?(node: NativeElement): void;
+    onComponentDidMount?(node: NativeNode): void;
     onComponentShouldUpdate?(lastProps, nextProps): boolean;
     onComponentWillUpdate?(lastProps, nextProps): void;
     onComponentDidUpdate?(lastProps, nextProps): void;
-    onComponentWillUnmount?(node: NativeElement): void;
+    onComponentWillUnmount?(node: NativeNode): void;
 }
 
 export type Cmd = any;
@@ -61,7 +70,7 @@ export enum VNodeType {
     NotVoidNode = Element | Text,
 }
 
-export type Instance = Component | Function | NativeElement;
+export type Instance = Component | Function | NativeNode;
 
 export class VNode {
     get $$observe_forbidden() {
@@ -71,8 +80,8 @@ export class VNode {
     key: string;
     tag: TagName;
     type: VNodeType;
-    props: PropsType
-    children: VNode[]
+    props: PropsType;
+    children: VNode[];
     private __instance: Instance;
     get instance() {
         return this.__instance
@@ -97,6 +106,7 @@ export class VNode {
 
 
     parentVNode?: VNode;// 只有 type & Component 有效// 指向 instance的拥有者
+    nativeElement?: VNode;// 只有 type & Component 有效// 指向 instance的拥有者
 
     refs?: Refs;// 只有 type === ComponentFunction 有效
     ref?: Ref;// 只有 type === ComponentClass  or  type === Node 有效

@@ -1,10 +1,3 @@
-export const FunCompHooks = new Set<string>();
-FunCompHooks.add("onComponentWillMount");
-FunCompHooks.add("onComponentDidMount");
-FunCompHooks.add("onComponentWillUnmount");
-FunCompHooks.add("onComponentShouldUpdate");
-FunCompHooks.add("onComponentWillUpdate");
-FunCompHooks.add("onComponentDidUpdate");
 
 export const isBrowser = !!(typeof window !== "undefined" && window.document);
 
@@ -121,36 +114,6 @@ export function proxy(target: any, source: any, key: string) {
 }
 
 
-export class Lifecycle {
-  private listeners = [];
-  addListener(callback: Function) {
-    this.listeners.push(callback);
-  }
-
-  trigger() {
-    const listeners = this.listeners;
-
-    let listener;
-    // We need to remove current listener from array when calling it, because more listeners might be added
-    while ((listener = listeners.shift())) {
-      listener();
-    }
-  }
-
-}
-
-
 export function combineFrom(first?: {} | null, second?: {} | null): object {
-  const out = {};
-  if (first) {
-    for (const key in first) {
-      out[key] = first[key];
-    }
-  }
-  if (second) {
-    for (const key in second) {
-      out[key] = second[key];
-    }
-  }
-  return out;
+  return Object.assign({}, first, second);
 }

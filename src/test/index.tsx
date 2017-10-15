@@ -32,7 +32,7 @@ class AbstructCom0 extends Component {
 class AbstructCom1 extends Component {
     render() {
         // log(this)
-        return <div>AbstructCom1</div>
+        return <div {...this.props} >AbstructCom1</div>
     }
 }
 

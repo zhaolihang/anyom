@@ -3,15 +3,6 @@ import { queueComponent } from "./scheduler";
 import { diff } from "./diff-patch";
 import { isFunction, combineFrom, isNullOrUndef } from "./shared";
 
-export const LifeCycleType = {
-    Created: 'created',
-    Mounted: 'mounted',
-    UnMounted: 'unmounted',
-    BeforeUpdate: 'beforeUpdate',
-    AfterUpdate: 'afterUpdate',
-    Destory: '$$destory',
-}
-
 export enum RenderMode {
     None = 0,
     SYNC,
@@ -37,8 +28,8 @@ export class Component {
     public componentWillMount?(): void;
     public componentDidMount?(): void;
     public componentWillReceiveProps?(nextProps, nextContext): void;
-    public componentWillUpdate?(nextProps, nextState, nextContext): void;
-    public componentDidUpdate?(prevProps, prevState, prevContext): void;
+    public componentWillUpdate?(): void;
+    public componentDidUpdate?(): void;
     public componentWillUnmount?(): void;
 
     $$owner: VNode;
@@ -69,14 +60,14 @@ export class Component {
     setState(state, cb?: Function) {
         if (this.shouldComponentUpdate) {
             if (!this.shouldComponentUpdate(this.props, state, this.context)) {
-                this.state = Object.assign({}, this.state, state);
+                this.state = combineFrom(this.state, state);
                 if (typeof cb === 'function') {
                     cb();
                 }
                 return;
             }
         }
-        this.state = Object.assign({}, this.state, state);
+        this.state = combineFrom(this.state, state);
         queueComponent(this, cb)
     }
 
@@ -103,7 +94,7 @@ export class Component {
         }
 
         if (!isNullOrUndef(this.componentWillUpdate)) {
-            this.componentWillUpdate(this.props, this.state, this.context);
+            this.componentWillUpdate();
         }
 
         let currResult = this.render() || createVoidNode();
@@ -111,7 +102,7 @@ export class Component {
         this.$$lastResult = currResult;
 
         if (!isNullOrUndef(this.componentDidUpdate)) {
-            this.componentDidUpdate(this.props, this.state, this.context);
+            this.componentDidUpdate();
         }
 
         if (typeof cb === 'function') {

@@ -1,30 +1,30 @@
-import { VNode, VNodeType, Instance, NativeElement, createVoidNode, PropsType, Cmds } from "./vnode";
+import { VNode, VNodeType, Instance, NativeNode, createVoidNode, PropsType, Cmds } from "./vnode";
 import { Component } from "./component";
 import { shallowDiffProps, PropsPatch, CommandPatch } from "./diff-patch";
 import { isEventAttr, isFunction, isNullOrUndef, combineFrom, EMPTY_OBJ } from "./shared";
 import { getCommand } from "./command";
 
 
-export function findNativeElementByVNode(vnode: VNode): NativeElement {
+export function findNativeNodeByVNode(vnode: VNode): NativeNode {
     if (!vnode) {
         return;
     }
     if ((vnode.type & VNodeType.Node) > 0) {
-        return vnode.instance as NativeElement
+        return vnode.instance as NativeNode
     } else if ((vnode.type & VNodeType.Component) > 0) {
         if ((vnode.type & VNodeType.ComponentFunction) > 0) {
-            return findNativeElementByVNode(vnode.lastResult)
+            return findNativeNodeByVNode(vnode.lastResult)
         } else if ((vnode.type & VNodeType.ComponentClass) > 0) {
             if (!vnode.instance) {
                 return;
             }
-            return findNativeElementByVNode((vnode.instance as Component).$$lastResult)
+            return findNativeNodeByVNode((vnode.instance as Component).$$lastResult)
         }
     }
 }
 
 
-export function render(vnode: VNode, parentNode: NativeElement, context: object | null): NativeElement {
+export function render(vnode: VNode, parentNode: NativeNode, context: object | null): NativeNode {
     if (!vnode) {
         return;
     }
@@ -50,17 +50,17 @@ export function render(vnode: VNode, parentNode: NativeElement, context: object 
 
 
 // 生命周期
-function createInstanceByVNode(vnode: VNode, parentNode: NativeElement, context): NativeElement {
+function createInstanceByVNode(vnode: VNode, parentNode: NativeNode, context): NativeNode {
     if ((vnode.type & VNodeType.Node) > 0) {
-        let nativeElmment: NativeElement;
+        let nativeNode: NativeNode;
         if ((vnode.type & VNodeType.Element) > 0) {
-            nativeElmment = createElement(vnode, parentNode)
+            nativeNode = createElement(vnode, parentNode)
         } else if ((vnode.type & VNodeType.Text) > 0) {
-            nativeElmment = createText(vnode, parentNode);
+            nativeNode = createText(vnode, parentNode);
         } else if ((vnode.type & VNodeType.Void) > 0) {
-            nativeElmment = createVoid(vnode, parentNode, context);
+            nativeNode = createVoid(vnode, parentNode, context);
         }
-        return nativeElmment;
+        return nativeNode;
     } else if ((vnode.type & VNodeType.Component) > 0) {
         if ((vnode.type & VNodeType.ComponentFunction) > 0) {
             return createFunctionComponent(vnode, parentNode, context)
@@ -71,7 +71,7 @@ function createInstanceByVNode(vnode: VNode, parentNode: NativeElement, context)
 }
 
 
-function createElement(vnode: VNode, parentNode: NativeElement): NativeElement {
+function createElement(vnode: VNode, parentNode: NativeNode): NativeNode {
     vnode.instance = document.createElement(vnode.tag as string);
     initElementProps(vnode);
     if (parentNode) {
@@ -81,7 +81,7 @@ function createElement(vnode: VNode, parentNode: NativeElement): NativeElement {
 }
 
 
-function createText(vnode: VNode, parentNode: NativeElement): NativeElement {
+function createText(vnode: VNode, parentNode: NativeNode): NativeNode {
     vnode.instance = document.createTextNode(vnode.props.value);
     if (parentNode) {
         parentNode.appendChild(vnode.instance)
@@ -90,7 +90,7 @@ function createText(vnode: VNode, parentNode: NativeElement): NativeElement {
 }
 
 
-function createVoid(vnode: VNode, parentNode: NativeElement, context): NativeElement {
+function createVoid(vnode: VNode, parentNode: NativeNode, context): NativeNode {
     vnode.instance = document.createTextNode('');
     if (parentNode) {
         parentNode.appendChild(vnode.instance)
@@ -98,7 +98,7 @@ function createVoid(vnode: VNode, parentNode: NativeElement, context): NativeEle
     return vnode.instance
 }
 
-function createFunctionComponent(vnode: VNode, parentNode: NativeElement, context) {
+function createFunctionComponent(vnode: VNode, parentNode: NativeNode, context) {
     let doRender = vnode.tag as Function
     vnode.instance = doRender;
 
@@ -107,19 +107,19 @@ function createFunctionComponent(vnode: VNode, parentNode: NativeElement, contex
     }
 
     vnode.lastResult = doRender(vnode.props, context) || createVoidNode();
-    let nativeEle = render(vnode.lastResult, parentNode, context);
-    if (parentNode && nativeEle) {
-        parentNode.appendChild(nativeEle)
+    let nativeNode = render(vnode.lastResult, parentNode, context);
+    if (parentNode && nativeNode) {
+        parentNode.appendChild(nativeNode)
     }
 
     if (vnode.refs && vnode.refs.onComponentDidMount) {
-        vnode.refs.onComponentDidMount(nativeEle);
+        vnode.refs.onComponentDidMount(nativeNode);
     }
 
-    return nativeEle;
+    return nativeNode;
 }
 
-function createClassComponent(vnode: VNode, parentNode: NativeElement, context) {
+function createClassComponent(vnode: VNode, parentNode: NativeNode, context) {
     let instance = new (vnode.tag as typeof Component)(vnode.props);
     vnode.instance = instance;
     instance.$$initContext(context);
@@ -132,40 +132,40 @@ function createClassComponent(vnode: VNode, parentNode: NativeElement, context) 
         context = combineFrom(context, instance.getChildContext())
     }
     instance.$$lastResult = instance.render() || createVoidNode();
-    let nativeEle = render(instance.$$lastResult, parentNode, context)
-    if (parentNode && nativeEle) {
-        parentNode.appendChild(nativeEle)
+    let nativeNode = render(instance.$$lastResult, parentNode, context)
+    if (parentNode && nativeNode) {
+        parentNode.appendChild(nativeNode)
     }
 
     if (!isNullOrUndef(instance.componentDidMount)) {
         instance.componentDidMount();
     }
 
-    return nativeEle;
+    return nativeNode;
 }
 
 
 //  native op
-export function removeSelf(oriNode: NativeElement) {
+export function removeSelf(oriNode: NativeNode) {
     oriNode.parentNode.removeChild(oriNode);
 }
 
-export function replaceSelf(oriNode: NativeElement, newNode: NativeElement) {
-    (oriNode.parentNode as NativeElement).replaceChild(newNode, oriNode);
+export function replaceSelf(oriNode: NativeNode, newNode: NativeNode) {
+    (oriNode.parentNode as NativeNode).replaceChild(newNode, oriNode);
 }
 
-export function insertBeforeSelf(oriNode: NativeElement, newNode: NativeElement) {
-    (oriNode.parentNode as NativeElement).insertBefore(newNode, oriNode);
+export function insertBeforeSelf(oriNode: NativeNode, newNode: NativeNode) {
+    (oriNode.parentNode as NativeNode).insertBefore(newNode, oriNode);
 }
 
-export function insertBeforeMoved(movedNode: NativeElement, refNode: NativeElement) {
+export function insertBeforeMoved(movedNode: NativeNode, refNode: NativeNode) {
     // dom api : insertBefore  appendChild 如果插入或者添加的节点有父节点,浏览器内部会自行处理
-    (movedNode.parentNode as NativeElement).insertBefore(movedNode, refNode);
+    (movedNode.parentNode as NativeNode).insertBefore(movedNode, refNode);
 }
 
-export function appendMoved(movedNode: NativeElement) {
+export function appendMoved(movedNode: NativeNode) {
     // dom api : insertBefore  appendChild 如果插入或者添加的节点有父节点,浏览器内部会自行处理
-    (movedNode.parentNode as NativeElement).appendChild(movedNode);
+    (movedNode.parentNode as NativeNode).appendChild(movedNode);
 }
 
 
@@ -176,41 +176,41 @@ export function initElementProps(origin: VNode) {
 
 
 function addElementProps(origin: VNode, props: PropsType) {
-    let naviveElm = origin.instance as HTMLElement
+    let naviveNode = origin.instance as HTMLElement
     for (let propName in props) {
         let propValue = props[propName];
         if (propName === 'style') {
             if (!propValue) {
-                naviveElm.style.cssText = '';
+                naviveNode.style.cssText = '';
             } else if (typeof propValue === 'string') {
-                naviveElm.style.cssText = propValue;
+                naviveNode.style.cssText = propValue;
             } else if (typeof propValue === 'object') {
-                let style = naviveElm.style
+                let style = naviveNode.style
                 for (let styleName in propValue) {
                     style[styleName] = propValue[styleName];
                 }
             }
         } else {
             if (isEventAttr(propName)) {
-                hanleEvent(naviveElm, propName, propValue)
+                hanleEvent(naviveNode, propName, propValue)
             } else {
-                naviveElm[propName] = propValue;
+                naviveNode[propName] = propValue;
             }
         }
     }
 }
 
 function removeElementProps(origin, props: PropsType) {
-    let naviveElm = origin.instance as HTMLElement
+    let naviveNode = origin.instance as HTMLElement
     for (let propName in props) {
         let propValue = props[propName];
         if (propName === 'style') {
-            naviveElm.style.cssText = '';
+            naviveNode.style.cssText = '';
         } else {
             if (isEventAttr(propName)) {
-                naviveElm[propName.toLowerCase()] = undefined;
+                naviveNode[propName.toLowerCase()] = undefined;
             } else {
-                naviveElm[propName] = undefined;
+                naviveNode[propName] = undefined;
             }
         }
     }
@@ -218,29 +218,29 @@ function removeElementProps(origin, props: PropsType) {
 
 
 function updateElementProps(origin, props: PropsType) {
-    let naviveElm = origin.instance as HTMLElement
+    let naviveNode = origin.instance as HTMLElement
 
     for (let propName in props) {
         let propValue = props[propName];
         if (propName === 'style') {
             if (!propValue) {
-                naviveElm.style.cssText = '';
+                naviveNode.style.cssText = '';
             } else {
                 if (typeof propValue === 'string') {
-                    naviveElm.style.cssText = propValue;
+                    naviveNode.style.cssText = propValue;
                 } else if (typeof propValue === 'object') {
                     let previous = origin.props;
                     let stylePatch = shallowDiffProps(previous || previous['style'], propValue);
                     for (let styleName in stylePatch) {
-                        naviveElm.style[styleName] = stylePatch[styleName];
+                        naviveNode.style[styleName] = stylePatch[styleName];
                     }
                 }
             }
         } else {
             if (isEventAttr(propName)) {
-                hanleEvent(naviveElm, propName, propValue)
+                hanleEvent(naviveNode, propName, propValue)
             } else {
-                naviveElm[propName] = propValue;
+                naviveNode[propName] = propValue;
             }
         }
     }
@@ -265,45 +265,45 @@ export function updateTextProps(origin: VNode, propsPatch: PropsPatch) {
 }
 
 
-export function hanleEvent(naviveElm: NativeElement, eventName, eventValue) {
+export function hanleEvent(naviveNode: NativeNode, eventName, eventValue) {
     eventName = eventName.toLowerCase();
     if (!isFunction(eventValue) && !isNullOrUndef(eventValue)) {
         const linkEvent = eventValue.event;
         if (linkEvent && isFunction(linkEvent)) {
-            naviveElm[eventName] = function (e) {
+            naviveNode[eventName] = function (e) {
                 linkEvent(eventValue.data, e);
             };
         }
     } else {
-        naviveElm[eventName] = eventValue;
+        naviveNode[eventName] = eventValue;
     }
 }
 
 
 // command
-export function applyCmdInserted(naviveElm: NativeElement, cmds: Cmds) {
+export function applyCmdInserted(nativeNode: NativeNode, cmds: Cmds) {
     for (let cmdName in cmds) {
         let cmd = getCommand(cmdName);
         if (cmd && cmd.inserted) {
-            cmd.inserted(naviveElm, cmds[cmdName]);
+            cmd.inserted(nativeNode, cmds[cmdName]);
         }
     }
 }
 
-export function applyCmdUpdate(naviveElm: NativeElement, cmdPatch: CommandPatch) {
+export function applyCmdUpdate(nativeNode: NativeNode, cmdPatch: CommandPatch) {
     for (let cmdName in cmdPatch) {
         let cmd = getCommand(cmdName);
         if (cmd && cmd.update) {
-            cmd.update(naviveElm, cmdPatch[cmdName].newV, cmdPatch[cmdName].oldV);
+            cmd.update(nativeNode, cmdPatch[cmdName].newV, cmdPatch[cmdName].oldV);
         }
     }
 }
 
-export function applyCmdRemove(naviveElm: NativeElement, cmds: Cmds) {
+export function applyCmdRemove(nativeNode: NativeNode, cmds: Cmds) {
     for (let cmdName in cmds) {
         let cmd = getCommand(cmdName);
         if (cmd && cmd.remove) {
-            cmd.remove(naviveElm, cmds[cmdName]);
+            cmd.remove(nativeNode, cmds[cmdName]);
         }
     }
 }

@@ -1,5 +1,5 @@
 
-import { NativeElement, Cmds } from "./vnode";
+import { NativeNode, Cmds } from "./vnode";
 
 export const Commands = new Map<string, ICommandObjType>();
 

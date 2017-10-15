@@ -1,7 +1,7 @@
 import { VNode, TagName, PropsType, VNodeType } from "./vnode";
 import { isObject, isUndefined } from "./shared";
-import { findNativeElementByVNode, render, removeSelf, replaceSelf, insertBeforeSelf, insertBeforeMoved, hanleEvent, appendMoved, applyElementPropsPatch, updateTextProps, applyCmdUpdate, applyCmdRemove, applyCmdInserted } from "./render";
-import { NativeElement, createVoidNode, Cmds } from "./vnode";
+import { findNativeNodeByVNode, render, removeSelf, replaceSelf, insertBeforeSelf, insertBeforeMoved, hanleEvent, appendMoved, applyElementPropsPatch, updateTextProps, applyCmdUpdate, applyCmdRemove, applyCmdInserted } from "./render";
+import { NativeNode, createVoidNode, Cmds } from "./vnode";
 import { Component } from "./component";
 import { isEventAttr, isArray, isFunction, isNullOrUndef, EMPTY_OBJ } from "./shared";
 
@@ -36,10 +36,10 @@ function walk(a: VNode, b: VNode, parent: VNode, context) {
                 let cmdsPatch = diffCommand(a.cmds, b.cmds);
                 if (cmdsPatch) {
                     // 当 updateComponentProps 的时候可能发生了节点替换
-                    // 如果发生了节点替换  aNativeElm!==bNativeElm  必然调用 jointParentCmd(origin, newChild);
-                    //   bNativeElm 应用了 老的cmd 此时进行纠正 
-                    // 所以 无论那种情况 都应该传入 bNativeElm
-                    applyCmdUpdate(findNativeElementByVNode(b), cmdsPatch);
+                    // 如果发生了节点替换  aNativeNode!==bNativeNode  必然调用 jointParentCmd(origin, newChild);
+                    //   bNativeNode 应用了 老的cmd 此时进行纠正 
+                    // 所以 无论那种情况 都应该传入 bNativeNode
+                    applyCmdUpdate(findNativeNodeByVNode(b), cmdsPatch);
                 }
 
                 return;// 组件无需比较children
@@ -56,7 +56,7 @@ function walk(a: VNode, b: VNode, parent: VNode, context) {
 
                 let cmdsPatch = diffCommand(a.cmds, b.cmds);
                 if (cmdsPatch) {
-                    applyCmdUpdate(b.instance as NativeElement, cmdsPatch);
+                    applyCmdUpdate(b.instance as NativeNode, cmdsPatch);
                 }
             }//else { // VNodeType.Void 无需比较 }
         } else {
@@ -472,13 +472,13 @@ function diffNoKeyedChildren(a: VNode, b: VNode, context) {
 
 // patch op
 function appendNode(parent: VNode, newNode: VNode, context) {
-    render(newNode, findNativeElementByVNode(parent), context)
+    render(newNode, findNativeNodeByVNode(parent), context)
 }
 
 function removeChild(origin: VNode) {
     removeCmdHooks(origin, true);
     unmountHooks(origin);
-    removeSelf(findNativeElementByVNode(origin));
+    removeSelf(findNativeNodeByVNode(origin));
 }
 
 function removeCmdHooks(origin: VNode, starter: boolean) {
@@ -501,9 +501,9 @@ function removeCmdHooks(origin: VNode, starter: boolean) {
     }
 
     // second remove self cmd
-    let nativeElm = findNativeElementByVNode(origin);
+    let nativeNode = findNativeNodeByVNode(origin);
     if (origin.cmds) {
-        applyCmdRemove(nativeElm, origin.cmds);
+        applyCmdRemove(nativeNode, origin.cmds);
     }
 
     // third  remove parent Component cmd if necessary
@@ -512,14 +512,14 @@ function removeCmdHooks(origin: VNode, starter: boolean) {
         let parent: VNode = origin;
         while (parent = parent.parentVNode) {
             if (parent.cmds) {
-                applyCmdRemove(nativeElm, parent.cmds);
+                applyCmdRemove(nativeNode, parent.cmds);
             }
         }
     }
 
 }
 
-function jointParentCmd(newNode: VNode, newChild: NativeElement) {
+function jointParentCmd(newNode: VNode, newChild: NativeNode) {
     let parent: VNode = newNode;
     while (parent = parent.parentVNode) {
         if (parent.cmds) {
@@ -533,7 +533,7 @@ function replaceNode(origin: VNode, newNode: VNode, context) {
     removeCmdHooks(origin, true);
     unmountHooks(origin);
     let newChild = render(newNode, null, context);
-    replaceSelf(findNativeElementByVNode(origin), newChild);
+    replaceSelf(findNativeNodeByVNode(origin), newChild);
     // joint parentComponent cmds
     // at the time newNode certainly have not parentVNode chain  so we use oldVNode`s cmds first
     jointParentCmd(origin, newChild);
@@ -542,17 +542,17 @@ function replaceNode(origin: VNode, newNode: VNode, context) {
 function insertOrAppend(parent: VNode, newNode: VNode, refNode: VNode | null, context) {
     if (refNode) {
         let newChild = render(newNode, null, context);
-        let refChild = findNativeElementByVNode(refNode);
+        let refChild = findNativeNodeByVNode(refNode);
         insertBeforeSelf(refChild, newChild)
     } else {
-        render(newNode, findNativeElementByVNode(parent), context)
+        render(newNode, findNativeNodeByVNode(parent), context)
     }
 }
 
 function insertOrAppendWithMoved(parent: VNode, movedNode: VNode, refNode: VNode | null) {
-    let movedChild = findNativeElementByVNode(movedNode);
+    let movedChild = findNativeNodeByVNode(movedNode);
     if (refNode) {
-        let refChild = findNativeElementByVNode(refNode);
+        let refChild = findNativeNodeByVNode(refNode);
         insertBeforeMoved(movedChild, refChild)
     } else {
         appendMoved(movedChild)
@@ -642,7 +642,7 @@ function unmountHooks(vnode: VNode) {
             unmountHooks(vnode.lastResult);
             //second self
             if (vnode.refs && vnode.refs.onComponentWillUnmount) {
-                vnode.refs.onComponentWillUnmount(findNativeElementByVNode(vnode));
+                vnode.refs.onComponentWillUnmount(findNativeNodeByVNode(vnode));
             }
         } else if ((vnode.type & VNodeType.ComponentClass) > 0) {
             let instance = vnode.instance as Component;
