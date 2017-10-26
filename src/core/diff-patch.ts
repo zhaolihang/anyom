@@ -73,10 +73,14 @@ export type PropsPatch = {
     added?: PropsType,
 }
 
-const noPorps = {};
+const noneObj = {};
+if (Object.freeze) {
+    Object.freeze(noneObj)
+}
+
 export function shallowDiffProps(a: PropsType, b: PropsType): PropsPatch {
-    a = a || noPorps;
-    b = b || noPorps;
+    a = a || noneObj;
+    b = b || noneObj;
     let removed: PropsType;
     let update: PropsType;
     let added: PropsType;
@@ -133,8 +137,8 @@ function diffCommand(aCmds: Cmds, bCmds: Cmds): CommandPatch {
     if (aCmds === bCmds) {
         return;
     }
-    aCmds = aCmds || noPorps;
-    bCmds = bCmds || noPorps;
+    aCmds = aCmds || noneObj;
+    bCmds = bCmds || noneObj;
     let diff;
     for (let aKey in aCmds) {
         if ((aKey in bCmds)) {
@@ -151,8 +155,8 @@ function diffCommand(aCmds: Cmds, bCmds: Cmds): CommandPatch {
 
 
 function shallowEqual(a, b) {
-    a = a || noPorps;
-    b = b || noPorps;
+    a = a || noneObj;
+    b = b || noneObj;
     for (let aKey in a) {
         if (!(aKey in b)) {
             return false
@@ -174,7 +178,7 @@ function shallowEqual(a, b) {
 }
 
 
-function allKeyed(children: VNode[]) {
+function isAllKeyed(children: VNode[]) {
     let length = children.length;
     let child;
     for (let i = 0; i < length; i++) {
@@ -187,11 +191,11 @@ function allKeyed(children: VNode[]) {
 }
 
 function diffChildren(a: VNode, b: VNode, context) {
-    if (a.children.length === 0 || !allKeyed(a.children)) {
+    if (a.children.length === 0 || !isAllKeyed(a.children)) {
         // nokey
         diffNoKeyedChildren(a, b, context);
     } else {
-        if (b.children.length === 0 || !allKeyed(b.children)) {
+        if (b.children.length === 0 || !isAllKeyed(b.children)) {
             // nokey
             diffNoKeyedChildren(a, b, context);
         } else {
