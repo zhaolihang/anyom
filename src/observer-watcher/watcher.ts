@@ -13,21 +13,22 @@ let uid = 0;
  */
 
 export default class Watcher {
+    public value: any;
+    public vm: any;
+    private cb: Function;
 
-    vm: any;
-    cb: Function;
-    id: number;
-    deep: boolean;
-    lazy: boolean;
-    sync: boolean;
-    dirty: boolean;
-    active: boolean;
-    deps: Array<Dep>;
-    newDeps: Array<Dep>;
-    depIds: ISet;
-    newDepIds: ISet;
-    getter: Function;
-    value: any;
+    public id: number;
+    public deep: boolean;
+    public lazy: boolean;
+    public sync: boolean;
+    public dirty: boolean;
+    public active: boolean;
+
+    private deps: Array<Dep>;
+    private newDeps: Array<Dep>;
+    private depIds: ISet;
+    private newDepIds: ISet;
+    private getter: Function;
 
     constructor(vm: any, expOrFn: string | Function, cb: Function, options?: {
         deep?: boolean,
@@ -178,6 +179,7 @@ export default class Watcher {
     evaluate() {
         this.value = this.get();
         this.dirty = false;
+        return this.value;
     }
 
     /**

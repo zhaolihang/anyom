@@ -151,7 +151,7 @@ export function defineReactive(obj: Object, key: string, val: any, shallow?: boo
 
             const value = getter ? getter.call(obj) : val;
 
-            if (newVal === value || (newVal !== newVal && value !== value)) {
+            if (newVal === value) {
                 return;
             }
 
