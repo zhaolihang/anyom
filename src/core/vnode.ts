@@ -104,14 +104,11 @@ export class VNode {
         }
     }
 
-
     parentVNode?: VNode;// 只有 type & Component 有效// 指向 instance的拥有者
-    nativeElement?: VNode;// 只有 type & Component 有效// 指向 instance的拥有者
 
     refs?: Refs;// 只有 type === ComponentFunction 有效
     ref?: Ref;// 只有 type === ComponentClass  or  type === Node 有效
     cmds?: Cmds;// 只有 type === ComponentClass  or  type === Node 有效
-
 
     constructor(type: VNodeType, tag: TagName, props: PropsType, children: VNode[], key?: string) {
         this.key = key != null ? String(key) : null;
