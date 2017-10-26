@@ -16,7 +16,7 @@ export function linkEvent(data, event) {
     return null;
 }
 
-let gid = 0;
+let uid = 0;
 export class Component {
     get $$observe_forbidden() {
         return true;
@@ -53,7 +53,7 @@ export class Component {
     context: any;
 
     constructor(props) {
-        this.$$id = ++gid;
+        this.$$id = ++uid;
         this.props = props;
     }
 
