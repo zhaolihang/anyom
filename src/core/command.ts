@@ -1,13 +1,12 @@
-
 import { NativeNode, Cmds } from "./vnode";
 
-export const Commands = new Map<string, ICommandObjType>();
-
 export type ICommandObjType = {
-    inserted?: (node, newValue) => any,
-    update?: (node, newValue, oldValue) => any,
-    remove?: (node, oldValue) => any,
+    inserted?: (node: NativeNode, newValue) => any,
+    update?: (node: NativeNode, newValue, oldValue) => any,
+    remove?: (node: NativeNode, oldValue) => any,
 };
+
+export const Commands = new Map<string, ICommandObjType>();
 
 export function setCommand(name: string, cmdObj: ICommandObjType) {
     if (Commands.has(name)) {

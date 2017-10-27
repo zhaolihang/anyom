@@ -56,7 +56,7 @@ function getVNodeType(type: any): VNodeType {
     }
 }
 
-export enum VNodeType {
+export const enum VNodeType {
     Text = 1,
     Element = 1 << 1,
 
