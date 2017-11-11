@@ -101,9 +101,9 @@ function createVoid(vnode: VNode, parentNode: NativeNode, context): NativeNode {
 function createFunctionComponent(vnode: VNode, parentNode: NativeNode, context) {
     let doRender = vnode.tag as Function
     vnode.instance = doRender;
-
-    if (vnode.refs && vnode.refs.onComponentWillMount) {
-        vnode.refs.onComponentWillMount();
+    let refs = vnode.refs;
+    if (refs && refs.onComponentWillMount) {
+        refs.onComponentWillMount();
     }
 
     vnode.lastResult = doRender(vnode.props, context) || createVoidNode();
@@ -112,8 +112,8 @@ function createFunctionComponent(vnode: VNode, parentNode: NativeNode, context) 
         parentNode.appendChild(nativeNode)
     }
 
-    if (vnode.refs && vnode.refs.onComponentDidMount) {
-        vnode.refs.onComponentDidMount(nativeNode);
+    if (refs && refs.onComponentDidMount) {
+        refs.onComponentDidMount(nativeNode);
     }
 
     return nativeNode;
@@ -124,7 +124,7 @@ function createClassComponent(vnode: VNode, parentNode: NativeNode, context) {
     vnode.instance = instance;
     instance.$$initContext(context);
 
-    if (!isNullOrUndef(instance.componentWillMount)) {
+    if (instance.componentWillMount) {
         instance.componentWillMount();
     }
 
@@ -137,7 +137,7 @@ function createClassComponent(vnode: VNode, parentNode: NativeNode, context) {
         parentNode.appendChild(nativeNode)
     }
 
-    if (!isNullOrUndef(instance.componentDidMount)) {
+    if (instance.componentDidMount) {
         instance.componentDidMount();
     }
 

@@ -76,7 +76,7 @@ export class Component {
     }
 
     $$setPropsAndContext(nextProps, nextContext) {
-        if (!isNullOrUndef(this.componentWillReceiveProps)) {
+        if (this.componentWillReceiveProps) {
             this.componentWillReceiveProps(nextProps, nextContext);
         }
         this.props = nextProps;
@@ -93,7 +93,7 @@ export class Component {
             context = combineFrom(this.context, this.getChildContext())
         }
 
-        if (!isNullOrUndef(this.componentWillUpdate)) {
+        if (this.componentWillUpdate) {
             this.componentWillUpdate();
         }
 
@@ -101,7 +101,7 @@ export class Component {
         diff(this.$$lastResult, currResult, context)
         this.$$lastResult = currResult;
 
-        if (!isNullOrUndef(this.componentDidUpdate)) {
+        if (this.componentDidUpdate) {
             this.componentDidUpdate();
         }
 
