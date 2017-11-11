@@ -219,7 +219,7 @@ function traverse(val: any) {
 }
 
 function _traverse(val: any, seen: ISet) {
-    if (!val || val.$$observe_forbidden) {
+    if (!val || val.$$observeForbidden) {
         return
     }
     let i, keys;
@@ -229,8 +229,8 @@ function _traverse(val: any, seen: ISet) {
         return;
     }
 
-    if (val.__observer__) {
-        const depId = val.__observer__.dep.id;
+    if (val.__observer) {
+        const depId = val.__observer.dep.id;
         // if obj is hit, it is in circular structure
         if (seen.has(depId)) {
             return;

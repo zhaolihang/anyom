@@ -73,7 +73,7 @@ export const enum VNodeType {
 export type Instance = Component | Function | NativeNode;
 
 export class VNode {
-    get $$observe_forbidden() {
+    get $$observeForbidden() {
         return true;
     };
 

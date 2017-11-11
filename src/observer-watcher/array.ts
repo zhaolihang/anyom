@@ -22,7 +22,7 @@ export const arrayMethods = Object.create(arrayProto);
     def(arrayMethods, method, function mutator(...args) {
 
         const result = original.apply(this, args);
-        const ob: Observer = this.__observer__;
+        const ob: Observer = this.__observer;
         let inserted;
 
         switch (method) {

@@ -34,7 +34,7 @@ export class Observer {
 
     constructor(public value: any, public shallow?: boolean) {
         this.value = value;
-        def(value, '__observer__', this);
+        def(value, '__observer', this);
 
         if (Array.isArray(value)) {
             hasProto ? protoAugment(value, arrayMethods) : copyAugment(value, arrayMethods, arrayKeys);
@@ -100,16 +100,16 @@ export function observe(value: any): Observer | void {
     if (!isObject(value)) {
         return;
     }
-    if (hasOwn(value, '__observer__') && value.__observer__ instanceof Observer) {
-        return value.__observer__ as Observer;
+    if (hasOwn(value, '__observer') && value.__observer instanceof Observer) {
+        return value.__observer as Observer;
     } else if (observerState.shouldConvert && (Array.isArray(value)
-        || isPlainObject(value)) && Object.isExtensible(value) && !value.$$observe_forbidden) {
+        || isPlainObject(value)) && Object.isExtensible(value) && !value.$$observeForbidden) {
         return new Observer(value);
     }
 }
 
 export function getObserver(value: any): Observer | void {
-    return value && value.__observer__
+    return value && value.__observer
 }
 /**
  * Define a reactive property on an Object.
@@ -185,8 +185,8 @@ export function set(target: Array<any> | Object, key: any, val: any): any {
         return val;
     }
 
-    const ob: Observer = (target as any).__observer__;
-    if ((target as any).$$observe_forbidden) {
+    const ob: Observer = (target as any).__observer;
+    if ((target as any).$$observeForbidden) {
         return val;
     }
     if (!ob) {
@@ -210,8 +210,8 @@ export function del(target: Array<any> | Object, key: any) {
         return;
     }
 
-    const ob: Observer = (target as any).__observer__;
-    if ((target as any).$$observe_forbidden) {
+    const ob: Observer = (target as any).__observer;
+    if ((target as any).$$observeForbidden) {
         return;
     }
     if (!hasOwn(target, key)) {
@@ -233,7 +233,7 @@ export function del(target: Array<any> | Object, key: any) {
 function dependArray(value: Array<any>) {
     for (let e, i = 0, l = value.length; i < l; i++) {
         e = value[i];
-        e && e.__observer__ && e.__observer__.dep.depend();
+        e && e.__observer && e.__observer.dep.depend();
 
         if (Array.isArray(e)) {
             dependArray(e);

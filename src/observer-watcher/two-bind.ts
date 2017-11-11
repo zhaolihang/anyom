@@ -3,11 +3,11 @@ import { segmentsPath, getObjBySegments } from "./utils";
 import Watcher from "./watcher";
 
 export let twoBind = (dataA: any, dataAPath: string, dataB: any, dataBPath: string, options: { deep?: boolean, sync?: boolean }) => {
-    if (!(dataA.__observer__ instanceof Observer)) {
+    if (!(dataA.__observer instanceof Observer)) {
         new Observer(dataA);
     }
 
-    if (!(dataB.__observer__ instanceof Observer)) {
+    if (!(dataB.__observer instanceof Observer)) {
         new Observer(dataB);
     }
 

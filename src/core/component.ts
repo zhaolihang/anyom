@@ -18,7 +18,7 @@ export function linkEvent(data, event) {
 
 let uid = 0;
 export class Component {
-    get $$observe_forbidden() {
+    get $$observeForbidden() {
         return true;
     };
     public shouldComponentUpdate?(nextProps, nextState, context): boolean;
