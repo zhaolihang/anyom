@@ -34,7 +34,8 @@ var stopMeasure = function () {
 const span = <span className="glyphicon glyphicon-remove" aria-hidden="true" ></span>;
 const td = <td className="col-md-6" ></td>;
 
-function Row({ d, id, selected, deleteFunc, selectFunc }) {
+function Row(props) {
+    const { d, id, selected, deleteFunc, selectFunc } = props;
     return (
         <tr className={selected ? 'danger' : ''} >
             <td className="col-md-1" >{id + ''}</td>
