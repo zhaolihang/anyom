@@ -24,20 +24,20 @@ export type Ref = (node: NativeNode | Component) => void;
 
 
 const FunCompHooks = new Set<string>();
-FunCompHooks.add("onComponentWillMount");
-FunCompHooks.add("onComponentDidMount");
-FunCompHooks.add("onComponentWillUnmount");
-FunCompHooks.add("onComponentShouldUpdate");
-FunCompHooks.add("onComponentWillUpdate");
-FunCompHooks.add("onComponentDidUpdate");
+FunCompHooks.add("onWillMount");
+FunCompHooks.add("onDidMount");
+FunCompHooks.add("onWillUnmount");
+FunCompHooks.add("onShouldUpdate");
+FunCompHooks.add("onWillUpdate");
+FunCompHooks.add("onDidUpdate");
 
-export interface Refs {
-    onComponentWillMount?(): void;
-    onComponentDidMount?(node: NativeNode): void;
-    onComponentShouldUpdate?(lastProps, nextProps): boolean;
-    onComponentWillUpdate?(lastProps, nextProps): void;
-    onComponentDidUpdate?(lastProps, nextProps): void;
-    onComponentWillUnmount?(node: NativeNode): void;
+export interface Hooks {
+    onWillMount?(): void;
+    onDidMount?(node: NativeNode): void;
+    onShouldUpdate?(lastProps, nextProps): boolean;
+    onWillUpdate?(lastProps, nextProps): void;
+    onDidUpdate?(lastProps, nextProps): void;
+    onWillUnmount?(node: NativeNode): void;
 }
 
 export type Cmd = any;
@@ -106,7 +106,7 @@ export class VNode {
 
     parentVNode?: VNode;// 只有 type & Component 有效// 指向 instance的拥有者
 
-    refs?: Refs;// 只有 type === ComponentFunction 有效
+    hooks?: Hooks;// 只有 type === ComponentFunction 有效
     ref?: Ref;// 只有 type === ComponentClass  or  type === Node 有效
     cmds?: Cmds;// 只有 type === ComponentClass  or  type === Node 有效
 
@@ -132,7 +132,7 @@ export function h(tag: TagName, props?: PropsType): VNode {
     let type = getVNodeType(tag);
     let key;
     let ref;
-    let refs;
+    let hooks;
     let cmds;
     let tmp;
     let newProps: any = {};
@@ -145,8 +145,8 @@ export function h(tag: TagName, props?: PropsType): VNode {
             } else if (!isInvalid(props.children)) {
                 stack.push(props.children as any);
             } else if (FunCompHooks.has(tmp)) {
-                if (!refs) { refs = {}; }
-                refs[tmp] = props[tmp];
+                if (!hooks) { hooks = {}; }
+                hooks[tmp] = props[tmp];
             } else if (Commands.has(tmp)) {
                 if (!cmds) { cmds = {}; }
                 cmds[tmp] = props[tmp];
@@ -194,7 +194,7 @@ export function h(tag: TagName, props?: PropsType): VNode {
         node = new VNode(type, tag, newProps, children || noChildren, key);
     }
     node.ref = ref;
-    node.refs = refs;
+    node.hooks = hooks;
     node.cmds = cmds;
     return node;
 }

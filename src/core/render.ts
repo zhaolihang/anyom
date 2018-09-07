@@ -101,9 +101,9 @@ function createVoid(vnode: VNode, parentNode: NativeNode, context): NativeNode {
 function createFunctionComponent(vnode: VNode, parentNode: NativeNode, context) {
     let doRender = vnode.tag as Function
     vnode.instance = doRender;
-    let refs = vnode.refs;
-    if (refs && refs.onComponentWillMount) {
-        refs.onComponentWillMount();
+    let hooks = vnode.hooks;
+    if (hooks && hooks.onWillMount) {
+        hooks.onWillMount();
     }
 
     vnode.lastResult = doRender(vnode.props, context) || createVoidNode();
@@ -112,8 +112,8 @@ function createFunctionComponent(vnode: VNode, parentNode: NativeNode, context) 
         parentNode.appendChild(nativeNode)
     }
 
-    if (refs && refs.onComponentDidMount) {
-        refs.onComponentDidMount(nativeNode);
+    if (hooks && hooks.onDidMount) {
+        hooks.onDidMount(nativeNode);
     }
 
     return nativeNode;

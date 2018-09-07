@@ -590,24 +590,24 @@ function updateComponentProps(origin: VNode, newNode: VNode, propsPatch: PropsTy
 
 
 function updateFunctionComponentProps(origin: VNode, newNode: VNode, newProps: PropsType, context) {
-    let refs = newNode.refs;
-    if (refs && refs.onComponentShouldUpdate) {// 应用新节点的 hook
-        if (!refs.onComponentShouldUpdate(origin.props, newProps)) {
+    let hooks = newNode.hooks;
+    if (hooks && hooks.onShouldUpdate) {// 应用新节点的 hook
+        if (!hooks.onShouldUpdate(origin.props, newProps)) {
             newNode.lastResult = origin.lastResult;// sync lastResult
             return;
         }
     }
 
-    if (refs && refs.onComponentWillUpdate) {// 应用新节点的 hook
-        refs.onComponentWillUpdate(origin.props, newProps);
+    if (hooks && hooks.onWillUpdate) {// 应用新节点的 hook
+        hooks.onWillUpdate(origin.props, newProps);
     }
 
     let currResult: VNode = (origin.instance as Function)(newProps, context) || createVoidNode();
     diff(origin.lastResult, currResult, context)
     newNode.lastResult = currResult;
 
-    if (refs && refs.onComponentDidUpdate) {// 应用新节点的 hook
-        refs.onComponentDidUpdate(origin.props, newProps);
+    if (hooks && hooks.onDidUpdate) {// 应用新节点的 hook
+        hooks.onDidUpdate(origin.props, newProps);
     }
 
 }
@@ -646,8 +646,8 @@ function unmountHooks(vnode: VNode) {
             // first hook children
             unmountHooks(vnode.lastResult);
             //second self
-            if (vnode.refs && vnode.refs.onComponentWillUnmount) {
-                vnode.refs.onComponentWillUnmount(findNativeNodeByVNode(vnode));
+            if (vnode.hooks && vnode.hooks.onWillUnmount) {
+                vnode.hooks.onWillUnmount(findNativeNodeByVNode(vnode));
             }
         } else if ((vnode.type & VNodeType.ComponentClass) > 0) {
             let instance = vnode.instance as Component;

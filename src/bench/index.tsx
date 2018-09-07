@@ -48,7 +48,7 @@ function Row(props) {
     )
 }
 
-function onComponentShouldUpdate(lastProps, nextProps) {
+function onShouldUpdate(lastProps, nextProps) {
     return nextProps.d.label !== lastProps.d.label || nextProps.selected !== lastProps.selected;
 }
 
@@ -62,7 +62,7 @@ function createRows(store, deleteFunc, selectFunc) {
         const id = d.id;
 
         rows.push(
-            <Row key={id} d={d} id={id} selected={selected === id} deleteFunc={deleteFunc} selectFunc={selectFunc} onComponentShouldUpdate={onComponentShouldUpdate} />
+            <Row key={id} d={d} id={id} selected={selected === id} deleteFunc={deleteFunc} selectFunc={selectFunc} onShouldUpdate={onShouldUpdate} />
         );
     }
     return <tbody>{rows}</tbody>;
