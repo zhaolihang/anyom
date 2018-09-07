@@ -24,7 +24,7 @@ export function findNativeNodeByVNode(vnode: VNode): NativeNode {
 }
 
 
-export function render(vnode: VNode, parentNode: NativeNode, context: object | null): NativeNode {
+export function render(vnode: VNode, parentNode: NativeNode, context?: object | null): NativeNode {
     if (!vnode) {
         return;
     }

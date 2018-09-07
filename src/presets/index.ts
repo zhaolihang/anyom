@@ -1,4 +1,4 @@
-import { setCommand, getCommand } from "../commands";
+import { setCommand } from "../core";
 
 const log = console.log;
 {//init html
@@ -14,7 +14,7 @@ const log = console.log;
 
 const draggableDataName = 'html_draggable_droppable_dataname';
 setCommand('draggable', {
-    bind(node, newValue) {
+    inserted(node, newValue) {
         log('draggable bind');
         node.draggable = true;
         const data = newValue;
@@ -35,7 +35,7 @@ setCommand('draggable', {
                 return false
             };
         };
-        addDragCb(node);
+        addDragCb(<any>node);
     },
 
     update(node, newValue, oldValue) {
@@ -44,7 +44,7 @@ setCommand('draggable', {
         node[draggableDataName] = data;
     },
 
-    unbind(node, oldValue) {
+    remove(node, oldValue) {
         log('draggable unbind');
     },
 
@@ -52,7 +52,7 @@ setCommand('draggable', {
 
 setCommand('droppable', {
 
-    bind(node, newValue) {
+    inserted(node, newValue) {
         log('droppable bind');
         const cb = newValue;
         let startColor = undefined;
@@ -112,7 +112,7 @@ setCommand('droppable', {
         log('droppable update');
     },
 
-    unbind(node) {
+    remove(node) {
         log('droppable unbind');
     },
 
@@ -120,10 +120,10 @@ setCommand('droppable', {
 
 setCommand('dragmove', {
 
-    bind(node, newValue) {
+    inserted(node, newValue) {
         log('dragmove bind');
 
-        let dragEl: HTMLElement = node;
+        let dragEl: HTMLElement = <any>node;
         dragEl.style.position = 'fixed';
 
         let nMouseX, nMouseY, nStartX, nStartY;
@@ -197,7 +197,7 @@ setCommand('dragmove', {
         log('dragmove update');
     },
 
-    unbind(node) {
+    remove(node) {
         log('dragmove unbind');
     },
 
