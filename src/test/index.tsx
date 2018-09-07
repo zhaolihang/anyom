@@ -5,7 +5,6 @@ import { Component } from "../core/component";
 import { setCommand } from "../core/command";
 let body = document.body
 let log = console.log;
-let vnode1, vnode2;
 
 setCommand('cmd-tester', {
     inserted(node, newV) {
@@ -50,8 +49,8 @@ function AbstructCom3(props) {
     return <AbstructCom2 nouse={props.nouse} cmd-tester={props.nouse}></AbstructCom2>
 }
 
-vnode1 = <div><AbstructCom3 nouse={0}></AbstructCom3></div>
-vnode2 = <div><AbstructCom3 nouse={1}></AbstructCom3></div>
+let vnode1 = <div><AbstructCom3 nouse={0}></AbstructCom3></div>
+let vnode2 = <div><AbstructCom3 nouse={1}></AbstructCom3></div>
 
 let ele = render(vnode1, body, null)
 // log(vnode1)
