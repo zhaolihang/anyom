@@ -1,6 +1,6 @@
 import { VNode, TagName, PropsType, VNodeType } from "./vnode";
 import { isObject, isUndefined } from "./shared";
-import { findNativeNodeByVNode, render, removeSelf, replaceSelf, insertBeforeSelf, insertBeforeMoved, hanleEvent, appendMoved, applyElementPropsPatch, updateTextProps, applyCmdUpdate, applyCmdRemove, applyCmdInserted } from "./render";
+import { findNativeNodeByVNode, render, removeSelf, replaceSelf, insertBeforeSelf, insertBeforeMoved, handleEvent, appendMoved, applyElementPropsPatch, updateTextProps, applyCmdUpdate, applyCmdRemove, applyCmdInserted } from "./render";
 import { NativeNode, createVoidNode, Cmds } from "./vnode";
 import { Component } from "./component";
 import { isEventAttr, isArray, isFunction, isNullOrUndef, EMPTY_OBJ } from "./shared";

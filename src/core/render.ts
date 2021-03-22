@@ -192,7 +192,7 @@ function addElementProps(origin: VNode, props: PropsType) {
             }
         } else {
             if (isEventAttr(propName)) {
-                hanleEvent(naviveNode, propName, propValue)
+                handleEvent(naviveNode, propName, propValue)
             } else {
                 naviveNode[propName] = propValue;
             }
@@ -238,7 +238,7 @@ function updateElementProps(origin, props: PropsType) {
             }
         } else {
             if (isEventAttr(propName)) {
-                hanleEvent(naviveNode, propName, propValue)
+                handleEvent(naviveNode, propName, propValue)
             } else {
                 naviveNode[propName] = propValue;
             }
@@ -265,7 +265,7 @@ export function updateTextProps(origin: VNode, propsPatch: PropsPatch) {
 }
 
 
-export function hanleEvent(naviveNode: NativeNode, eventName, eventValue) {
+export function handleEvent(naviveNode: NativeNode, eventName, eventValue) {
     eventName = eventName.toLowerCase();
     if (!isFunction(eventValue) && !isNullOrUndef(eventValue)) {
         const linkEvent = eventValue.event;
