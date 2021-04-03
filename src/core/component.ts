@@ -3,12 +3,6 @@ import { queueComponent } from "./scheduler";
 import { diff } from "./diff-patch";
 import { isFunction, combineFrom, isNullOrUndef } from "./shared";
 
-export enum RenderMode {
-    None = 0,
-    SYNC,
-    ASYNC,
-}
-
 export function linkEvent(data, event) {
     if (isFunction(event)) {
         return { data, event };

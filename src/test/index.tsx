@@ -49,8 +49,8 @@ function AbstructCom3(props) {
     return <AbstructCom2 nouse={props.nouse} cmd-tester={props.nouse}></AbstructCom2>
 }
 
-let vnode1 = <div><AbstructCom3 nouse={0}></AbstructCom3></div>
-let vnode2 = <div><AbstructCom3 nouse={1}></AbstructCom3></div>
+let vnode1 = <div style={{ background: "blue" }} ><AbstructCom3 nouse={0}></AbstructCom3></div>
+let vnode2 = <div style={{ background: "red" }} ><AbstructCom3 nouse={1}></AbstructCom3></div>
 
 let ele = render(vnode1, body, null)
 // log(vnode1)

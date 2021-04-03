@@ -200,7 +200,7 @@ function addElementProps(origin: VNode, props: PropsType) {
     }
 }
 
-function removeElementProps(origin, props: PropsType) {
+function removeElementProps(origin: VNode, props: PropsType) {
     let naviveNode = origin.instance as HTMLElement
     for (let propName in props) {
         let propValue = props[propName];
@@ -217,7 +217,7 @@ function removeElementProps(origin, props: PropsType) {
 }
 
 
-function updateElementProps(origin, props: PropsType) {
+function updateElementProps(origin: VNode, props: PropsType) {
     let naviveNode = origin.instance as HTMLElement
 
     for (let propName in props) {
@@ -230,9 +230,24 @@ function updateElementProps(origin, props: PropsType) {
                     naviveNode.style.cssText = propValue;
                 } else if (typeof propValue === 'object') {
                     let previous = origin.props;
-                    let stylePatch = shallowDiffProps(previous || previous['style'], propValue);
-                    for (let styleName in stylePatch) {
-                        naviveNode.style[styleName] = stylePatch[styleName];
+                    let stylePatch = shallowDiffProps(previous && previous['style'], propValue);
+                    if (stylePatch.added) {
+                        var styles = stylePatch.added;
+                        for (let styleName in styles) {
+                            naviveNode.style[styleName] = styles[styleName];
+                        }
+                    }
+                    if (stylePatch.removed) {
+                        var styles = stylePatch.removed;
+                        for (let styleName in styles) {
+                            delete naviveNode.style[styleName];
+                        }
+                    }
+                    if (stylePatch.update) {
+                        var styles = stylePatch.update;
+                        for (let styleName in styles) {
+                            naviveNode.style[styleName] = styles[styleName];
+                        }
                     }
                 }
             }

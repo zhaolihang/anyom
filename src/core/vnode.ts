@@ -142,8 +142,10 @@ export function h(tag: TagName, props?: PropsType): VNode {
                 key = props.key;
             } else if (tmp === 'ref') {
                 ref = props.ref;
-            } else if (!isInvalid(props.children)) {
-                stack.push(props.children as any);
+                // } else if (!isInvalid(props.children)) {
+                // if (props.children.length > 0) {
+                //     stack.push(props.children as any);
+                // }
             } else if (FunCompHooks.has(tmp)) {
                 if (!hooks) { hooks = {}; }
                 hooks[tmp] = props[tmp];
