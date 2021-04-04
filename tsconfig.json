@@ -8,7 +8,7 @@
         "listFiles": true,
         "strictNullChecks": false,
         "importHelpers": true,
-        "outDir": "tscdist",
+        "outDir": "disttsc",
         "jsx": "react",
         "jsxFactory": "h",
         "moduleResolution": "node",

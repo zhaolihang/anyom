@@ -14,14 +14,14 @@ export default {
         typescript({
             typescript: require('typescript'),
         }),
-        // uglify(),
+        uglify(),
 
         replacePlugin({
             "process.env.NODE_ENV": JSON.stringify('dev')
         }),
     ],
     dest: './dist/index.js',
-    moduleName: 'Anyom',
+    moduleName: 'AnyUI',
     sourceMap: true,
     exports: 'named',
 }

@@ -1,16 +1,9 @@
 {
-  "name": "anyom",
+  "name": "anyui",
   "version": "0.0.6",
-  "description": "gzip 5kb!  Any object model , such dom ... ,can adapt native App like ReactNative weex",
+  "description": "gzip 5kb!  Any UI , such dom ... ,can adapt native App like ReactNative weex",
   "keywords": [
-    "anyom",
-    "vue",
-    "react",
-    "preact",
-    "inferno",
-    "react like",
-    "reactnative",
-    "weex"
+    "anyui"
   ],
   "main": "dist/index.js",
   "scripts": {
@@ -21,17 +14,15 @@
     "build:bench": "rollup -c rollup.config.bench.js",
     "build:test": "rollup -w -c rollup.config.test.js",
     "build:debug": "tsc -w -t es5 -m commonjs",
-    "buildall": "rollup -c & rollup -c rollup.config.bench.js & rollup -c rollup.config.test.js"
+    "build:all": "rollup -c & rollup -c rollup.config.bench.js & rollup -c rollup.config.test.js"
+  },
+  "dependencies": {
+    "tslib": "^1.7.1"
   },
   "devDependencies": {
     "@types/node": "^8.0.24",
-    "babel-core": "^6.26.0",
-    "babel-plugin-anyom": "^0.0.4",
-    "babel-plugin-transform-react-jsx": "^6.24.1",
-    "classnames": "^2.2.5",
     "del-cli": "^1.1.0",
     "rollup": "^0.43.0",
-    "rollup-plugin-babel": "^3.0.2",
     "rollup-plugin-commonjs": "^8.2.1",
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-plugin-replace": "^2.0.0",
@@ -40,15 +31,5 @@
     "rollup-watch": "^4.3.1",
     "throttle-debounce": "^1.0.1",
     "typescript": "^2.5.3"
-  },
-  "author": "625335512@qq.com",
-  "homepage": "https://github.com/zhaolihang/anyom",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/zhaolihang/anyom.git"
-  },
-  "license": "ISC",
-  "dependencies": {
-    "tslib": "^1.7.1"
   }
 }
