@@ -2,7 +2,6 @@
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import typescript from 'rollup-plugin-typescript';
-import babel from 'rollup-plugin-babel';
 import uglify from 'rollup-plugin-uglify';
 import replacePlugin from 'rollup-plugin-replace';
 
@@ -21,7 +20,7 @@ export default {
         uglify(),
     ],
     dest: './distbench/index.js',
-    moduleName: 'Anyombench',
+    moduleName: 'AnyUIBench',
     sourceMap: true,
     context: 'window',
 }
