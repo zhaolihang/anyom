@@ -1,3 +1,4 @@
+// scheduler.ts
 import { Component } from "./component";
 
 const MAX_UPDATE_COUNT = 100;

@@ -1,3 +1,4 @@
+// component.ts
 import { VNode, createVoidNode } from "./vnode";
 import { queueComponent } from "./scheduler";
 import { diff } from "./diff-patch";

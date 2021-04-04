@@ -1,3 +1,4 @@
+// index.ts
 import { setCommand, getCommand } from "./command";
 import { h, VNode, cloneVNode } from "./vnode";
 import { Component, linkEvent } from "./component";

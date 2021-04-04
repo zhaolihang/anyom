@@ -1,3 +1,4 @@
+// diff-patch.ts
 import { VNode, PropsType, VNodeType } from "./vnode";
 import { isObject, isUndefined } from "./shared";
 import { findNativeNodeByVNode, render, applyCmdUpdate, applyCmdRemove, applyCmdInserted } from "./render";

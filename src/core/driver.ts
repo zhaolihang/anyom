@@ -1,3 +1,4 @@
+// driver.ts
 import { VNode, NativeNode, PropsType, } from "./vnode";
 import { shallowDiffProps, PropsPatch } from "./diff-patch";
 import { isEventAttr, isFunction, isNullOrUndef } from "./shared";

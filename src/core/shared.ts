@@ -1,4 +1,4 @@
-
+// shared.ts
 export const isBrowser = !!(typeof window !== "undefined" && window.document);
 
 export const isArray = Array.isArray;

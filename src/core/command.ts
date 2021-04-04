@@ -1,3 +1,4 @@
+// command.ts
 import { NativeNode, Cmds } from "./vnode";
 
 export type ICommandObjType = {

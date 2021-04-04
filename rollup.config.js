@@ -14,7 +14,7 @@ export default {
         typescript({
             typescript: require('typescript'),
         }),
-        uglify(),
+        // uglify(),
 
         replacePlugin({
             "process.env.NODE_ENV": JSON.stringify('dev')

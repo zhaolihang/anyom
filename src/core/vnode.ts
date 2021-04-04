@@ -1,3 +1,4 @@
+// vnode.ts
 import { isString, isInvalid, isUndefined } from "./shared";
 import { Component } from "./component";
 import { Commands } from "./command";

@@ -1,3 +1,4 @@
+// render.ts
 import { VNode, VNodeType, NativeNode, createVoidNode, Cmds } from "./vnode";
 import { Component } from "./component";
 import { CommandPatch } from "./diff-patch";
