@@ -1,6 +1,19 @@
 import { h, VNode, VNodeType } from "../core/vnode";
 import { render } from "../core/render";
 import { Component } from "../core/component";
+import { setCommand } from "../core/command";
+let log = console.log;
+setCommand('cmd-tester', {
+    inserted(node, newV) {
+        log('cmd-tester  inserted', node, newV);
+    },
+    update(node, newV, oldV) {
+        log('cmd-tester  update', node, newV, oldV);
+    },
+    remove(node, oldV) {
+        log('cmd-tester  remove', node, oldV);
+    },
+});
 
 class FirstComponent extends Component {
 
@@ -22,32 +35,21 @@ function SecondComponent(props) {
     return <div>Static Component</div>
 }
 
-// let rootVNode = <div><FirstComponent /><SecondComponent /></div>
-// render(rootVNode, document.body);
-
-let body = document.body
-let log = console.log;
-
-import { diff } from "../core/diff-patch";
-
-import { setCommand } from "../core/command";
-setCommand('cmd-tester', {
-    inserted(node, newV) {
-        log('cmd-tester  inserted', node, newV);
-    },
-    update(node, newV, oldV) {
-        log('cmd-tester  update', node, newV, oldV);
-    },
-    remove(node, oldV) {
-        log('cmd-tester  remove', node, oldV);
-    },
-});
 function PluginTest(props) {
     let num = Math.random();
-    return <div cmd-tester={num}>Static Component</div>
+    return <div cmd-tester={num}>PluginTest+{num}</div>
 }
-let rootVNode = <PluginTest />
+
+let rootVNode = <div><FirstComponent /><SecondComponent /><PluginTest /></div>
 render(rootVNode, document.body);
+
+
+
+
+
+let body = document.body
+import { diff } from "../core/diff-patch";
+
 
 // class AbstructCom0 extends Component {
 //     render() {
