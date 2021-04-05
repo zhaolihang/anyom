@@ -49,19 +49,41 @@ function AbstructCom3(props) {
     return <AbstructCom2 nouse={props.nouse} cmd-tester={props.nouse}></AbstructCom2>
 }
 
-let vnode1 = <div style={{ background: "blue" }} ><AbstructCom3 nouse={0}></AbstructCom3></div>
-let vnode2 = <div style={{ background: "red" }} ><AbstructCom3 nouse={1}></AbstructCom3></div>
 
-let ele = render(vnode1, body, null)
+
+class FirstComponent extends Component {
+    state = { clickCount: 0 }
+    private onClick() {
+        this.state.clickCount++;
+        this.setState(this.state);
+    }
+    render() {
+        return <div onClick={this.onClick.bind(this)}>{'clickCount:' + this.state.clickCount}</div>
+    }
+}
+
+function SecondComponent(props) {
+    return <div>Static Component</div>
+}
+
+let rootVNode = <div><FirstComponent /><SecondComponent /></div>
+render(rootVNode, document.body, null)
+
+
+
+// let vnode1 = <div style={{ background: "blue" }} ><AbstructCom3 nouse={0}></AbstructCom3></div>
+// let vnode2 = <div style={{ background: "red" }} ><AbstructCom3 nouse={1}></AbstructCom3></div>
+
+// let ele = render(vnode1, body, null)
 // log(vnode1)
 
-let debug = 0;
-setTimeout(() => {
+// let debug = 0;
+// setTimeout(() => {
 
-    diff(vnode1, vnode2, null)
-    // log(vnode2);
+//     diff(vnode1, vnode2, null)
+//     // log(vnode2);
 
-}, 1000);
+// }, 1000);
 
 
 
