@@ -1,9 +1,9 @@
 {
-  "name": "anyui",
+  "name": "anyom",
   "version": "0.0.6",
   "description": "gzip 5kb!  Any UI , such dom ... ,can adapt native App like ReactNative weex",
   "keywords": [
-    "anyui"
+    "anyom"
   ],
   "main": "dist/index.js",
   "scripts": {

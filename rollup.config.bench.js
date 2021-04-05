@@ -20,7 +20,7 @@ export default {
         uglify(),
     ],
     dest: './distbench/index.js',
-    moduleName: 'AnyUIBench',
+    moduleName: 'AnyOMBench',
     sourceMap: true,
     context: 'window',
 }

@@ -70,7 +70,7 @@ function createRows(store, deleteFunc, selectFunc) {
 
 const title = (
     <div className="col-md-6" >
-        <h1 >anyui 0.0.1</h1>
+        <h1 >anyom 0.0.6</h1>
     </div>
 );
 const span2 = <span className="preloadicon glyphicon glyphicon-remove" aria-hidden="true" ></span>;

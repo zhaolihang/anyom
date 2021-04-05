@@ -21,7 +21,7 @@ export default {
         }),
     ],
     dest: './dist/index.js',
-    moduleName: 'AnyUI',
+    moduleName: 'AnyOM',
     sourceMap: true,
     exports: 'named',
 }

@@ -18,7 +18,7 @@ export default {
         }),
     ],
     dest: './disttest/index.js',
-    moduleName: 'AnyUITest',
+    moduleName: 'AnyOMTest',
     sourceMap: true,
     context: 'window',
 }
