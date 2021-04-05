@@ -58,11 +58,11 @@ function getVNodeType(type: any): VNodeType {
 }
 
 export const enum VNodeType {
-    Text = 1,
-    Element = 1 << 1,
+    Text = 1, // 纯文本
+    Element = 1 << 1, // html节点
 
-    ComponentClass = 1 << 2,
-    ComponentFunction = 1 << 3,
+    ComponentClass = 1 << 2, // 继承自Component类的组件
+    ComponentFunction = 1 << 3, // 纯函数组件
     Component = ComponentFunction | ComponentClass,
 
     Void = 1 << 30,
